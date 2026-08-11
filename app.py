@@ -197,10 +197,12 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. DYNAMIC SIDEBAR FILTERS (SUN - THU)
+# 4. ADVANCED TIME BLOCK FILTERS (HOUR BY HOUR)
 # ==========================================
-st.sidebar.header("Day & Time Matrix Filters")
-st.sidebar.caption("Check days and adjust acceptable hours (08 to 18).")
+st.sidebar.header("Advanced Hour Matrix Filters")
+st.sidebar.caption(
+    "Uncheck specific hours to block classes (e.g., uncheck 12 for a break)."
+)
 
 days_config = {
     1: ("Sunday (Day 1)", False),
@@ -210,22 +212,28 @@ days_config = {
     5: ("Thursday (Day 5)", True),
 }
 
-day_filters = {}
+day_allowed_hours = {}
 for day_num, (label, default_val) in days_config.items():
   is_on = st.sidebar.checkbox(label, value=default_val)
-  time_range = (
-      st.sidebar.slider(f"{label} Hours", 8, 18, (8, 18)) if is_on else (0, 0)
-  )
-  day_filters[day_num] = {"on": is_on, "range": time_range}
+  if is_on:
+    with st.sidebar.expander(f"🕒 Configure Hours for {label}"):
+      allowed_hrs = []
+      for hr in range(8, 19):
+        # Default active from 8 to 15, but let user toggle individual hours
+        default_hour_state = True if 8 <= hr <= 15 else False
+        if st.checkbox(
+            f"{hr}:00 - {hr+1}:00", value=default_hour_state, key=f"d{day_num}_h{hr}"
+        ):
+          allowed_hrs.append(hr)
+      day_allowed_hours[day_num] = allowed_hrs
+  else:
+    day_allowed_hours[day_num] = []
 
 
 def is_valid_time(row):
-  day, start, end = row["day"], row["start_time"], row["end_time"]
-  config = day_filters.get(day)
-  if config and config["on"]:
-    r_start, r_end = config["range"]
-    return r_start <= start and end <= r_end
-  return False
+  day, start = row["day"], row["start_time"]
+  allowed = day_allowed_hours.get(day, [])
+  return start in allowed
 
 
 parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
@@ -321,6 +329,7 @@ if len(target_subjects) < total_required_subjects:
       " subjects remaining after filters. Check your filters or rules."
   )
 
+
 @st.cache_data
 def generate_schedules(subjects_dict, targets):
   valid_schedules = []
@@ -349,11 +358,13 @@ def generate_schedules(subjects_dict, targets):
   backtrack(0, [], set())
   return valid_schedules
 
+
 schedules = (
     generate_schedules(sections_by_subject, target_subjects)
     if target_subjects
     else []
 )
+
 
 def calculate_schedule_score(schedule):
   day_slots = {}
@@ -372,6 +383,7 @@ def calculate_schedule_score(schedule):
       gaps = span - len(times)
       total_gaps += gaps
   return total_gaps
+
 
 schedules = sorted(schedules, key=calculate_schedule_score)
 
