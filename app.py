@@ -197,10 +197,10 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. SIMPLIFIED SLIDER FILTERS + EXCEPTION DOCK
+# 4. SLIDER FILTERS + EXPANDABLE EXCEPTION DOCK
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
-st.sidebar.caption("Set acceptable hour ranges and create exceptions (e.g., lunch breaks).")
+st.sidebar.caption("Set acceptable hour ranges for each day.")
 
 days_config = {
     1: ("Sunday (Day 1)", False),
@@ -217,21 +217,21 @@ for day_num, (label, default_val) in days_config.items():
   is_on = st.sidebar.checkbox(label, value=default_val)
   if is_on:
     time_range = st.sidebar.slider(f"{label} Hours", 8, 18, (8, 18))
-    # Exception dock to drop specific hours (like 12 to 13 for lunch/chutti)
-    excluded_input = st.sidebar.text_input(
-        f"Block Hours for {label} (e.g. 12, 13)",
-        value="",
-        key=f"ex_{day_num}",
-        placeholder="Comma separated hours",
-    )
     
-    # Parse exceptions
+    # Exception dock hidden inside an expander so it's clean and expandable only when needed
     ex_list = []
-    if excluded_input.strip():
-      try:
-        ex_list = [int(x.strip()) for x in excluded_input.split(",") if x.strip().isdigit()]
-      except ValueError:
-        pass
+    with st.sidebar.expander(f"⚙️ Advanced Exceptions for {label} (Optional)"):
+      excluded_input = st.text_input(
+          f"Block specific hours (e.g. 12, 13)",
+          value="",
+          key=f"ex_{day_num}",
+          placeholder="Comma separated hours",
+      )
+      if excluded_input.strip():
+        try:
+          ex_list = [int(x.strip()) for x in excluded_input.split(",") if x.strip().isdigit()]
+        except ValueError:
+          pass
 
     day_filters[day_num] = {'range': time_range}
     day_exceptions[day_num] = ex_list
@@ -244,7 +244,6 @@ def is_valid_time(row):
   config = day_filters.get(day)
   if config is not None:
     r_start, r_end = config['range']
-    # Check if within range and NOT in exception dock
     if r_start <= start <= r_end:
       if start not in day_exceptions.get(day, []):
         return True
@@ -560,7 +559,7 @@ else:
 
   with c_next:
     if st.button("▶", key="next_btn", use_container_width=True):
-      if st.session_state.sched_idx < len(schedules - 1):
+      if st.session_state.sched_idx < len(schedules) - 1:
         st.session_state.sched_idx += 1
       else:
         st.session_state.sched_idx = 0
