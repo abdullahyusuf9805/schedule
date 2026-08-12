@@ -65,49 +65,38 @@ st.markdown(
            UI TIGHTENING CSS (Squish Elements in Card) 
            ========================================= */
         
-        /* Remove the default flex-gap inside the bordered card */
-        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
-            gap: 0rem !important;
-        }
-        
-        /* Reduce padding of the card itself */
+        /* Reduce the top/bottom padding of the card itself */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 1rem 0.8rem 0.5rem 0.8rem !important;
+            padding: 1rem 0.8rem 0.8rem 0.8rem !important;
             background-color: #1a1a1a !important;
             border-radius: 8px !important;
             border: 1px solid #2a2a2a !important;
             margin-bottom: 12px !important;
         }
-        
-        /* Squeeze slider and input closer together */
-        [data-testid="stSidebar"] [data-testid="stSlider"] {
-            margin-top: -10px !important;
-            margin-bottom: -5px !important;
-            padding-left: 20px !important;  /* Make room for the left inline label */
-            padding-right: 20px !important; /* Make room for the right inline label */
+
+        /* Tighten gap between checkbox, slider, and text input */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
+            gap: 0.2rem !important;
         }
-        
-        [data-testid="stSidebar"] [data-testid="stTextInput"] {
-            margin-top: 5px !important;
-            margin-bottom: 0px !important;
-        }
-        
+
+        /* Style the Exception Text Input */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             font-size: 0.85rem !important;
             background-color: #121212 !important;
-            border-color: #2a2a2a !important;
+            border-color: #333333 !important;
+            margin-top: 5px !important;
         }
 
         /* =========================================
-           SLIDER INLINE LABELS & THUMB CUSTOMIZATION
+           CLEAN SLIDER CSS (ONLY ONE SET OF NUMBERS)
            ========================================= */
         
-        /* 1. HIDE THE STATIC MIN/MAX LABELS AT THE BOTTOM */
+        /* 1. HIDE THE STATIC MIN/MAX LABELS (8 and 18) */
         [data-testid="stTickBar"] {
             display: none !important;
         }
 
-        /* 2. STYLE THE TOOLTIP TO BE A FLAT INLINE TEXT LABEL */
+        /* 2. STYLE THE DYNAMIC VALUES TO BE INLINE TEXT */
         div[data-baseweb="slider"] div[data-testid="stThumbValue"] {
             background-color: transparent !important;
             color: #ffffff !important;
@@ -115,42 +104,34 @@ st.markdown(
             font-size: 14px !important;
             padding: 0 !important;
             box-shadow: none !important;
-            position: absolute !important;
-            top: 50% !important; /* Center vertically with the track */
-            letter-spacing: 0.5px;
+            border: none !important;
+            /* Drop them down so they align nicely near the thumbs */
+            transform: translateY(24px) !important;
         }
 
-        /* Hide the little triangle arrow pointing down from the tooltip */
+        /* Hide the tiny triangle arrow on the dynamic value tooltip */
         div[data-baseweb="slider"] div[data-testid="stThumbValue"] svg {
             display: none !important;
         }
 
-        /* 3. PUSH LEFT THUMB VALUE TO THE FAR LEFT */
-        div[data-baseweb="slider"] div[role="slider"]:nth-of-type(1) div[data-testid="stThumbValue"] {
-            transform: translate(-140%, -50%) !important;
-        }
-
-        /* 4. PUSH RIGHT THUMB VALUE TO THE FAR RIGHT */
-        div[data-baseweb="slider"] div[role="slider"]:nth-of-type(2) div[data-testid="stThumbValue"] {
-            transform: translate(40%, -50%) !important;
-        }
-        
-        /* Revert thumbs to normal clean sizes */
+        /* Ensure thumbs are clean standard dots */
         div[data-baseweb="slider"] div[role="slider"] {
-            width: 18px !important;
-            height: 18px !important;
+            width: 16px !important;
+            height: 16px !important;
             background-color: #ff4d4d !important;
             border: none !important;
             box-shadow: none !important;
+            outline: none !important;
         }
         
-        /* Styling for Disabled Slider state */
+        /* Disabled Slider Styling */
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
-            background-color: #888888 !important;
+            background-color: #555555 !important;
         }
         div[data-baseweb="slider"][aria-disabled="true"] div[data-testid="stThumbValue"] {
-            color: #888888 !important;
+            color: #777777 !important;
         }
+
     </style>
 """,
     unsafe_allow_html=True,
@@ -285,7 +266,7 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. UI FILTERS (Matching Final Image Logic)
+# 4. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
 
@@ -317,7 +298,7 @@ for day_num, (label, default_val) in days_config.items():
       )
       
       ex_list = []
-      # Exception Dock (Permanently Expanded, cleaner placeholder)
+      # Exception Dock (Permanently Expanded, clean placeholder)
       exception_str = st.text_input(
           "Exceptions", 
           value="",
