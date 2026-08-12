@@ -29,12 +29,14 @@ st.markdown(
             color: #ffffff;
         }
 
+        /* Responsive Title */
         h1 {
             font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
             white-space: nowrap !important;
             color: #ffffff !important;
         }
 
+        /* STRICT ONE-LINE NAVIGATION BAR FOR PREV, SELECT, NEXT */
         .nav-row {
             display: flex;
             flex-direction: row;
@@ -51,6 +53,7 @@ st.markdown(
             flex: 1 1 auto !important;
         }
 
+        /* Center Download Button Container */
         .center-download {
             display: flex;
             flex-direction: column;
@@ -70,44 +73,44 @@ st.markdown(
             gap: 0rem !important;
         }
         
-        /* Reduce padding of the card itself */
+        /* Reduce the top/bottom padding of the card itself */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 1rem 0.8rem 0.5rem 0.8rem !important;
-            background-color: #1a1a1a !important;
-            border-radius: 8px !important;
-            border: 1px solid #2a2a2a !important;
-            margin-bottom: 12px !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.5rem !important;
         }
         
-        /* Squeeze slider and input closer together */
-        [data-testid="stSidebar"] [data-testid="stSlider"] {
-            margin-top: -10px !important;
-            margin-bottom: -5px !important;
-            padding-left: 20px !important;  /* Make room for the left inline label */
-            padding-right: 20px !important; /* Make room for the right inline label */
-        }
-        
+        /* Exception Input styling tweak */
         [data-testid="stSidebar"] [data-testid="stTextInput"] {
-            margin-top: 5px !important;
+            margin-top: -10px !important;
             margin-bottom: 0px !important;
         }
         
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             font-size: 0.85rem !important;
             background-color: #121212 !important;
-            border-color: #2a2a2a !important;
+            border-color: #333333 !important;
         }
 
         /* =========================================
-           SLIDER INLINE LABELS & THUMB CUSTOMIZATION
+           EXACT INLINE SLIDER CUSTOMIZATION
            ========================================= */
         
-        /* 1. HIDE THE STATIC MIN/MAX LABELS AT THE BOTTOM */
-        [data-testid="stTickBar"] {
+        /* 1. Delete bottom static values (8 and 18) */
+        [data-testid="stTickBar"], 
+        [data-testid="stTickBarMin"], 
+        [data-testid="stTickBarMax"] {
             display: none !important;
         }
 
-        /* 2. STYLE THE TOOLTIP TO BE A FLAT INLINE TEXT LABEL */
+        /* Make room on the sides so inline numbers aren't cut off */
+        [data-testid="stSidebar"] [data-testid="stSlider"] {
+            padding-left: 28px !important;
+            padding-right: 28px !important;
+            margin-top: -15px !important;
+            margin-bottom: -10px !important;
+        }
+
+        /* 2. Strip floating tooltip styling & arrow */
         div[data-baseweb="slider"] div[data-testid="stThumbValue"] {
             background-color: transparent !important;
             color: #ffffff !important;
@@ -115,42 +118,43 @@ st.markdown(
             font-size: 14px !important;
             padding: 0 !important;
             box-shadow: none !important;
+            border: none !important;
             position: absolute !important;
-            top: 50% !important; /* Center vertically with the track */
-            letter-spacing: 0.5px;
+            top: 50% !important; /* Vertically center with thumb */
         }
 
-        /* Hide the little triangle arrow pointing down from the tooltip */
         div[data-baseweb="slider"] div[data-testid="stThumbValue"] svg {
             display: none !important;
         }
 
-        /* 3. PUSH LEFT THUMB VALUE TO THE FAR LEFT */
+        /* 3. Inline Slider Values: Push Left Thumb Value Exactly Left */
         div[data-baseweb="slider"] div[role="slider"]:nth-of-type(1) div[data-testid="stThumbValue"] {
-            transform: translate(-140%, -50%) !important;
+            transform: translate(-30px, -50%) !important;
         }
 
-        /* 4. PUSH RIGHT THUMB VALUE TO THE FAR RIGHT */
+        /* Inline Slider Values: Push Right Thumb Value Exactly Right */
         div[data-baseweb="slider"] div[role="slider"]:nth-of-type(2) div[data-testid="stThumbValue"] {
-            transform: translate(40%, -50%) !important;
+            transform: translate(16px, -50%) !important;
         }
-        
-        /* Revert thumbs to normal clean sizes */
+
+        /* Reset Thumbs to standard clean dots */
         div[data-baseweb="slider"] div[role="slider"] {
-            width: 18px !important;
-            height: 18px !important;
+            width: 16px !important;
+            height: 16px !important;
             background-color: #ff4d4d !important;
             border: none !important;
             box-shadow: none !important;
+            outline: none !important;
         }
         
-        /* Styling for Disabled Slider state */
+        /* Disabled Slider Styling */
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
-            background-color: #888888 !important;
+            background-color: #666666 !important;
         }
         div[data-baseweb="slider"][aria-disabled="true"] div[data-testid="stThumbValue"] {
-            color: #888888 !important;
+            color: #666666 !important;
         }
+
     </style>
 """,
     unsafe_allow_html=True,
@@ -285,7 +289,7 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. UI FILTERS (Matching Final Image Logic)
+# 4. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
 
@@ -317,7 +321,7 @@ for day_num, (label, default_val) in days_config.items():
       )
       
       ex_list = []
-      # Exception Dock (Permanently Expanded, cleaner placeholder)
+      # Exception Dock (Permanently Expanded, cleaned up placeholder)
       exception_str = st.text_input(
           "Exceptions", 
           value="",
@@ -363,6 +367,7 @@ def is_valid_time(row):
   config = day_filters.get(day)
   if config is not None:
     r_start, r_end = config["range"]
+    # Check if time is in range and NOT listed in the exception dock
     if r_start <= start <= r_end:
       if start not in day_exceptions.get(day, []):
         return True
