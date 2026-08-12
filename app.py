@@ -29,14 +29,12 @@ st.markdown(
             color: #ffffff;
         }
 
-        /* Responsive Title */
         h1 {
             font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
             white-space: nowrap !important;
             color: #ffffff !important;
         }
 
-        /* STRICT ONE-LINE NAVIGATION BAR FOR PREV, SELECT, NEXT */
         .nav-row {
             display: flex;
             flex-direction: row;
@@ -53,7 +51,6 @@ st.markdown(
             flex: 1 1 auto !important;
         }
 
-        /* Center Download Button Container */
         .center-download {
             display: flex;
             flex-direction: column;
@@ -68,18 +65,15 @@ st.markdown(
            UI TIGHTENING CSS (Squish Elements in Card) 
            ========================================= */
         
-        /* Remove the default flex-gap inside the bordered card */
-        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
-            gap: 0rem !important;
-        }
-        
         /* Reduce the top/bottom padding of the card itself */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.5rem !important;
+            padding: 1rem 0.8rem 0.5rem 0.8rem !important;
+            background-color: #1a1a1a !important;
+            border-radius: 8px !important;
+            border: 1px solid #2a2a2a !important;
+            margin-bottom: 12px !important;
         }
-        
-        /* Exception Input styling tweak */
+
         [data-testid="stSidebar"] [data-testid="stTextInput"] {
             margin-top: -10px !important;
             margin-bottom: 0px !important;
@@ -92,55 +86,29 @@ st.markdown(
         }
 
         /* =========================================
-           EXACT INLINE SLIDER CUSTOMIZATION
+           NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
            ========================================= */
         
-        /* 1. Delete bottom static values (8 and 18) */
+        /* 1. ABSOLUTELY NUKE THE STATIC MIN/MAX LABELS (8 and 18) */
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
         [data-testid="stTickBarMax"] {
             display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
         }
 
-        /* Make room on the sides so inline numbers aren't cut off */
-        [data-testid="stSidebar"] [data-testid="stSlider"] {
-            padding-left: 28px !important;
-            padding-right: 28px !important;
-            margin-top: -15px !important;
-            margin-bottom: -10px !important;
-        }
-
-        /* 2. Strip floating tooltip styling & arrow */
-        div[data-baseweb="slider"] div[data-testid="stThumbValue"] {
-            background-color: transparent !important;
-            color: #ffffff !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-            padding: 0 !important;
-            box-shadow: none !important;
-            border: none !important;
-            position: absolute !important;
-            top: 50% !important; /* Vertically center with thumb */
-        }
-
-        div[data-baseweb="slider"] div[data-testid="stThumbValue"] svg {
+        /* 2. GLOBALLY DESTROY REACT PORTAL TOOLTIPS */
+        div[data-baseweb="tooltip"], 
+        div[role="tooltip"],
+        div[data-testid="stThumbValue"] {
             display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
         }
 
-        /* 3. Inline Slider Values: Push Left Thumb Value Exactly Left */
-        div[data-baseweb="slider"] div[role="slider"]:nth-of-type(1) div[data-testid="stThumbValue"] {
-            transform: translate(-30px, -50%) !important;
-        }
-
-        /* Inline Slider Values: Push Right Thumb Value Exactly Right */
-        div[data-baseweb="slider"] div[role="slider"]:nth-of-type(2) div[data-testid="stThumbValue"] {
-            transform: translate(16px, -50%) !important;
-        }
-
-        /* Reset Thumbs to standard clean dots */
+        /* Clean Normal Size Thumbs */
         div[data-baseweb="slider"] div[role="slider"] {
-            width: 16px !important;
-            height: 16px !important;
             background-color: #ff4d4d !important;
             border: none !important;
             box-shadow: none !important;
@@ -149,12 +117,49 @@ st.markdown(
         
         /* Disabled Slider Styling */
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
-            background-color: #666666 !important;
-        }
-        div[data-baseweb="slider"][aria-disabled="true"] div[data-testid="stThumbValue"] {
-            color: #666666 !important;
+            background-color: #555555 !important;
         }
 
+        /* Squeeze slider columns together */
+        [data-testid="stHorizontalBlock"] {
+            align-items: center !important;
+        }
+        
+        /* =========================================
+           CUSTOM ROUNDED SVG CHEVRON TOGGLE BUTTONS
+           ========================================= */
+        
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button {
+            background-color: #121215 !important;
+            border: 1px solid #22222a !important;
+            border-radius: 8px !important;
+            height: 34px !important;
+            width: 34px !important;
+            min-height: 34px !important;
+            padding: 0 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            box-shadow: none !important;
+            margin-top: -2px !important;
+        }
+        
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button:hover {
+            background-color: #1a1a20 !important;
+            border-color: #ff4d4d !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button p {
+            color: transparent !important; 
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="%23ffffff" xmlns="http://www.w3.org/2000/svg"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>') !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            background-size: 20px 20px !important; 
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            transition: transform 0.3s ease-in-out !important; 
+        }
     </style>
 """,
     unsafe_allow_html=True,
@@ -304,52 +309,85 @@ days_config = {
 day_filters = {}
 day_exceptions = {}
 
-for day_num, (label, default_val) in days_config.items():
-  # Create a visual card container
-  with st.sidebar.container(border=True):
-    # Checkbox
-    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
+for i, (day_num, (label, default_val)) in enumerate(days_config.items()):
+  exp_key = f"expand_state_{day_num}"
+  if exp_key not in st.session_state:
+    st.session_state[exp_key] = False
 
-    # Time Slider and Exception Logic
+  with st.sidebar.container(border=True):
+    col_chk, col_btn = st.columns([0.85, 0.15])
+    
+    with col_chk:
+      is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
+      
+    with col_btn:
+      if st.session_state[exp_key]:
+        st.markdown(
+            f"""<style>
+            [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:nth-of-type({i+1}) div[data-testid="column"]:nth-child(2) button p {{
+                transform: rotate(180deg) !important;
+            }}
+            </style>""",
+            unsafe_allow_html=True
+        )
+      
+      if st.button(" ", key=f"btn_toggle_{day_num}", use_container_width=True):
+        st.session_state[exp_key] = not st.session_state[exp_key]
+        st.rerun()
+
     if is_on:
-      # Enabled Slider - format="%02d" keeps the 09, 16 formatting
-      time_range = st.slider(
-          "Hours", 8, 18, (8, 18), 
-          format="%02d",
-          key=f"slide_{day_num}", 
-          label_visibility="collapsed"
-      )
+      # Retrieve current slider values directly from session state or default
+      curr_val = st.session_state.get(f"slide_{day_num}", (8, 18))
+      
+      # 3-Column Layout to force numbers perfectly inline with the slider
+      c_left, c_mid, c_right = st.columns([0.15, 0.7, 0.15], gap="small")
+      
+      with c_left:
+          st.markdown(f"<div style='text-align: right; font-weight: 600; font-size: 14px; color: #fff; transform: translateY(8px);'>{curr_val[0]:02d}</div>", unsafe_allow_html=True)
+          
+      with c_mid:
+          time_range = st.slider(
+              "Hours", 8, 18, (8, 18), 
+              key=f"slide_{day_num}", 
+              label_visibility="collapsed"
+          )
+          
+      with c_right:
+          st.markdown(f"<div style='text-align: left; font-weight: 600; font-size: 14px; color: #fff; transform: translateY(8px);'>{curr_val[1]:02d}</div>", unsafe_allow_html=True)
       
       ex_list = []
-      # Exception Dock (Permanently Expanded, cleaned up placeholder)
-      exception_str = st.text_input(
-          "Exceptions", 
-          value="",
-          placeholder="Enter Excepted Hours", 
-          key=f"txt_{day_num}", 
-          label_visibility="collapsed"
-      )
-      
-      if exception_str.strip():
-        try:
-          ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
-        except ValueError:
-          pass
+      if st.session_state[exp_key]:
+        exception_str = st.text_input(
+            "Exceptions", 
+            value="",
+            placeholder="Enter Excepted Hours", 
+            key=f"txt_{day_num}", 
+            label_visibility="collapsed"
+        )
+        if exception_str.strip():
+          try:
+            ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
+          except ValueError:
+            pass
 
       day_filters[day_num] = {"range": time_range}
       day_exceptions[day_num] = ex_list
 
     else:
-      # Disabled Slider
-      st.slider(
-          "Hours", 8, 18, (8, 18), 
-          format="%02d",
-          disabled=True, 
-          key=f"slide_dis_{day_num}", 
-          label_visibility="collapsed"
-      )
+      # Disabled Layout
+      c_left, c_mid, c_right = st.columns([0.15, 0.7, 0.15], gap="small")
+      with c_left:
+          st.markdown("<div style='text-align: right; font-weight: 600; font-size: 14px; color: #666; transform: translateY(8px);'>08</div>", unsafe_allow_html=True)
+      with c_mid:
+          st.slider(
+              "Hours", 8, 18, (8, 18), 
+              disabled=True, 
+              key=f"slide_dis_{day_num}", 
+              label_visibility="collapsed"
+          )
+      with c_right:
+          st.markdown("<div style='text-align: left; font-weight: 600; font-size: 14px; color: #666; transform: translateY(8px);'>18</div>", unsafe_allow_html=True)
       
-      # Disabled Exception Dock
       st.text_input(
           "Exceptions", 
           value="",
@@ -367,7 +405,6 @@ def is_valid_time(row):
   config = day_filters.get(day)
   if config is not None:
     r_start, r_end = config["range"]
-    # Check if time is in range and NOT listed in the exception dock
     if r_start <= start <= r_end:
       if start not in day_exceptions.get(day, []):
         return True
