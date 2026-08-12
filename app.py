@@ -95,46 +95,6 @@ st.markdown(
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             font-size: 0.85rem !important;
         }
-
-        /* =========================================
-           CUSTOM ROUNDED SVG CHEVRON TOGGLE BUTTONS
-           ========================================= */
-        
-        /* Shape the button container into a rounded square */
-        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button {
-            background-color: #121215 !important;
-            border: 1px solid #22222a !important;
-            border-radius: 8px !important;
-            height: 34px !important;
-            width: 34px !important;
-            min-height: 34px !important;
-            padding: 0 !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            box-shadow: none !important;
-            margin-top: -2px !important;
-        }
-        
-        /* Button Hover Effect */
-        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button:hover {
-            background-color: #1a1a20 !important;
-            border-color: #ff4d4d !important;
-        }
-
-        /* Replace default text with the Exact User-Provided SVG via Data-URI */
-        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button p {
-            color: transparent !important; /* Hides default label */
-            /* User's Exact SVG Path injected perfectly centered */
-            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="%23ffffff" xmlns="http://www.w3.org/2000/svg"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>') !important;
-            background-repeat: no-repeat !important;
-            background-position: center !important;
-            background-size: 20px 20px !important; /* Exact 1.25rem mapping */
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            transition: transform 0.3s ease-in-out !important; /* Smooth flip animation */
-        }
     </style>
 """,
     unsafe_allow_html=True,
@@ -284,36 +244,11 @@ days_config = {
 day_filters = {}
 day_exceptions = {}
 
-for i, (day_num, (label, default_val)) in enumerate(days_config.items()):
-  # Track expander state in session memory
-  exp_key = f"expand_state_{day_num}"
-  if exp_key not in st.session_state:
-    st.session_state[exp_key] = False
-
+for day_num, (label, default_val) in days_config.items():
   # Create a visual card container
   with st.sidebar.container(border=True):
-    # Header Row: Checkbox on left, Arrow button on right
-    col1, col2 = st.columns([0.85, 0.15])
-    
-    with col1:
-      is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
-      
-    with col2:
-      # If Expanded, trigger a smooth 180 degree flip animation on the SVG chevron
-      if st.session_state[exp_key]:
-        st.markdown(
-            f"""<style>
-            [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:nth-of-type({i+1}) div[data-testid="column"]:nth-child(2) button p {{
-                transform: rotate(180deg) !important;
-            }}
-            </style>""",
-            unsafe_allow_html=True
-        )
-      
-      # The label " " acts as an invisible placeholder so our CSS can apply the SVG
-      if st.button(" ", key=f"btn_toggle_{day_num}", use_container_width=True):
-        st.session_state[exp_key] = not st.session_state[exp_key]
-        st.rerun()
+    # Checkbox
+    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
 
     # Time Slider and Exception Logic
     if is_on:
@@ -325,20 +260,20 @@ for i, (day_num, (label, default_val)) in enumerate(days_config.items()):
       )
       
       ex_list = []
-      # Show Exception Dock only if Expanded
-      if st.session_state[exp_key]:
-        exception_str = st.text_input(
-            "Exceptions", 
-            value="",
-            placeholder="Enter Excepted Hours (Comma separated)", 
-            key=f"txt_{day_num}", 
-            label_visibility="collapsed"
-        )
-        if exception_str.strip():
-          try:
-            ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
-          except ValueError:
-            pass
+      # Exception Dock (Permanently Expanded)
+      exception_str = st.text_input(
+          "Exceptions", 
+          value="",
+          placeholder="Enter Excepted Hours (Comma separated)", 
+          key=f"txt_{day_num}", 
+          label_visibility="collapsed"
+      )
+      
+      if exception_str.strip():
+        try:
+          ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
+        except ValueError:
+          pass
 
       day_filters[day_num] = {"range": time_range}
       day_exceptions[day_num] = ex_list
@@ -351,6 +286,17 @@ for i, (day_num, (label, default_val)) in enumerate(days_config.items()):
           key=f"slide_dis_{day_num}", 
           label_visibility="collapsed"
       )
+      
+      # Disabled Exception Dock
+      st.text_input(
+          "Exceptions", 
+          value="",
+          placeholder="Enter Excepted Hours (Comma separated)", 
+          key=f"txt_dis_{day_num}", 
+          label_visibility="collapsed",
+          disabled=True
+      )
+      
       day_filters[day_num] = None
       day_exceptions[day_num] = []
 
