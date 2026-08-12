@@ -197,12 +197,10 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. ADVANCED TIME BLOCK FILTERS (HOUR BY HOUR)
+# 4. SIMPLIFIED SLIDER FILTERS + EXCEPTION DOCK
 # ==========================================
-st.sidebar.header("Advanced Hour Matrix Filters")
-st.sidebar.caption(
-    "Uncheck specific hours to block classes (e.g., uncheck 12 for a break)."
-)
+st.sidebar.header("Day & Time Matrix Filters")
+st.sidebar.caption("Set acceptable hour ranges and create exceptions (e.g., lunch breaks).")
 
 days_config = {
     1: ("Sunday (Day 1)", False),
@@ -212,32 +210,49 @@ days_config = {
     5: ("Thursday (Day 5)", True),
 }
 
-day_allowed_hours = {}
+day_filters = {}
+day_exceptions = {}
+
 for day_num, (label, default_val) in days_config.items():
   is_on = st.sidebar.checkbox(label, value=default_val)
   if is_on:
-    with st.sidebar.expander(f"🕒 Configure Hours for {label}"):
-      allowed_hrs = []
-      for hr in range(8, 19):
-        default_hour_state = True if 8 <= hr <= 15 else False
-        if st.checkbox(
-            f"{hr}:00 - {hr+1}:00", value=default_hour_state, key=f"d{day_num}_h{hr}"
-        ):
-          allowed_hrs.append(hr)
-      day_allowed_hours[day_num] = allowed_hrs
-  else:
-    day_allowed_hours[day_num] = []
+    time_range = st.sidebar.slider(f"{label} Hours", 8, 18, (8, 18))
+    # Exception dock to drop specific hours (like 12 to 13 for lunch/chutti)
+    excluded_input = st.sidebar.text_input(
+        f"Block Hours for {label} (e.g. 12, 13)",
+        value="",
+        key=f"ex_{day_num}",
+        placeholder="Comma separated hours",
+    )
+    
+    # Parse exceptions
+    ex_list = []
+    if excluded_input.strip():
+      try:
+        ex_list = [int(x.strip()) for x in excluded_input.split(",") if x.strip().isdigit()]
+      except ValueError:
+        pass
 
+    day_filters[day_num] = {'range': time_range}
+    day_exceptions[day_num] = ex_list
+  else:
+    day_filters[day_num] = None
+    day_exceptions[day_num] = []
 
 def is_valid_time(row):
-  day, start = row["day"], row["start_time"]
-  allowed = day_allowed_hours.get(day, [])
-  return start in allowed
+  day, start = row['day'], row['start_time']
+  config = day_filters.get(day)
+  if config is not None:
+    r_start, r_end = config['range']
+    # Check if within range and NOT in exception dock
+    if r_start <= start <= r_end:
+      if start not in day_exceptions.get(day, []):
+        return True
+  return False
 
-
-parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
-invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
-valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
+parsed_df['is_valid'] = parsed_df.apply(is_valid_time, axis=1)
+invalid_ids = parsed_df[parsed_df['is_valid'] == False]['ID'].unique()
+valid_blocks_df = parsed_df[~parsed_df['ID'].isin(invalid_ids)]
 
 # --- Section Availability Filter ---
 st.sidebar.markdown("---")
@@ -545,7 +560,7 @@ else:
 
   with c_next:
     if st.button("▶", key="next_btn", use_container_width=True):
-      if st.session_state.sched_idx < len(schedules) - 1:
+      if st.session_state.sched_idx < len(schedules - 1):
         st.session_state.sched_idx += 1
       else:
         st.session_state.sched_idx = 0
