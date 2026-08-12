@@ -216,7 +216,7 @@ day_allowed_hours = {}
 for day_num, (label, default_val) in days_config.items():
   is_on = st.sidebar.checkbox(label, value=default_val)
   if is_on:
-    with st.sidebar.expander(f"🕒 Configure Hours for {label}"):
+    with st.sidebar.expander(f"🕒 Configure {label}"):
       allowed_hrs = []
       for hr in range(8, 19):
         # Default active from 8 to 15, but let user toggle individual hours
