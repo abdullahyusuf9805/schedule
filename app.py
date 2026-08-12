@@ -63,6 +63,13 @@ st.markdown(
             margin-top: 20px;
             text-align: center;
         }
+
+        /* Custom Sidebar Card Styling matching requested HTML/CSS */
+        [data-testid="stSidebar"] .streamlit-expanderHeader {
+            background-color: #1a1a1a !important;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
     </style>
 """,
     unsafe_allow_html=True,
@@ -197,10 +204,10 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. EXACT CUSTOM UI MATCHING DESIGN MOCKUP
+# 4. UI FILTERS WITH EXPANDABLE EXCEPTION DOCKS
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
-st.sidebar.caption("Check days, adjust hours, and expand for exceptions.")
+st.sidebar.caption("Check days, adjust ranges, and expand for exceptions.")
 
 days_config = {
     1: ("Sunday (Day 1)", False),
@@ -214,66 +221,76 @@ day_filters = {}
 day_exceptions = {}
 
 for day_num, (label, default_val) in days_config.items():
-  # Session state initialization for expander tracking
-  expander_key = f"exp_state_{day_num}"
-  if expander_key not in st.session_state:
-    st.session_state[expander_key] = False
+  # Container wrapper card layout simulation
+  st.sidebar.markdown(
+      f"<div style='background-color: #1a1a1a; padding: 12px; border-radius: 8px;"
+      " margin-bottom: 10px; border: 1px solid #333;'>",
+      unsafe_allow_html=True,
+  )
 
-  # Single clean row layout using columns to mimic exact UI design card layout
-  c1, c2 = st.sidebar.columns([0.85, 0.15])
-  
-  with c1:
-    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
-  with c2:
-    # Custom toggle button for expansion arrow matching mockup
-    arrow_label = "▲" if st.session_state[expander_key] else "▼"
-    if st.button(arrow_label, key=f"arrow_{day_num}", use_container_width=True):
-      st.session_state[expander_key] = not st.session_state[expander_key]
-      st.rerun()
+  is_on = st.sidebar.checkbox(label, value=default_val, key=f"chk_{day_num}")
 
   if is_on:
-    time_range = st.sidebar.slider(f"Range {label}", 8, 18, (8, 18), key=f"slide_{day_num}", label_visibility="collapsed")
-    
-    ex_list = []
-    # Conditionally display exception dock right underneath when expanded
-    if st.session_state[expander_key]:
-      with st.sidebar.container():
-        st.markdown(f"<div style='border: 1px solid #444; padding: 8px; border-radius: 4px; background-color: #181818;'><b>Exception Dock ({label})</b></div>", unsafe_allow_html=True)
-        excluded_input = st.text_input(
-            f"Block hours (comma-separated)",
-            value="",
-            key=f"ex_{day_num}",
-            placeholder="e.g. 12, 13",
-        )
-        if excluded_input.strip():
-          try:
-            ex_list = [int(x.strip()) for x in excluded_input.split(",") if x.strip().isdigit()]
-          except ValueError:
-            pass
+    time_range = st.sidebar.slider(
+        f"Hours {label}",
+        8,
+        18,
+        (8, 18),
+        key=f"slide_{day_num}",
+        label_visibility="collapsed",
+    )
 
-    day_filters[day_num] = {'range': time_range}
+    ex_list = []
+    # Expandable exception dock component as requested
+    with st.sidebar.expander("⚙️ Exception Dock"):
+      excluded_input = st.text_input(
+          "Block hours (comma-separated)",
+          value="",
+          key=f"ex_{day_num}",
+          placeholder="e.g. 12, 13",
+      )
+      if excluded_input.strip():
+        try:
+          ex_list = [
+              int(x.strip())
+              for x in excluded_input.split(",")
+              if x.strip().isdigit()
+          ]
+        except ValueError:
+          pass
+
+    day_filters[day_num] = {"range": time_range}
     day_exceptions[day_num] = ex_list
   else:
-    # Render dimmed/disabled slider placeholder when day is unchecked
-    st.sidebar.slider(f"Range {label}", 8, 18, (8, 18), disabled=True, key=f"slide_dis_{day_num}", label_visibility="collapsed")
+    st.sidebar.slider(
+        f"Hours {label}",
+        8,
+        18,
+        (8, 18),
+        disabled=True,
+        key=f"slide_dis_{day_num}",
+        label_visibility="collapsed",
+    )
     day_filters[day_num] = None
     day_exceptions[day_num] = []
 
-  st.sidebar.markdown("<hr style='margin: 5px 0; border-color: #333;'>", unsafe_allow_html=True)
+  st.sidebar.markdown("</div>", unsafe_allow_html=True)
+
 
 def is_valid_time(row):
-  day, start = row['day'], row['start_time']
+  day, start = row["day"], row["start_time"]
   config = day_filters.get(day)
   if config is not None:
-    r_start, r_end = config['range']
+    r_start, r_end = config["range"]
     if r_start <= start <= r_end:
       if start not in day_exceptions.get(day, []):
         return True
   return False
 
-parsed_df['is_valid'] = parsed_df.apply(is_valid_time, axis=1)
-invalid_ids = parsed_df[parsed_df['is_valid'] == False]['ID'].unique()
-valid_blocks_df = parsed_df[~parsed_df['ID'].isin(invalid_ids)]
+
+parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
+invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
+valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
 # --- Section Availability Filter ---
 st.sidebar.markdown("---")
