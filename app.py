@@ -18,9 +18,9 @@ st.markdown(
     <style>
         .stCaption {display: none;}
         
-        /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
+        /* Dark Theme Base */
         .stApp {
-            background-color: #000000;
+            background-color: #121212;
             color: #ffffff;
         }
         
@@ -64,11 +64,13 @@ st.markdown(
             text-align: center;
         }
 
-        /* Custom Sidebar Card Styling matching requested HTML/CSS */
-        [data-testid="stSidebar"] .streamlit-expanderHeader {
-            background-color: #1a1a1a !important;
-            border-radius: 6px;
-            border: 1px solid #333;
+        /* Custom Sidebar Card Styling matching exact HTML/CSS requirements */
+        .day-card {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
     </style>
 """,
@@ -204,10 +206,10 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. UI FILTERS WITH EXPANDABLE EXCEPTION DOCKS
+# 4. UI FILTERS MATCHING EXACT HTML/CSS COMPONENT
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
-st.sidebar.caption("Check days, adjust ranges, and expand for exceptions.")
+st.sidebar.caption("Check days, adjust ranges, and expand exception dock.")
 
 days_config = {
     1: ("Sunday (Day 1)", False),
@@ -221,18 +223,33 @@ day_filters = {}
 day_exceptions = {}
 
 for day_num, (label, default_val) in days_config.items():
-  # Container wrapper card layout simulation
+  # Session state initialization for expander tracking
+  expanded_key = f"expand_dock_{day_num}"
+  if expanded_key not in st.session_state:
+    st.session_state[expanded_key] = False
+
   st.sidebar.markdown(
-      f"<div style='background-color: #1a1a1a; padding: 12px; border-radius: 8px;"
-      " margin-bottom: 10px; border: 1px solid #333;'>",
+      '<div class="day-card">',
       unsafe_allow_html=True,
   )
 
-  is_on = st.sidebar.checkbox(label, value=default_val, key=f"chk_{day_num}")
+  # Card header layout (Checkbox on left, Toggle Arrow on right)
+  col_chk, col_btn = st.sidebar.columns([0.85, 0.15])
+  with col_chk:
+    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
+  with col_btn:
+    arrow_icon = "▲" if st.session_state[expanded_key] else "▼"
+    if st.button(
+        arrow_icon, key=f"toggle_arr_{day_num}", use_container_width=True
+    ):
+      if is_on:
+        st.session_state[expanded_key] = not st.session_state[expanded_key]
+        st.rerun()
 
+  # Slider / Time Selector Area
   if is_on:
     time_range = st.sidebar.slider(
-        f"Hours {label}",
+        f"Time range for {label}",
         8,
         18,
         (8, 18),
@@ -241,12 +258,20 @@ for day_num, (label, default_val) in days_config.items():
     )
 
     ex_list = []
-    # Expandable exception dock component as requested
-    with st.sidebar.expander("⚙️ Exception Dock"):
-      excluded_input = st.text_input(
-          "Block hours (comma-separated)",
+    # Exception Dock (Collapsible section matching HTML design)
+    if st.session_state[expanded_key]:
+      st.sidebar.markdown(
+          "<div style='margin-top: 12px;'>"
+          "<input type='text' placeholder='Enter Excepted Hours (Comma"
+          " separated)' class='exception-input'>"
+          "</div>",
+          unsafe_allow_html=True,
+      )
+      excluded_input = st.sidebar.text_input(
+          "Exception hours",
           value="",
           key=f"ex_{day_num}",
+          label_visibility="collapsed",
           placeholder="e.g. 12, 13",
       )
       if excluded_input.strip():
@@ -263,7 +288,7 @@ for day_num, (label, default_val) in days_config.items():
     day_exceptions[day_num] = ex_list
   else:
     st.sidebar.slider(
-        f"Hours {label}",
+        f"Time range for {label}",
         8,
         18,
         (8, 18),
