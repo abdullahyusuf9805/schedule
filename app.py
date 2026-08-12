@@ -97,14 +97,14 @@ st.markdown(
         }
 
         /* =========================================
-           CUSTOM ROUNDED SQUARE TOGGLE BUTTONS
+           CUSTOM ROUNDED SVG CHEVRON TOGGLE BUTTONS
            ========================================= */
         
-        /* Style the expander toggle button to be a dark rounded square */
+        /* Shape the button container into a rounded square */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button {
-            background-color: #15151a !important; /* Very dark subtle background */
-            border: 1px solid #22222a !important; /* Subtle outline for depth */
-            border-radius: 8px !important; /* Smooth rounded corners */
+            background-color: #121215 !important;
+            border: 1px solid #22222a !important;
+            border-radius: 8px !important;
             height: 34px !important;
             width: 34px !important;
             min-height: 34px !important;
@@ -113,25 +113,27 @@ st.markdown(
             justify-content: center !important;
             align-items: center !important;
             box-shadow: none !important;
-            margin-top: -2px !important; /* Fine-tune vertical alignment with checkbox */
+            margin-top: -2px !important;
         }
         
         /* Button Hover Effect */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button:hover {
-            background-color: #1e1e26 !important;
-            border-color: #ff4d4d !important; /* Red highlight on hover */
+            background-color: #1a1a20 !important;
+            border-color: #ff4d4d !important;
         }
 
-        /* Clean Chevron Typography Inside Button */
+        /* Replace default text with the Exact User-Provided SVG via Data-URI */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button p {
-            font-family: sans-serif !important;
-            font-size: 1.1rem !important;
-            font-weight: 400 !important;
-            color: #ffffff !important;
+            color: transparent !important; /* Hides default label */
+            /* User's Exact SVG Path injected perfectly centered */
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="%23ffffff" xmlns="http://www.w3.org/2000/svg"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>') !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            background-size: 20px 20px !important; /* Exact 1.25rem mapping */
+            width: 100% !important;
+            height: 100% !important;
             margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-            transform: translateY(-1px); /* Pixel-perfect centering of the chevron */
+            transition: transform 0.3s ease-in-out !important; /* Smooth flip animation */
         }
     </style>
 """,
@@ -282,7 +284,7 @@ days_config = {
 day_filters = {}
 day_exceptions = {}
 
-for day_num, (label, default_val) in days_config.items():
+for i, (day_num, (label, default_val)) in enumerate(days_config.items()):
   # Track expander state in session memory
   exp_key = f"expand_state_{day_num}"
   if exp_key not in st.session_state:
@@ -297,9 +299,19 @@ for day_num, (label, default_val) in days_config.items():
       is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
       
     with col2:
-      # Expander Toggle Button using clean unicode chevrons (Logical AND/OR symbols for perfect sharp angles)
-      arrow_icon = "∧" if st.session_state[exp_key] else "∨"
-      if st.button(arrow_icon, key=f"btn_toggle_{day_num}", use_container_width=True):
+      # If Expanded, trigger a smooth 180 degree flip animation on the SVG chevron
+      if st.session_state[exp_key]:
+        st.markdown(
+            f"""<style>
+            [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:nth-of-type({i+1}) div[data-testid="column"]:nth-child(2) button p {{
+                transform: rotate(180deg) !important;
+            }}
+            </style>""",
+            unsafe_allow_html=True
+        )
+      
+      # The label " " acts as an invisible placeholder so our CSS can apply the SVG
+      if st.button(" ", key=f"btn_toggle_{day_num}", use_container_width=True):
         st.session_state[exp_key] = not st.session_state[exp_key]
         st.rerun()
 
