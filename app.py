@@ -264,25 +264,41 @@ all_shubas = sorted(
     [str(s) for s in raw_df["ID"].dropna().astype(str).unique() if s.strip()]
 )
 
-banned_halls = st.sidebar.multiselect("Ban Halls", options=all_halls, key="global_ban_halls")
+banned_halls = st.sidebar.multiselect(
+    "Ban Halls", options=all_halls, key="global_ban_halls"
+)
 remaining_halls = [h for h in all_halls if h not in banned_halls]
-required_halls = st.sidebar.multiselect("Require Halls", options=remaining_halls, key="global_req_halls")
+required_halls = st.sidebar.multiselect(
+    "Require Halls", options=remaining_halls, key="global_req_halls"
+)
 
-banned_shubas = st.sidebar.multiselect("Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas")
+banned_shubas = st.sidebar.multiselect(
+    "Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas"
+)
 remaining_shubas = [s for s in all_shubas if s not in banned_shubas]
-required_shubas = st.sidebar.multiselect("Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas")
+required_shubas = st.sidebar.multiselect(
+    "Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas"
+)
 
 # Apply Hall filters
 if banned_halls:
-  valid_blocks_df = valid_blocks_df[~valid_blocks_df["HALL"].astype(str).isin(banned_halls)]
+  valid_blocks_df = valid_blocks_df[
+      ~valid_blocks_df["HALL"].astype(str).isin(banned_halls)
+  ]
 if required_halls:
-  valid_blocks_df = valid_blocks_df[valid_blocks_df["HALL"].astype(str).isin(required_halls)]
+  valid_blocks_df = valid_blocks_df[
+      valid_blocks_df["HALL"].astype(str).isin(required_halls)
+  ]
 
 # Apply Shuba filters
 if banned_shubas:
-  valid_blocks_df = valid_blocks_df[~valid_blocks_df["ID"].astype(str).isin(banned_shubas)]
+  valid_blocks_df = valid_blocks_df[
+      ~valid_blocks_df["ID"].astype(str).isin(banned_shubas)
+  ]
 if required_shubas:
-  valid_blocks_df = valid_blocks_df[valid_blocks_df["ID"].astype(str).isin(required_shubas)]
+  valid_blocks_df = valid_blocks_df[
+      valid_blocks_df["ID"].astype(str).isin(required_shubas)
+  ]
 
 # ==========================================
 # 6. SUBJECT-SPECIFIC TEACHER RULES
@@ -577,7 +593,7 @@ else:
             }}
         </style>
     """,
-      unsafe_allow_html=Thread := None,
+      unsafe_allow_html=True,
   )
 
   if st.session_state.active_view == "Visual View":
