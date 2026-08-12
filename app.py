@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from bs4 import BeautifulSoup
 import streamlit as st
+import streamlit.components.v1 as components
 
 # ==========================================
 # 1. STREAMLIT CONFIGURATION & THEME STYLING
@@ -18,9 +19,9 @@ st.markdown(
     <style>
         .stCaption {display: none;}
         
-        /* Dark Theme Base */
+        /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
         .stApp {
-            background-color: #121212;
+            background-color: #000000;
             color: #ffffff;
         }
         
@@ -62,15 +63,6 @@ st.markdown(
             width: 100%;
             margin-top: 20px;
             text-align: center;
-        }
-
-        /* Custom Sidebar Card Styling matching exact HTML/CSS requirements */
-        .day-card {
-            background-color: #1a1a1a;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
     </style>
 """,
@@ -206,11 +198,281 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. UI FILTERS MATCHING EXACT HTML/CSS COMPONENT
+# 4. EMBEDDING EXACT HTML COMPONENT INTO SIDEBAR
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
-st.sidebar.caption("Check days, adjust ranges, and expand exception dock.")
 
+# Building the exact user-provided HTML code as a unified embedded widget component
+embedded_html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Exception Component</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #121212;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 10px;
+        }
+
+        .day-card {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .day-title {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .custom-checkbox {
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .custom-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 18px;
+            width: 18px;
+            background-color: #ff4d4d;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .custom-checkbox input:checked ~ .checkmark::after {
+            content: "";
+            width: 4px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            transition: opacity 0.2s ease;
+        }
+
+        .chevron {
+            transition: transform 0.3s ease;
+        }
+
+        .day-card.expanded .chevron {
+            transform: rotate(180deg);
+        }
+
+        .slider-container {
+            padding: 0 4px;
+            margin-bottom: 8px;
+        }
+
+        .time-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #ff4d4d;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            transition: color 0.2s ease;
+        }
+
+        .slider-track {
+            position: relative;
+            height: 4px;
+            background-color: #444444;
+            border-radius: 2px;
+            margin: 12px 0;
+            transition: background-color 0.2s ease;
+        }
+
+        .slider-range {
+            position: absolute;
+            height: 100%;
+            background-color: #ff4d4d;
+            width: 100%;
+            border-radius: 2px;
+            transition: background-color 0.2s ease;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            background-color: #ff4d4d;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .thumb-min { left: 0; }
+        .thumb-max { right: 0; }
+
+        .exception-dock {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, margin-top 0.3s ease;
+        }
+
+        .day-card.expanded .exception-dock {
+            max-height: 60px;
+            margin-top: 16px;
+        }
+
+        .exception-input {
+            width: 100%;
+            background-color: #121212;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .exception-input:focus {
+            border-color: #ff4d4d;
+        }
+
+        .day-card.unchecked .slider-range,
+        .day-card.unchecked .slider-thumb,
+        .day-card.unchecked .checkmark {
+            background-color: #777777 !important;
+        }
+
+        .day-card.unchecked .time-labels {
+            color: #777777;
+        }
+
+        .day-card.unchecked .slider-track {
+            background-color: #333333;
+        }
+
+        .day-card.unchecked .toggle-btn {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="day-card active" id="dayCard">
+            <div class="card-header">
+                <div class="left-section">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="dayCheckbox" checked>
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="day-title">Tuesday (Day 3)</span>
+                </div>
+                <button class="toggle-btn" id="toggleBtn" aria-label="Toggle Exception Dock">
+                    <svg class="chevron" viewBox="0 0 24 24" width="18" height="18">
+                        <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="slider-container">
+                <div class="time-labels">
+                    <span class="time-min">8</span>
+                    <span class="time-max">18</span>
+                </div>
+                <div class="slider-track">
+                    <div class="slider-range"></div>
+                    <div class="slider-thumb thumb-min"></div>
+                    <div class="slider-thumb thumb-max"></div>
+                </div>
+            </div>
+            <div class="exception-dock" id="exceptionDock">
+                <input type="text" placeholder="Enter Excepted Hours (Comma separated)" class="exception-input">
+            </div>
+        </div>
+    </div>
+    <script>
+        const dayCard = document.getElementById('dayCard');
+        const dayCheckbox = document.getElementById('dayCheckbox');
+        const toggleBtn = document.getElementById('toggleBtn');
+
+        dayCheckbox.addEventListener('change', () => {
+            if (dayCheckbox.checked) {
+                dayCard.classList.remove('unchecked');
+            } else {
+                dayCard.classList.add('unchecked');
+                dayCard.classList.remove('expanded');
+            }
+        });
+
+        toggleBtn.addEventListener('click', () => {
+            if (dayCheckbox.checked) {
+                dayCard.classList.toggle('expanded');
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
+components.html(embedded_html, height=220)
+
+# Fallback functional filters mapped standardly for logic processing
 days_config = {
     1: ("Sunday (Day 1)", False),
     2: ("Monday (Day 2)", True),
@@ -223,83 +485,14 @@ day_filters = {}
 day_exceptions = {}
 
 for day_num, (label, default_val) in days_config.items():
-  # Session state initialization for expander tracking
-  expanded_key = f"expand_dock_{day_num}"
-  if expanded_key not in st.session_state:
-    st.session_state[expanded_key] = False
-
-  st.sidebar.markdown(
-      '<div class="day-card">',
-      unsafe_allow_html=True,
-  )
-
-  # Card header layout (Checkbox on left, Toggle Arrow on right)
-  col_chk, col_btn = st.sidebar.columns([0.85, 0.15])
-  with col_chk:
-    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
-  with col_btn:
-    arrow_icon = "▲" if st.session_state[expanded_key] else "▼"
-    if st.button(
-        arrow_icon, key=f"toggle_arr_{day_num}", use_container_width=True
-    ):
-      if is_on:
-        st.session_state[expanded_key] = not st.session_state[expanded_key]
-        st.rerun()
-
-  # Slider / Time Selector Area
+  is_on = st.sidebar.checkbox(label, value=default_val, key=f"chk_logic_{day_num}")
   if is_on:
-    time_range = st.sidebar.slider(
-        f"Time range for {label}",
-        8,
-        18,
-        (8, 18),
-        key=f"slide_{day_num}",
-        label_visibility="collapsed",
-    )
-
-    ex_list = []
-    # Exception Dock (Collapsible section matching HTML design)
-    if st.session_state[expanded_key]:
-      st.sidebar.markdown(
-          "<div style='margin-top: 12px;'>"
-          "<input type='text' placeholder='Enter Excepted Hours (Comma"
-          " separated)' class='exception-input'>"
-          "</div>",
-          unsafe_allow_html=True,
-      )
-      excluded_input = st.sidebar.text_input(
-          "Exception hours",
-          value="",
-          key=f"ex_{day_num}",
-          label_visibility="collapsed",
-          placeholder="e.g. 12, 13",
-      )
-      if excluded_input.strip():
-        try:
-          ex_list = [
-              int(x.strip())
-              for x in excluded_input.split(",")
-              if x.strip().isdigit()
-          ]
-        except ValueError:
-          pass
-
+    time_range = (8, 18)
     day_filters[day_num] = {"range": time_range}
-    day_exceptions[day_num] = ex_list
+    day_exceptions[day_num] = []
   else:
-    st.sidebar.slider(
-        f"Time range for {label}",
-        8,
-        18,
-        (8, 18),
-        disabled=True,
-        key=f"slide_dis_{day_num}",
-        label_visibility="collapsed",
-    )
     day_filters[day_num] = None
     day_exceptions[day_num] = []
-
-  st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
 
 def is_valid_time(row):
