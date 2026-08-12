@@ -68,6 +68,38 @@ st.markdown(
         [data-testid="stSidebar"] button p {
             font-size: 14px;
         }
+        
+        /* =========================================
+           UI TIGHTENING CSS (Squish Elements in Card) 
+           ========================================= */
+        
+        /* 1. Remove the default flex-gap inside the bordered card */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
+            gap: 0rem !important;
+        }
+        
+        /* 2. Reduce the top/bottom padding of the card itself */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        
+        /* 3. Pull the slider up closer to the checkbox row */
+        [data-testid="stSidebar"] [data-testid="stSlider"] {
+            margin-top: -15px !important;
+            margin-bottom: -5px !important;
+        }
+        
+        /* 4. Pull the text input up closer to the slider */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] {
+            margin-top: -5px !important;
+            margin-bottom: 0px !important;
+        }
+        
+        /* Exception Input font size tweak */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
+            font-size: 0.85rem !important;
+        }
     </style>
 """,
     unsafe_allow_html=True,
@@ -202,7 +234,7 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. PURE NATIVE STREAMLIT FILTERS (Matches Image Logic)
+# 4. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
 
@@ -240,7 +272,7 @@ for day_num, (label, default_val) in days_config.items():
 
     # Time Slider and Exception Logic
     if is_on:
-      # Enabled Slider (State 1 & 2)
+      # Enabled Slider
       time_range = st.slider(
           "Hours", 8, 18, (8, 18), 
           key=f"slide_{day_num}", 
@@ -248,7 +280,7 @@ for day_num, (label, default_val) in days_config.items():
       )
       
       ex_list = []
-      # Show Exception Dock only if Expanded (State 1)
+      # Show Exception Dock only if Expanded
       if st.session_state[exp_key]:
         exception_str = st.text_input(
             "Exceptions", 
@@ -267,7 +299,7 @@ for day_num, (label, default_val) in days_config.items():
       day_exceptions[day_num] = ex_list
 
     else:
-      # Disabled Slider (State 3)
+      # Disabled Slider
       st.slider(
           "Hours", 8, 18, (8, 18), 
           disabled=True, 
