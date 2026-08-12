@@ -64,33 +64,28 @@ st.markdown(
             text-align: center;
         }
         
-        /* Tweak sidebar buttons so expander arrows look cleaner */
-        [data-testid="stSidebar"] button p {
-            font-size: 14px;
-        }
-        
         /* =========================================
            UI TIGHTENING CSS (Squish Elements in Card) 
            ========================================= */
         
-        /* 1. Remove the default flex-gap inside the bordered card */
+        /* Remove the default flex-gap inside the bordered card */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
             gap: 0rem !important;
         }
         
-        /* 2. Reduce the top/bottom padding of the card itself */
+        /* Reduce the top/bottom padding of the card itself */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
             padding-top: 0.75rem !important;
             padding-bottom: 0.5rem !important;
         }
         
-        /* 3. Pull the slider up closer to the checkbox row */
+        /* Pull the slider up closer to the checkbox row */
         [data-testid="stSidebar"] [data-testid="stSlider"] {
             margin-top: -15px !important;
             margin-bottom: -5px !important;
         }
         
-        /* 4. Pull the text input up closer to the slider */
+        /* Pull the text input up closer to the slider */
         [data-testid="stSidebar"] [data-testid="stTextInput"] {
             margin-top: -5px !important;
             margin-bottom: 0px !important;
@@ -99,6 +94,44 @@ st.markdown(
         /* Exception Input font size tweak */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             font-size: 0.85rem !important;
+        }
+
+        /* =========================================
+           CUSTOM ROUNDED SQUARE TOGGLE BUTTONS
+           ========================================= */
+        
+        /* Style the expander toggle button to be a dark rounded square */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button {
+            background-color: #15151a !important; /* Very dark subtle background */
+            border: 1px solid #22222a !important; /* Subtle outline for depth */
+            border-radius: 8px !important; /* Smooth rounded corners */
+            height: 34px !important;
+            width: 34px !important;
+            min-height: 34px !important;
+            padding: 0 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            box-shadow: none !important;
+            margin-top: -2px !important; /* Fine-tune vertical alignment with checkbox */
+        }
+        
+        /* Button Hover Effect */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button:hover {
+            background-color: #1e1e26 !important;
+            border-color: #ff4d4d !important; /* Red highlight on hover */
+        }
+
+        /* Clean Chevron Typography Inside Button */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:nth-child(2) button p {
+            font-family: sans-serif !important;
+            font-size: 1.1rem !important;
+            font-weight: 400 !important;
+            color: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            transform: translateY(-1px); /* Pixel-perfect centering of the chevron */
         }
     </style>
 """,
@@ -264,8 +297,8 @@ for day_num, (label, default_val) in days_config.items():
       is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
       
     with col2:
-      # Expander Toggle Button
-      arrow_icon = "▲" if st.session_state[exp_key] else "▼"
+      # Expander Toggle Button using clean unicode chevrons (Logical AND/OR symbols for perfect sharp angles)
+      arrow_icon = "∧" if st.session_state[exp_key] else "∨"
       if st.button(arrow_icon, key=f"btn_toggle_{day_num}", use_container_width=True):
         st.session_state[exp_key] = not st.session_state[exp_key]
         st.rerun()
