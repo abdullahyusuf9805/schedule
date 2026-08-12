@@ -197,10 +197,10 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. SLIDER FILTERS + EXPANDABLE EXCEPTION DOCK
+# 4. EXACT UI LAYOUT (CHECKBOX, SLIDER, EXPANDER)
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
-st.sidebar.caption("Set acceptable hour ranges for each day.")
+st.sidebar.caption("Check days, adjust hours, and expand for exceptions.")
 
 days_config = {
     1: ("Sunday (Day 1)", False),
@@ -214,15 +214,16 @@ day_filters = {}
 day_exceptions = {}
 
 for day_num, (label, default_val) in days_config.items():
-  is_on = st.sidebar.checkbox(label, value=default_val)
+  # Container block simulating visual card design
+  is_on = st.sidebar.checkbox(label, value=default_val, key=f"chk_{day_num}")
+  
   if is_on:
-    time_range = st.sidebar.slider(f"{label} Hours", 8, 18, (8, 18))
+    time_range = st.sidebar.slider(f"Hours {label}", 8, 18, (8, 18), key=f"slide_{day_num}")
     
-    # Exception dock hidden inside an expander so it's clean and expandable only when needed
     ex_list = []
-    with st.sidebar.expander(f"⚙️ Advanced Exceptions for {label} (Optional)"):
+    with st.sidebar.expander(f"Exception Dock ({label})"):
       excluded_input = st.text_input(
-          f"Block specific hours (e.g. 12, 13)",
+          f"Block hours (e.g. 12, 13)",
           value="",
           key=f"ex_{day_num}",
           placeholder="Comma separated hours",
@@ -236,6 +237,8 @@ for day_num, (label, default_val) in days_config.items():
     day_filters[day_num] = {'range': time_range}
     day_exceptions[day_num] = ex_list
   else:
+    # Render a disabled/dimmed slider placeholder when day is unchecked to match visual mockup
+    st.sidebar.slider(f"Hours {label}", 8, 18, (8, 18), disabled=True, key=f"slide_dis_{day_num}")
     day_filters[day_num] = None
     day_exceptions[day_num] = []
 
