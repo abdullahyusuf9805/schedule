@@ -216,10 +216,9 @@ day_allowed_hours = {}
 for day_num, (label, default_val) in days_config.items():
   is_on = st.sidebar.checkbox(label, value=default_val)
   if is_on:
-    with st.sidebar.expander(f"🕒 Configure {label}"):
+    with st.sidebar.expander(f"🕒 Configure Hours for {label}"):
       allowed_hrs = []
       for hr in range(8, 19):
-        # Default active from 8 to 15, but let user toggle individual hours
         default_hour_state = True if 8 <= hr <= 15 else False
         if st.checkbox(
             f"{hr}:00 - {hr+1}:00", value=default_hour_state, key=f"d{day_num}_h{hr}"
@@ -252,7 +251,41 @@ if "STATUS" in raw_df.columns:
     valid_blocks_df = valid_blocks_df[~closed_mask]
 
 # ==========================================
-# 5. SUBJECT-SPECIFIC TEACHER RULES
+# 5. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
+# ==========================================
+st.sidebar.markdown("---")
+st.sidebar.header("Global Hall & Shuba Rules")
+st.sidebar.caption("Global filters to require or ban specific Halls and Shubas.")
+
+all_halls = sorted(
+    [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
+)
+all_shubas = sorted(
+    [str(s) for s in raw_df["ID"].dropna().astype(str).unique() if s.strip()]
+)
+
+banned_halls = st.sidebar.multiselect("Ban Halls", options=all_halls, key="global_ban_halls")
+remaining_halls = [h for h in all_halls if h not in banned_halls]
+required_halls = st.sidebar.multiselect("Require Halls", options=remaining_halls, key="global_req_halls")
+
+banned_shubas = st.sidebar.multiselect("Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas")
+remaining_shubas = [s for s in all_shubas if s not in banned_shubas]
+required_shubas = st.sidebar.multiselect("Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas")
+
+# Apply Hall filters
+if banned_halls:
+  valid_blocks_df = valid_blocks_df[~valid_blocks_df["HALL"].astype(str).isin(banned_halls)]
+if required_halls:
+  valid_blocks_df = valid_blocks_df[valid_blocks_df["HALL"].astype(str).isin(required_halls)]
+
+# Apply Shuba filters
+if banned_shubas:
+  valid_blocks_df = valid_blocks_df[~valid_blocks_df["ID"].astype(str).isin(banned_shubas)]
+if required_shubas:
+  valid_blocks_df = valid_blocks_df[valid_blocks_df["ID"].astype(str).isin(required_shubas)]
+
+# ==========================================
+# 6. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
 st.sidebar.markdown("---")
 st.sidebar.header("Subject-Specific Teacher Rules")
@@ -297,7 +330,7 @@ for subj, rules in subject_rules.items():
     ]
 
 # ==========================================
-# 6. DATA GROUPING & SOLVER
+# 7. DATA GROUPING & SOLVER
 # ==========================================
 sections_by_subject = {}
 for code, group in valid_blocks_df.groupby("CODE"):
@@ -388,7 +421,7 @@ def calculate_schedule_score(schedule):
 schedules = sorted(schedules, key=calculate_schedule_score)
 
 # ==========================================
-# 7. IMAGE GENERATOR & UI RENDERING
+# 8. IMAGE GENERATOR & UI RENDERING
 # ==========================================
 
 
@@ -544,7 +577,7 @@ else:
             }}
         </style>
     """,
-      unsafe_allow_html=True,
+      unsafe_allow_html=Thread := None,
   )
 
   if st.session_state.active_view == "Visual View":
