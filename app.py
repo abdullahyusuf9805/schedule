@@ -197,7 +197,7 @@ def parse_schedule_blocks(df_input):
 parsed_df = parse_schedule_blocks(raw_df)
 
 # ==========================================
-# 4. EXACT UI LAYOUT (CHECKBOX, SLIDER, EXPANDER)
+# 4. EXACT CUSTOM UI MATCHING DESIGN MOCKUP
 # ==========================================
 st.sidebar.header("Day & Time Matrix Filters")
 st.sidebar.caption("Check days, adjust hours, and expand for exceptions.")
@@ -214,33 +214,52 @@ day_filters = {}
 day_exceptions = {}
 
 for day_num, (label, default_val) in days_config.items():
-  # Container block simulating visual card design
-  is_on = st.sidebar.checkbox(label, value=default_val, key=f"chk_{day_num}")
+  # Session state initialization for expander tracking
+  expander_key = f"exp_state_{day_num}"
+  if expander_key not in st.session_state:
+    st.session_state[expander_key] = False
+
+  # Single clean row layout using columns to mimic exact UI design card layout
+  c1, c2 = st.sidebar.columns([0.85, 0.15])
   
+  with c1:
+    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
+  with c2:
+    # Custom toggle button for expansion arrow matching mockup
+    arrow_label = "▲" if st.session_state[expander_key] else "▼"
+    if st.button(arrow_label, key=f"arrow_{day_num}", use_container_width=True):
+      st.session_state[expander_key] = not st.session_state[expander_key]
+      st.rerun()
+
   if is_on:
-    time_range = st.sidebar.slider(f"Hours {label}", 8, 18, (8, 18), key=f"slide_{day_num}")
+    time_range = st.sidebar.slider(f"Range {label}", 8, 18, (8, 18), key=f"slide_{day_num}", label_visibility="collapsed")
     
     ex_list = []
-    with st.sidebar.expander(f"Exception Dock ({label})"):
-      excluded_input = st.text_input(
-          f"Block hours (e.g. 12, 13)",
-          value="",
-          key=f"ex_{day_num}",
-          placeholder="Comma separated hours",
-      )
-      if excluded_input.strip():
-        try:
-          ex_list = [int(x.strip()) for x in excluded_input.split(",") if x.strip().isdigit()]
-        except ValueError:
-          pass
+    # Conditionally display exception dock right underneath when expanded
+    if st.session_state[expander_key]:
+      with st.sidebar.container():
+        st.markdown(f"<div style='border: 1px solid #444; padding: 8px; border-radius: 4px; background-color: #181818;'><b>Exception Dock ({label})</b></div>", unsafe_allow_html=True)
+        excluded_input = st.text_input(
+            f"Block hours (comma-separated)",
+            value="",
+            key=f"ex_{day_num}",
+            placeholder="e.g. 12, 13",
+        )
+        if excluded_input.strip():
+          try:
+            ex_list = [int(x.strip()) for x in excluded_input.split(",") if x.strip().isdigit()]
+          except ValueError:
+            pass
 
     day_filters[day_num] = {'range': time_range}
     day_exceptions[day_num] = ex_list
   else:
-    # Render a disabled/dimmed slider placeholder when day is unchecked to match visual mockup
-    st.sidebar.slider(f"Hours {label}", 8, 18, (8, 18), disabled=True, key=f"slide_dis_{day_num}")
+    # Render dimmed/disabled slider placeholder when day is unchecked
+    st.sidebar.slider(f"Range {label}", 8, 18, (8, 18), disabled=True, key=f"slide_dis_{day_num}", label_visibility="collapsed")
     day_filters[day_num] = None
     day_exceptions[day_num] = []
+
+  st.sidebar.markdown("<hr style='margin: 5px 0; border-color: #333;'>", unsafe_allow_html=True)
 
 def is_valid_time(row):
   day, start = row['day'], row['start_time']
