@@ -82,8 +82,8 @@ st.markdown(
         /* Style the Exception Text Input */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             font-size: 0.85rem !important;
-            background-color: #121212 !important;
-            border-color: #333333 !important;
+            background-color: !important;
+            border-color: #ffffff !important;
             margin-top: 5px !important;
         }
 
