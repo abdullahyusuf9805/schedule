@@ -16,10 +16,12 @@ from github import Github
 # --- Selenium Imports for University Portal ---
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from PIL import Image
 
 # ==========================================
 # 1. STREAMLIT CONFIGURATION & THEME STYLING
@@ -202,14 +204,17 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         captcha_input.clear()
         captcha_input.send_keys(captcha_val)
         
-        submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
-        driver.execute_script("arguments[0].click();", submit_btn)
+        time.sleep(0.5) # Let React digest the text
+        
+        # FIX: Press ENTER instead of trying to click the button to guarantee form submission
+        captcha_input.send_keys(Keys.RETURN)
         
         try:
-            WebDriverWait(driver, 8).until(EC.url_contains("Dashboard"))
+            # Increased timeout to 15 seconds for slower server responses
+            WebDriverWait(driver, 15).until(EC.url_contains("Dashboard"))
         except:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Login rejected by University! Check Username, Password, or CAPTCHA.")
+            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA. (Note: The CAPTCHA expires if you wait too long to submit).")
             
         # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
@@ -229,27 +234,22 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        # EXACT USER INSTRUCTION: Wait exactly 5 seconds for the table to load
+        # Wait exactly 5 seconds for the table to load
         time.sleep(5)
         
-        # --- EXACT USER INSTRUCTION: Trim the fat and ONLY keep the target <tbody> ---
         soup = BeautifulSoup(driver.page_source, "html.parser")
         target_tbody = None
         
-        # Search all tbodys on the page
         for tbody in soup.find_all("tbody"):
-            # We want the tbody that has a <tr class=...> inside it
             first_tr = tbody.find("tr")
             if first_tr and first_tr.has_attr("class"):
                 target_tbody = tbody
                 break
                 
-        # Failsafe: Take a screenshot if the table didn't load properly
         if target_tbody is None:
             driver.save_screenshot("error_screenshot.png")
             raise Exception("Could not find the <tbody> containing <tr class=>. The table did not load properly.")
             
-        # Return ONLY the clean, trimmed <tbody> HTML string
         return str(target_tbody)
 
     finally:
@@ -365,6 +365,9 @@ if not st.session_state.waiting_for_captcha:
         if not st.session_state.portal_user or not st.session_state.portal_pass:
             st.sidebar.error("Please enter credentials first.")
         else:
+            if os.path.exists("error_screenshot.png"):
+                os.remove("error_screenshot.png")
+                
             with st.spinner("Connecting to server and retrieving CAPTCHA..."):
                 try:
                     init_browser_and_get_captcha()
@@ -394,11 +397,9 @@ else:
                         )
                         st.session_state.live_html_data = raw_live_html
                         
-                        # 1. ALWAYS write locally so it immediately works for this session
                         with open("data.html", "w", encoding="utf-8") as f:
                             f.write(raw_live_html)
                             
-                        # 2. Attempt to push the trimmed <tbody> to GitHub
                         if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
                             try:
                                 g = Github(st.secrets["GITHUB_TOKEN"])
@@ -426,17 +427,17 @@ else:
                         if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
                             
+                        st.rerun() # Refresh only on success
+                            
                     except Exception as e:
-                        st.sidebar.error(f"Sync failed. {e}")
-                        # Display the screenshot if it failed to find the table!
-                        if os.path.exists("error_screenshot.png"):
-                            st.sidebar.image("error_screenshot.png", caption="Last screen before failure:")
+                        # FIX: We now stop the app instead of rerunning so you can READ the error!
+                        st.sidebar.error(f"Sync failed: {e}")
                         
                         if st.session_state.live_driver:
                             st.session_state.live_driver.quit()
                             st.session_state.live_driver = None
                         st.session_state.waiting_for_captcha = False
-                    st.rerun()
+                        st.stop() # Do not wipe the screen!
 
     with col2:
         if st.button("Cancel", use_container_width=True):
@@ -457,11 +458,13 @@ elif os.path.exists("data.html"):
         if html_content.strip():
             raw_df = parse_html_to_dataframe(html_content)
 
-# Show error screenshot globally if data is entirely missing
 if raw_df is None or raw_df.empty:
-    st.error("⚠️ No schedule data found. Please run 'Connect & Get CAPTCHA' to fetch fresh data.")
-    if os.path.exists("error_screenshot.png"):
-        st.image("error_screenshot.png", caption="Bot's view during the last failed attempt:")
+    if st.session_state.waiting_for_captcha:
+        st.info("👈 Please open the sidebar menu (top left) to enter your CAPTCHA and complete the sync!")
+    else:
+        st.error("⚠️ No schedule data found. Please open the sidebar and run 'Connect & Get CAPTCHA' to fetch fresh data.")
+        if os.path.exists("error_screenshot.png"):
+            st.image("error_screenshot.png", caption="Bot's view during the last failed attempt:")
     st.stop()
 
 
