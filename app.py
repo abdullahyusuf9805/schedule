@@ -620,14 +620,27 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
 # --- Section Availability Filter ---
 st.sidebar.markdown("---")
-st.sidebar.header("Section Availability")
+st.sidebar.header("Section Availability & Enrollment")
+
+# 1. New Input for already enrolled sections
+enrolled_input = st.sidebar.text_input(
+    "Already Enrolled Sections (IDs)", 
+    placeholder="e.g., 1083, 1085",
+    help="These sections will bypass the 'Closed' filter so you can still build a schedule around them."
+)
+enrolled_ids = [s.strip() for s in enrolled_input.split(",") if s.strip()]
+
 if "STATUS" in raw_df.columns:
   auto_remove = st.sidebar.checkbox("Auto-Remove Closed Sections", value=True)
   if auto_remove:
-    closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains(
-        "مغلقة", na=False
-    )
-    valid_blocks_df = valid_blocks_df[~closed_mask]
+    # Find which sections are marked as closed
+    closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
+    
+    # Find which sections match your enrolled IDs
+    is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
+    
+    # Keep the section if it is NOT closed, OR if it is in your enrolled list
+    valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
 
 # ==========================================
 # 6. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
