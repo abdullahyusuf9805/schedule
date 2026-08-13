@@ -1,3 +1,4 @@
+streamlit
 pandas
 beautifulsoup4
 arabic-reshaper
@@ -5,6 +6,4 @@ python-bidi
 matplotlib
 openpyxl
 selenium
-webdriver-manager
-pytesseract
 Pillow
