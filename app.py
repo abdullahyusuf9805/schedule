@@ -1,5 +1,3 @@
-from github import Github
-
 import io
 import os
 import zipfile
@@ -11,6 +9,9 @@ from bs4 import BeautifulSoup
 import streamlit as st
 import time
 from datetime import datetime
+
+# --- GitHub Integration ---
+from github import Github
 
 # --- Selenium Imports for University Portal ---
 from selenium import webdriver
@@ -388,13 +389,36 @@ else:
                         )
                         st.session_state.live_html_data = raw_live_html
                         
-                        # --- CRITICAL FIX: WRITE DATA DIRECTLY TO DATA.HTML ---
+                        # --- CRITICAL FIX: PUSH DATA DIRECTLY TO GITHUB ---
                         try:
+                            # 1. Authenticate with GitHub using your secret token
+                            g = Github(st.secrets["GITHUB_TOKEN"])
+                            repo = g.get_repo(st.secrets["GITHUB_REPO"])
+                            
+                            # 2. Find the existing data.html file
+                            try:
+                                contents = repo.get_contents("data.html")
+                                # 3. Update the file on GitHub (makes a commit)
+                                repo.update_file(
+                                    contents.path, 
+                                    "Bot automatically updated timetable data", 
+                                    raw_live_html, 
+                                    contents.sha
+                                )
+                            except Exception:
+                                # If data.html doesn't exist yet, create it
+                                repo.create_file(
+                                    "data.html", 
+                                    "Bot created timetable data file", 
+                                    raw_live_html
+                                )
+                                
+                            st.sidebar.success("✅ Successfully synced and pushed to GitHub permanently!")
+                        except Exception as github_e:
+                            st.sidebar.error(f"Synced locally, but couldn't push to GitHub: {github_e}")
+                            # Fallback to local save just in case
                             with open("data.html", "w", encoding="utf-8") as f:
                                 f.write(raw_live_html)
-                            st.sidebar.success("✅ Successfully synced and updated data.html permanently!")
-                        except Exception as file_e:
-                            st.sidebar.warning(f"Synced, but couldn't save to data.html: {file_e}")
                         
                         if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
