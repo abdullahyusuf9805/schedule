@@ -149,15 +149,20 @@ def fetch_live_portal_data(username, password):
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     
-    # Initialize hidden Chrome browser
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    # 1. Force Selenium to use the exact Chrome binary installed by Streamlit Cloud
+    options.binary_location = "/usr/bin/chromium"
+    
+    # 2. Force Selenium to use the exact matched driver installed by Streamlit Cloud
+    service = Service("/usr/bin/chromedriver")
+    
+    # Initialize hidden Chrome browser using the system drivers
+    driver = webdriver.Chrome(service=service, options=options)
 
     try:
         # 1. Access the initial login page
         driver.get("https://sso.iu.edu.sa")
         
         # 2. Wait for login fields to appear and input credentials
-        # (Note: "username" and "password" are the standard HTML name/id attributes. Change if the portal uses different ones.)
         user_field = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.NAME, "username"))
         )
@@ -166,7 +171,7 @@ def fetch_live_portal_data(username, password):
         user_field.send_keys(username)
         pass_field.send_keys(password)
         
-        # Click the login submission button (Assuming standard 'submit' button type or form submission)
+        # Click the login submission button
         pass_field.submit() 
         
         # 3. Wait to enter dashboard, then trigger the academic jump
@@ -177,20 +182,17 @@ def fetch_live_portal_data(username, password):
         WebDriverWait(driver, 15).until(EC.url_contains("homeIndex.faces"))
         
         # 4. Navigate through the JavaServer Faces (.faces) Menu clicks
-        # Click "التسجيل الاكترووتي"
         electronic_reg_menu = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "التسجيل"))
         )
         electronic_reg_menu.click()
         
-        # Click "المققرات المطروحة وفق الخطة"
         course_plan_menu = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "المقررات المطروحة وفق الخطة"))
         )
         course_plan_menu.click()
         
         # 5. Wait for the data table to physically render in the DOM
-        # We look for the inputs ending in ':instructor' to know the table is completely loaded
         WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.XPATH, "//input[contains(@id, ':instructor')]"))
         )
@@ -200,7 +202,7 @@ def fetch_live_portal_data(username, password):
 
     finally:
         driver.quit()
-
+        
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
 # ==========================================
