@@ -9,6 +9,10 @@ from bs4 import BeautifulSoup
 import streamlit as st
 import time
 
+# --- AI OCR Imports ---
+import pytesseract
+from PIL import Image
+
 # --- Selenium Imports for University Portal ---
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -97,6 +101,7 @@ st.markdown(
            NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
            ========================================= */
         
+        /* 1. ABSOLUTELY NUKE THE STATIC MIN/MAX LABELS (8 and 18) */
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
         [data-testid="stTickBarMax"] {
@@ -105,6 +110,7 @@ st.markdown(
             visibility: hidden !important;
         }
 
+        /* 2. GLOBALLY DESTROY REACT PORTAL TOOLTIPS */
         div[data-baseweb="tooltip"], 
         div[role="tooltip"],
         div[data-testid="stThumbValue"] {
@@ -113,6 +119,7 @@ st.markdown(
             visibility: hidden !important;
         }
 
+        /* Clean Normal Size Thumbs */
         div[data-baseweb="slider"] div[role="slider"] {
             background-color: #ff4d4d !important;
             border: none !important;
@@ -120,10 +127,12 @@ st.markdown(
             outline: none !important;
         }
         
+        /* Disabled Slider Styling */
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
             background-color: #555555 !important;
         }
 
+        /* Squeeze slider columns together */
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
@@ -136,32 +145,99 @@ st.markdown(
 st.title("Dynamic Timetable Generator")
 
 # ==========================================
-# 2. DIRECT BYPASS PORTAL SCRAPING LOGIC
+# 2. LIVE UNIVERSITY PORTAL SCRAPING & OCR LOGIC
 # ==========================================
-def fetch_live_portal_data(bypass_link):
+def fetch_live_portal_data(username, password):
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    
+    # 1. Force a desktop window size so menus don't collapse
     options.add_argument('--window-size=1920,1080')
     options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     
+    # 2. Force Selenium to use Streamlit Cloud's internal Chromium paths
     options.binary_location = "/usr/bin/chromium"
     service = Service("/usr/bin/chromedriver")
     
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
-        # 1. Directly hit the provided bypass link (logininit?key=...)
-        driver.get(bypass_link)
+        max_attempts = 5
+        login_success = False
         
-        # 2. Wait for the server to verify the token and redirect to homeIndex.faces
-        WebDriverWait(driver, 25).until(
+        # --- AI CAPTCHA RETRY LOOP ---
+        for attempt in range(max_attempts):
+            driver.get("https://sso.iu.edu.sa")
+            time.sleep(3) # Let OIDC redirects settle
+            
+            # Click the "University ID" button if we are on the choice screen
+            try:
+                uni_login_btn = driver.find_element(By.XPATH, "//a[contains(., 'الجامعي')] | //button[contains(., 'الجامعي')] | //*[contains(text(), 'الجامعي')]")
+                driver.execute_script("arguments[0].click();", uni_login_btn)
+                time.sleep(1.5)
+            except:
+                pass # Form might already be visible
+
+            # Locate User, Pass, Captcha Image, and Captcha Input
+            user_field = WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@type='text' or @type='email' or contains(translate(@name, 'USER', 'user'), 'user')]"))
+            )
+            pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
+            
+            # Smart XPath to find the Captcha Image (ignores logos) and the Captcha text box
+            captcha_img = driver.find_element(By.XPATH, "//img[contains(translate(@src, 'CAPTCHA', 'captcha'), 'captcha') or contains(translate(@id, 'CAPTCHA', 'captcha'), 'captcha')]")
+            captcha_input = driver.find_element(By.XPATH, "//input[contains(translate(@name, 'CAPTCHA', 'captcha'), 'captcha') or contains(translate(@id, 'CAPTCHA', 'captcha'), 'captcha')]")
+            
+            # 1. Take a screenshot of just the CAPTCHA image element
+            img_bytes = captcha_img.screenshot_as_png
+            image = Image.open(io.BytesIO(img_bytes))
+            
+            # 2. Use Tesseract AI to extract digits (PSM 8 = single word/block, whitelist = numbers only)
+            captcha_text = pytesseract.image_to_string(image, config='--psm 8 -c tessedit_char_whitelist=0123456789').strip()
+            
+            # Clean up the AI output to absolutely ensure only numbers are submitted
+            captcha_text = "".join([c for c in captcha_text if c.isdigit()])
+            
+            # If the AI failed to see any numbers, refresh and try again
+            if not captcha_text:
+                continue
+
+            # Fill out the form
+            user_field.clear()
+            user_field.send_keys(username)
+            pass_field.clear()
+            pass_field.send_keys(password)
+            captcha_input.clear()
+            captcha_input.send_keys(captcha_text)
+            
+            # Submit the login
+            submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
+            driver.execute_script("arguments[0].click();", submit_btn)
+            
+            # Verify if login worked by waiting for the Dashboard URL
+            try:
+                WebDriverWait(driver, 8).until(EC.url_contains("Dashboard"))
+                login_success = True
+                break # Break out of the retry loop!
+            except:
+                continue # Login failed (AI probably misread a number). Loop back and try a new captcha!
+                
+        if not login_success:
+            raise Exception("AI failed to read the CAPTCHA correctly after 5 attempts. Please try again.")
+            
+        # --- POST-LOGIN NAVIGATION ---
+        # Trigger the academic jump
+        driver.get("https://cas.iu.edu.sa/cas/eregister")
+        
+        # Wait for the logininit bridge to finish processing
+        WebDriverWait(driver, 35).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        # 3. Navigate through the Menus via XPath (Ignores whitespace issues)
+        # Navigate through the Menus via XPath (Ignores whitespace issues)
         electronic_reg_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني')]"))
         )
@@ -174,7 +250,7 @@ def fetch_live_portal_data(bypass_link):
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        # 4. Wait for the data table to physically render in the DOM
+        # Wait for the data table to physically render in the DOM
         WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.XPATH, "//input[contains(@id, ':instructor')]"))
         )
@@ -274,30 +350,30 @@ def parse_html_to_dataframe(html_content):
 # ==========================================
 # 4. INITIALIZE DATA (LIVE FETCH OR FALLBACK)
 # ==========================================
-st.sidebar.header("🌐 Direct Portal Sync")
-bypass_link = st.sidebar.text_input(
-    "Bypass Link (logininit?key=...)", 
-    value="https://eduportal.iu.edu.sa/iu/logininit?key=13c8cc51-47af-40df-8ecc-b27abda23ba5"
-)
+st.sidebar.header("🌐 Live Portal Sync")
+portal_user = st.sidebar.text_input("Portal Username", placeholder="Student ID")
+portal_pass = st.sidebar.text_input("Portal Password", type="password", placeholder="Password")
 
 if "live_html_data" not in st.session_state:
     st.session_state.live_html_data = None
 
 if st.sidebar.button("Fetch Live Timetable", use_container_width=True):
-    if not bypass_link:
-        st.sidebar.error("Please enter a valid bypass link.")
+    if not portal_user or not portal_pass:
+        st.sidebar.error("Please enter credentials.")
     else:
-        with st.spinner("Bypassing login and fetching data..."):
+        with st.spinner("Bot is solving CAPTCHA and syncing... (May take up to 45s)"):
             try:
-                raw_live_html = fetch_live_portal_data(bypass_link)
+                raw_live_html = fetch_live_portal_data(portal_user, portal_pass)
                 st.session_state.live_html_data = raw_live_html
-                st.sidebar.success("Successfully synced with portal!")
+                st.sidebar.success("Successfully bypassed CAPTCHA and synced with portal!")
                 
+                # Delete old error screenshot if sync is successful
                 if os.path.exists("error_screenshot.png"):
                     os.remove("error_screenshot.png")
                     
             except Exception as e:
-                st.sidebar.error(f"Sync failed. The token may be expired. {e}")
+                st.sidebar.error(f"Sync failed. {e}")
+                # IF IT FAILS, SHOW THE SCREENSHOT IN THE APP!
                 if os.path.exists("error_screenshot.png"):
                     st.sidebar.image("error_screenshot.png", caption="What the bot saw before it crashed:")
 
@@ -574,6 +650,7 @@ if len(target_subjects) < total_required_subjects:
       " subjects remaining after filters. Check your filters or rules."
   )
 
+
 @st.cache_data
 def generate_schedules(subjects_dict, targets):
   valid_schedules = []
@@ -626,6 +703,7 @@ def calculate_schedule_score(schedule):
       gaps = span - len(times)
       total_gaps += gaps
   return total_gaps
+
 
 schedules = sorted(schedules, key=calculate_schedule_score)
 
