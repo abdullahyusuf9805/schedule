@@ -384,7 +384,14 @@ else:
                             user_captcha
                         )
                         st.session_state.live_html_data = raw_live_html
-                        st.sidebar.success("Successfully synced!")
+                        
+                        # --- FIX: WRITE DATA DIRECTLY TO DATA.HTML ---
+                        try:
+                            with open("data.html", "w", encoding="utf-8") as f:
+                                f.write(raw_live_html)
+                            st.sidebar.success("Successfully synced and updated data.html!")
+                        except Exception as file_e:
+                            st.sidebar.warning(f"Synced, but couldn't save to data.html: {file_e}")
                         
                         if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
@@ -411,21 +418,26 @@ else:
 
 st.sidebar.markdown("---")
 
+
 # Determine which data to use: Live data (if fetched) OR local fallback file
+raw_df = pd.DataFrame() # Create empty dataframe just in case
 if st.session_state.live_html_data:
     raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
 elif os.path.exists("data.html"):
     with open("data.html", "r", encoding="utf-8") as f:
-        raw_df = parse_html_to_dataframe(f.read())
-else:
-    st.error("No live data fetched and 'data.html' fallback file not found. Please sync with the portal.")
+        html_content = f.read()
+        if html_content.strip():
+            raw_df = parse_html_to_dataframe(html_content)
+
+# --- FIX: EMPTY DATA PROTECTION ---
+if raw_df is None or raw_df.empty:
+    st.error("⚠️ No schedule data found. The data.html file is empty, or the sync returned no data. Please run 'Connect & Get CAPTCHA' to fetch fresh data.")
     st.stop()
 
 
 # ==========================================
 # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
 # ==========================================
-st.sidebar.markdown("---")
 st.sidebar.subheader("📥 Export Raw Data")
 
 try:
@@ -473,6 +485,11 @@ def parse_schedule_blocks(df_input):
     return pd.DataFrame(parsed_rows)
 
 parsed_df = parse_schedule_blocks(raw_df)
+
+if parsed_df.empty:
+    st.error("⚠️ The scraped data contains no valid schedule blocks. The university portal might be empty.")
+    st.stop()
+
 
 # ==========================================
 # 5. PURE NATIVE STREAMLIT FILTERS (Tight UI)
