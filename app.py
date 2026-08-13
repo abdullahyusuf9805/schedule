@@ -20,7 +20,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from PIL import Image
 
 # ==========================================
 # 1. STREAMLIT CONFIGURATION & THEME STYLING
@@ -144,7 +143,6 @@ st.title("Dynamic Timetable Generator")
 # 2. TWO-STEP INTERACTIVE SELENIUM LOGIC
 # ==========================================
 
-# STEP 1: Start browser, navigate, and extract the CAPTCHA image
 def init_browser_and_get_captcha():
     options = Options()
     options.add_argument('--headless')
@@ -161,7 +159,7 @@ def init_browser_and_get_captcha():
     
     try:
         driver.get("https://sso.iu.edu.sa")
-        time.sleep(2) # Let OIDC redirects settle
+        time.sleep(2) 
         
         try:
             uni_login_btn = driver.find_element(By.XPATH, "//*[contains(text(), 'الجامعي') or contains(text(), 'Employee')]")
@@ -171,7 +169,6 @@ def init_browser_and_get_captcha():
         except:
             pass 
 
-        # Find Captcha Image
         try:
             captcha_img_element = driver.find_element(By.XPATH, "//img[contains(translate(@src, 'CAPTCHA', 'captcha'), 'captcha')]")
         except:
@@ -179,7 +176,6 @@ def init_browser_and_get_captcha():
             
         img_bytes = captcha_img_element.screenshot_as_png
         
-        # Save the live running driver into session state!
         st.session_state.live_driver = driver
         st.session_state.captcha_img_bytes = img_bytes
         st.session_state.waiting_for_captcha = True
@@ -188,7 +184,7 @@ def init_browser_and_get_captcha():
         driver.quit()
         raise Exception(f"Failed to initialize login page. {str(e)}")
 
-# STEP 2: Input the typed CAPTCHA, login, and scrape data
+
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.live_driver
     try:
@@ -199,7 +195,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         captcha_input = text_inputs[-1] 
         pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
         
-        # Fill out the form
         user_field.clear()
         user_field.send_keys(username)
         pass_field.clear()
@@ -207,16 +202,14 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         captcha_input.clear()
         captcha_input.send_keys(captcha_val)
         
-        # Submit the login
         submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
         driver.execute_script("arguments[0].click();", submit_btn)
         
-        # Verify if login worked
         try:
             WebDriverWait(driver, 8).until(EC.url_contains("Dashboard"))
         except:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Login rejected by University! Check your Username, Password, or CAPTCHA.")
+            raise Exception("Login rejected by University! Check Username, Password, or CAPTCHA.")
             
         # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
@@ -236,15 +229,30 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.XPATH, "//input[contains(@id, ':instructor')]"))
-        )
+        # EXACT USER INSTRUCTION: Wait exactly 5 seconds for the table to load
+        time.sleep(5)
         
-        html_data = driver.page_source
-        return html_data
+        # --- EXACT USER INSTRUCTION: Trim the fat and ONLY keep the target <tbody> ---
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        target_tbody = None
+        
+        # Search all tbodys on the page
+        for tbody in soup.find_all("tbody"):
+            # We want the tbody that has a <tr class=...> inside it
+            first_tr = tbody.find("tr")
+            if first_tr and first_tr.has_attr("class"):
+                target_tbody = tbody
+                break
+                
+        # Failsafe: Take a screenshot if the table didn't load properly
+        if target_tbody is None:
+            driver.save_screenshot("error_screenshot.png")
+            raise Exception("Could not find the <tbody> containing <tr class=>. The table did not load properly.")
+            
+        # Return ONLY the clean, trimmed <tbody> HTML string
+        return str(target_tbody)
 
     finally:
-        # ALWAYS CLOSE THE BROWSER AFTERWARDS TO SAVE SERVER RAM!
         driver.quit()
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
@@ -337,7 +345,6 @@ def parse_html_to_dataframe(html_content):
 # 4. INITIALIZE DATA & INTERACTIVE CAPTCHA
 # ==========================================
 
-# Initialize persistent session states
 if "live_html_data" not in st.session_state:
     st.session_state.live_html_data = None
 if "waiting_for_captcha" not in st.session_state:
@@ -347,9 +354,9 @@ if "live_driver" not in st.session_state:
 if "captcha_img_bytes" not in st.session_state:
     st.session_state.captcha_img_bytes = None
 
-st.sidebar.header("🌐 Sync & Update data.html")
+st.sidebar.header("🌐 Auto-Fetch & Update data.html")
 
-# --- PHASE 1: ENTER CREDENTIALS & GET CAPTCHA ---
+# --- PHASE 1 ---
 if not st.session_state.waiting_for_captcha:
     st.session_state.portal_user = st.sidebar.text_input("Portal Username", placeholder="Student ID")
     st.session_state.portal_pass = st.sidebar.text_input("Portal Password", type="password", placeholder="Password")
@@ -361,15 +368,13 @@ if not st.session_state.waiting_for_captcha:
             with st.spinner("Connecting to server and retrieving CAPTCHA..."):
                 try:
                     init_browser_and_get_captcha()
-                    st.rerun() # Refresh app to show phase 2
+                    st.rerun()
                 except Exception as e:
                     st.sidebar.error(f"Error: {e}")
 
-# --- PHASE 2: SOLVE CAPTCHA & SCRAPE ---
+# --- PHASE 2 ---
 else:
     st.sidebar.success("Connection Established!")
-    
-    # Display the live image grabbed from the portal!
     st.sidebar.image(st.session_state.captcha_img_bytes, caption="Enter the 5 digits shown above")
     
     user_captcha = st.sidebar.text_input("CAPTCHA Value", max_chars=5)
@@ -380,7 +385,7 @@ else:
             if len(user_captcha) != 5:
                 st.sidebar.error("Please enter exactly 5 digits.")
             else:
-                with st.spinner("Logging in and scraping data... (takes 20s)"):
+                with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
                     try:
                         raw_live_html = submit_captcha_and_scrape(
                             st.session_state.portal_user, 
@@ -389,51 +394,49 @@ else:
                         )
                         st.session_state.live_html_data = raw_live_html
                         
-                        # --- CRITICAL FIX: PUSH DATA DIRECTLY TO GITHUB ---
-                        try:
-                            # 1. Authenticate with GitHub using your secret token
-                            g = Github(st.secrets["GITHUB_TOKEN"])
-                            repo = g.get_repo(st.secrets["GITHUB_REPO"])
+                        # 1. ALWAYS write locally so it immediately works for this session
+                        with open("data.html", "w", encoding="utf-8") as f:
+                            f.write(raw_live_html)
                             
-                            # 2. Find the existing data.html file
+                        # 2. Attempt to push the trimmed <tbody> to GitHub
+                        if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
                             try:
-                                contents = repo.get_contents("data.html")
-                                # 3. Update the file on GitHub (makes a commit)
-                                repo.update_file(
-                                    contents.path, 
-                                    "Bot automatically updated timetable data", 
-                                    raw_live_html, 
-                                    contents.sha
-                                )
-                            except Exception:
-                                # If data.html doesn't exist yet, create it
-                                repo.create_file(
-                                    "data.html", 
-                                    "Bot created timetable data file", 
-                                    raw_live_html
-                                )
-                                
-                            st.sidebar.success("✅ Successfully synced and pushed to GitHub permanently!")
-                        except Exception as github_e:
-                            st.sidebar.error(f"Synced locally, but couldn't push to GitHub: {github_e}")
-                            # Fallback to local save just in case
-                            with open("data.html", "w", encoding="utf-8") as f:
-                                f.write(raw_live_html)
+                                g = Github(st.secrets["GITHUB_TOKEN"])
+                                repo = g.get_repo(st.secrets["GITHUB_REPO"])
+                                try:
+                                    contents = repo.get_contents("data.html")
+                                    repo.update_file(
+                                        contents.path, 
+                                        "Bot automatically synced trimmed <tbody>", 
+                                        raw_live_html, 
+                                        contents.sha
+                                    )
+                                except Exception:
+                                    repo.create_file(
+                                        "data.html", 
+                                        "Bot created trimmed <tbody> data file", 
+                                        raw_live_html
+                                    )
+                                st.sidebar.success("✅ Synced and pushed to GitHub permanently!")
+                            except Exception as github_e:
+                                st.sidebar.warning(f"Saved locally, but GitHub push failed: {github_e}")
+                        else:
+                            st.sidebar.success("✅ Saved locally (GitHub secrets not configured).")
                         
                         if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
                             
                     except Exception as e:
                         st.sidebar.error(f"Sync failed. {e}")
+                        # Display the screenshot if it failed to find the table!
                         if os.path.exists("error_screenshot.png"):
-                            st.sidebar.image("error_screenshot.png", caption="What the bot saw before it crashed:")
+                            st.sidebar.image("error_screenshot.png", caption="Last screen before failure:")
                         
-                        # Cleanup driver if it crashed
                         if st.session_state.live_driver:
                             st.session_state.live_driver.quit()
                             st.session_state.live_driver = None
                         st.session_state.waiting_for_captcha = False
-                    st.rerun() # Refresh to show final state
+                    st.rerun()
 
     with col2:
         if st.button("Cancel", use_container_width=True):
@@ -445,8 +448,7 @@ else:
 
 st.sidebar.markdown("---")
 
-# Determine which data to use: Live session data OR local fallback file
-raw_df = pd.DataFrame() # Create empty dataframe just in case
+raw_df = pd.DataFrame() 
 if st.session_state.live_html_data:
     raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
 elif os.path.exists("data.html"):
@@ -455,9 +457,11 @@ elif os.path.exists("data.html"):
         if html_content.strip():
             raw_df = parse_html_to_dataframe(html_content)
 
-# --- CRITICAL FIX: EMPTY DATA PROTECTION ---
+# Show error screenshot globally if data is entirely missing
 if raw_df is None or raw_df.empty:
-    st.error("⚠️ No schedule data found. The data.html file is empty, or the sync returned no data. Please run 'Connect & Get CAPTCHA' to fetch fresh data.")
+    st.error("⚠️ No schedule data found. Please run 'Connect & Get CAPTCHA' to fetch fresh data.")
+    if os.path.exists("error_screenshot.png"):
+        st.image("error_screenshot.png", caption="Bot's view during the last failed attempt:")
     st.stop()
 
 
@@ -467,7 +471,6 @@ if raw_df is None or raw_df.empty:
 st.sidebar.subheader("📥 Export Raw Data")
 
 try:
-    # Generate timestamp formatted as DDMMYYYY-HHMM
     current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
     excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
     
