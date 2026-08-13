@@ -966,22 +966,54 @@ else:
 
   st.markdown("---")
   st.markdown('<div class="center-download">', unsafe_allow_html=True)
-  if st.button(
-      "Render & Download All Schedules as JPGs (ZIP)", key="download_zip_btn"
-  ):
-    with st.spinner("Drawing high-res images..."):
-      zip_buffer = io.BytesIO()
-      with zipfile.ZipFile(
-          zip_buffer, "a", zipfile.ZIP_DEFLATED, False
-      ) as zip_file:
-        for i, sched in enumerate(schedules):
-          img_bytes = draw_schedule_image(sched)
-          zip_file.writestr(f"Schedule_Option_{i+1}.jpg", img_bytes)
+  
+  col_zip, col_excel = st.columns(2)
+  
+  # --- 1. ZIP JPG DOWNLOAD ---
+  with col_zip:
+      if st.button("Render All as JPGs (ZIP)", key="download_zip_btn", use_container_width=True):
+        with st.spinner("Drawing high-res images..."):
+          zip_buffer = io.BytesIO()
+          with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+            for i, sched in enumerate(schedules):
+              img_bytes = draw_schedule_image(sched)
+              zip_file.writestr(f"Schedule_Option_{i+1}.jpg", img_bytes)
+    
+          st.download_button(
+              label="📥 Click Here to Download ZIP",
+              data=zip_buffer.getvalue(),
+              file_name="All_Schedules.zip",
+              mime="application/zip",
+              use_container_width=True
+          )
+          
+  # --- 2. ALL SCHEDULES EXCEL DOWNLOAD ---
+  with col_excel:
+      try:
+          import openpyxl
+          all_excel_buffer = io.BytesIO()
+          with pd.ExcelWriter(all_excel_buffer, engine='openpyxl') as writer:
+              for i, sched in enumerate(schedules):
+                  df_sched = pd.DataFrame([{
+                      "CODE": s["code"],
+                      "NAME": s["name"],
+                      "ID (ش)": s["id"],
+                      "HALL": s["hall"],
+                      "VENUE": s["venue"],
+                      "TEACHER": s["teacher"],
+                      "STATUS": s["status"],
+                  } for s in sched])
+                  # Put each schedule on its own sheet in the Excel file
+                  df_sched.to_excel(writer, index=False, sheet_name=f"Option_{i+1}")
+          
+          st.download_button(
+              label="📥 Download All Schedules (1 Excel File)",
+              data=all_excel_buffer.getvalue(),
+              file_name="All_Generated_Schedules.xlsx",
+              mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              use_container_width=True
+          )
+      except ModuleNotFoundError:
+          st.error("⚠️ Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
 
-      st.download_button(
-          label="Click Here to Download ZIP",
-          data=zip_buffer.getvalue(),
-          file_name="All_Schedules.zip",
-          mime="application/zip",
-      )
   st.markdown("</div>", unsafe_allow_html=True)
