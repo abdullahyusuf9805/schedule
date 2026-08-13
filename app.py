@@ -422,29 +422,55 @@ else:
     st.stop()
 
 
+# ==========================================
+# EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
+# ==========================================
+st.sidebar.markdown("---")
+st.sidebar.subheader("📥 Export Raw Data")
+
+try:
+    # Generate timestamp formatted as DDMMYYYY-HHMM
+    current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
+    excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
+    
+    raw_excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
+        raw_df.to_excel(writer, index=False, sheet_name="Scraped_Data")
+    
+    st.sidebar.download_button(
+        label="Download All Scraped Data (Excel)",
+        data=raw_excel_buffer.getvalue(),
+        file_name=excel_filename,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+except ModuleNotFoundError:
+    st.sidebar.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
+
+
 @st.cache_data
 def parse_schedule_blocks(df_input):
-  parsed_rows = []
-  for index, row in df_input.iterrows():
-    venue_str = str(row["VENUE"]).strip()
-    if venue_str == "nan" or not venue_str:
-      continue
-
-    blocks = [b.strip() for b in venue_str.split(",")]
-    for block in blocks:
-      if "-" in block:
-        parts = block.split("-")
-        try:
-          day = int(parts[0].strip())
-          start_time = int(parts[1].strip())
-          new_row = row.copy()
-          new_row["day"] = day
-          new_row["start_time"] = start_time
-          new_row["end_time"] = start_time + 1
-          parsed_rows.append(new_row)
-        except ValueError:
-          continue
-  return pd.DataFrame(parsed_rows)
+    parsed_rows = []
+    for index, row in df_input.iterrows():
+        venue_str = str(row["VENUE"]).strip()
+        if venue_str == "nan" or not venue_str:
+            continue
+    
+        blocks = [b.strip() for b in venue_str.split(",")]
+        for block in blocks:
+            if "-" in block:
+                parts = block.split("-")
+                try:
+                    day = int(parts[0].strip())
+                    start_time = int(parts[1].strip())
+                    new_row = row.copy()
+                    new_row["day"] = day
+                    new_row["start_time"] = start_time
+                    new_row["end_time"] = start_time + 1
+                    parsed_rows.append(new_row)
+                except ValueError:
+                    continue
+    return pd.DataFrame(parsed_rows)
 
 parsed_df = parse_schedule_blocks(raw_df)
 
@@ -530,54 +556,14 @@ for day_num, (label, default_val) in days_config.items():
       day_exceptions[day_num] = []
 
 def is_valid_time(row):
-  day, start = row["day"], row["start_time"]
-  config = day_filters.get(day)
-  if config is not None:
-    r_start, r_end = config["range"]
-    if r_start <= start <= r_end:
-      if start not in day_exceptions.get(day, []):
-        return True
-  return False
-
-# Determine which data to use: Live data (if fetched) OR local fallback file
-if st.session_state.live_html_data:
-    raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
-elif os.path.exists("data.html"):
-    with open("data.html", "r", encoding="utf-8") as f:
-        raw_df = parse_html_to_dataframe(f.read())
-else:
-    st.error("No live data fetched and 'data.html' fallback file not found. Please sync with the portal.")
-    st.stop()
-
-# ==========================================
-# NEW: EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
-# ==========================================
-st.sidebar.markdown("---")
-st.sidebar.subheader("📥 Export Raw Data")
-
-try:
-    # Generate timestamp formatted as DDMMYYYY-HHMM
-    current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
-    excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
-    
-    raw_excel_buffer = io.BytesIO()
-    with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
-        raw_df.to_excel(writer, index=False, sheet_name="Scraped_Data")
-    
-    st.sidebar.download_button(
-        label="Download All Scraped Data (Excel)",
-        data=raw_excel_buffer.getvalue(),
-        file_name=excel_filename,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True
-    )
-except ModuleNotFoundError:
-    st.sidebar.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
-
-
-@st.cache_data
-def parse_schedule_blocks(df_input):
-# ... (rest of the code continues below)
+    day, start = row["day"], row["start_time"]
+    config = day_filters.get(day)
+    if config is not None:
+        r_start, r_end = config["range"]
+        if r_start <= start <= r_end:
+            if start not in day_exceptions.get(day, []):
+                return True
+    return False
 
 parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
 invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
