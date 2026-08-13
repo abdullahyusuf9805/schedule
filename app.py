@@ -8,6 +8,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import streamlit as st
 import time
+from datetime import datetime
 
 # --- Selenium Imports for University Portal ---
 from selenium import webdriver
@@ -537,6 +538,46 @@ def is_valid_time(row):
       if start not in day_exceptions.get(day, []):
         return True
   return False
+
+# Determine which data to use: Live data (if fetched) OR local fallback file
+if st.session_state.live_html_data:
+    raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
+elif os.path.exists("data.html"):
+    with open("data.html", "r", encoding="utf-8") as f:
+        raw_df = parse_html_to_dataframe(f.read())
+else:
+    st.error("No live data fetched and 'data.html' fallback file not found. Please sync with the portal.")
+    st.stop()
+
+# ==========================================
+# NEW: EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
+# ==========================================
+st.sidebar.markdown("---")
+st.sidebar.subheader("📥 Export Raw Data")
+
+try:
+    # Generate timestamp formatted as DDMMYYYY-HHMM
+    current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
+    excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
+    
+    raw_excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
+        raw_df.to_excel(writer, index=False, sheet_name="Scraped_Data")
+    
+    st.sidebar.download_button(
+        label="Download All Scraped Data (Excel)",
+        data=raw_excel_buffer.getvalue(),
+        file_name=excel_filename,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+except ModuleNotFoundError:
+    st.sidebar.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
+
+
+@st.cache_data
+def parse_schedule_blocks(df_input):
+# ... (rest of the code continues below)
 
 parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
 invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
