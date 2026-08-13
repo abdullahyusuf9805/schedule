@@ -166,7 +166,16 @@ def fetch_live_portal_data(username, password):
         # Access the initial login page
         driver.get("https://sso.iu.edu.sa")
         
-        # SMART LOGIN SELECTORS (Handles standard, .NET Identity, and Arabic forms)
+        # --- NEW STEP: Click the "Login with University ID" button first! ---
+        # Wait for the white button and click it to reveal the username/password fields
+        uni_login_btn = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'الدخول بالرقم الجامعي') or contains(., 'الدخول بالرقم الجامعي')]"))
+        )
+        driver.execute_script("arguments[0].click();", uni_login_btn)
+        
+        time.sleep(1) # Brief pause to allow the text boxes to slide into view
+        
+        # SMART LOGIN SELECTORS
         user_field = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//input[@type='text' or @type='email' or contains(@name, 'Username') or contains(@name, 'user')]"))
         )
@@ -605,7 +614,6 @@ if len(target_subjects) < total_required_subjects:
       " subjects remaining after filters. Check your filters or rules."
   )
 
-
 @st.cache_data
 def generate_schedules(subjects_dict, targets):
   valid_schedules = []
@@ -641,7 +649,6 @@ schedules = (
     else []
 )
 
-
 def calculate_schedule_score(schedule):
   day_slots = {}
   for sec in schedule:
@@ -659,7 +666,6 @@ def calculate_schedule_score(schedule):
       gaps = span - len(times)
       total_gaps += gaps
   return total_gaps
-
 
 schedules = sorted(schedules, key=calculate_schedule_score)
 
