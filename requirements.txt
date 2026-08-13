@@ -6,3 +6,5 @@ matplotlib
 openpyxl
 selenium
 webdriver-manager
+pytesseract
+Pillow
