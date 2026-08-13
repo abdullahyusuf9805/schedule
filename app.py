@@ -3,15 +3,12 @@ import os
 import zipfile
 import arabic_reshaper
 from bidi.algorithm import get_display
+import matplotlib.subplots
 import matplotlib.pyplot as plt
 import pandas as pd
 from bs4 import BeautifulSoup
 import streamlit as st
 import time
-
-# --- AI OCR Imports ---
-import pytesseract
-from PIL import Image
 
 # --- Selenium Imports for University Portal ---
 from selenium import webdriver
@@ -20,6 +17,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from PIL import Image
 
 # ==========================================
 # 1. STREAMLIT CONFIGURATION & THEME STYLING
@@ -140,9 +138,11 @@ st.markdown(
 st.title("Dynamic Timetable Generator")
 
 # ==========================================
-# 2. LIVE UNIVERSITY PORTAL SCRAPING & OCR LOGIC
+# 2. TWO-STEP INTERACTIVE SELENIUM LOGIC
 # ==========================================
-def fetch_live_portal_data(username, password):
+
+# STEP 1: Start browser, navigate, and extract the CAPTCHA image
+def init_browser_and_get_captcha():
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
@@ -155,119 +155,97 @@ def fetch_live_portal_data(username, password):
     service = Service("/usr/bin/chromedriver")
     
     driver = webdriver.Chrome(service=service, options=options)
-
+    
     try:
-        max_attempts = 15
-        login_success = False
+        driver.get("https://sso.iu.edu.sa")
+        time.sleep(2) # Let OIDC redirects settle
         
-        # --- AI CAPTCHA RETRY LOOP ---
-        for attempt in range(max_attempts):
-            try:
-                driver.get("https://sso.iu.edu.sa")
-                time.sleep(2) # Let OIDC redirects settle
-                
-                # Check if we need to click the "University ID" / "Employee" button first
-                try:
-                    uni_login_btn = driver.find_element(By.XPATH, "//*[contains(text(), 'الجامعي') or contains(text(), 'Employee')]")
-                    if uni_login_btn.is_displayed():
-                        driver.execute_script("arguments[0].click();", uni_login_btn)
-                        time.sleep(1)
-                except:
-                    pass # The form is already visible (like in your screenshot)
-
-                # Find all visible text inputs. Index 0 is Username, Last Index is Captcha
-                text_inputs = WebDriverWait(driver, 10).until(
-                    EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
-                )
-                user_field = text_inputs[0]
-                captcha_input = text_inputs[-1] 
-                
-                pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
-                
-                # Find Captcha Image (Robust fallback if the word 'captcha' isn't in the image source)
-                try:
-                    captcha_img = driver.find_element(By.XPATH, "//img[contains(translate(@src, 'CAPTCHA', 'captcha'), 'captcha')]")
-                except:
-                    captcha_img = driver.find_element(By.XPATH, "(//form//img)[last()]")
-                
-                # 1. Take a screenshot of the CAPTCHA
-                img_bytes = captcha_img.screenshot_as_png
-                image = Image.open(io.BytesIO(img_bytes)).convert('L')
-                
-                # 2. Image Processing: Thresholding to remove light background noise and strengthen black text
-                image = image.point(lambda p: 255 if p > 140 else 0)
-                
-                # 3. Use Tesseract AI to extract exactly 5 digits
-                captcha_text = pytesseract.image_to_string(image, config='--psm 8 -c tessedit_char_whitelist=0123456789').strip()
-                captcha_text = "".join([c for c in captcha_text if c.isdigit()])
-                
-                # If the AI failed to read exactly 5 numbers, skip and reload a new captcha immediately
-                if len(captcha_text) != 5:
-                    continue
-
-                # Fill out the form
-                user_field.clear()
-                user_field.send_keys(username)
-                pass_field.clear()
-                pass_field.send_keys(password)
-                captcha_input.clear()
-                captcha_input.send_keys(captcha_text)
-                
-                # Submit the login
-                submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
-                driver.execute_script("arguments[0].click();", submit_btn)
-                
-                # Verify if login worked by waiting for the Dashboard URL
-                WebDriverWait(driver, 5).until(EC.url_contains("Dashboard"))
-                login_success = True
-                break # Break out of the retry loop!
-                
-            except Exception as loop_e:
-                # If anything in this attempt fails (wrong captcha, element timeout), loop and try again!
+        try:
+            uni_login_btn = driver.find_element(By.XPATH, "//*[contains(text(), 'الجامعي') or contains(text(), 'Employee')]")
+            if uni_login_btn.is_displayed():
+                driver.execute_script("arguments[0].click();", uni_login_btn)
                 time.sleep(1)
-                continue 
-                
-        # If all 15 attempts failed, crash and take a screenshot
-        if not login_success:
+        except:
+            pass 
+
+        # Find Captcha Image
+        try:
+            captcha_img_element = driver.find_element(By.XPATH, "//img[contains(translate(@src, 'CAPTCHA', 'captcha'), 'captcha')]")
+        except:
+            captcha_img_element = driver.find_element(By.XPATH, "(//form//img)[last()]")
+            
+        img_bytes = captcha_img_element.screenshot_as_png
+        
+        # Save the live running driver into session state!
+        st.session_state.live_driver = driver
+        st.session_state.captcha_img_bytes = img_bytes
+        st.session_state.waiting_for_captcha = True
+        
+    except Exception as e:
+        driver.quit()
+        raise Exception(f"Failed to initialize login page. {str(e)}")
+
+# STEP 2: Input the typed CAPTCHA, login, and scrape data
+def submit_captcha_and_scrape(username, password, captcha_val):
+    driver = st.session_state.live_driver
+    try:
+        text_inputs = WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
+        )
+        user_field = text_inputs[0]
+        captcha_input = text_inputs[-1] 
+        pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
+        
+        # Fill out the form
+        user_field.clear()
+        user_field.send_keys(username)
+        pass_field.clear()
+        pass_field.send_keys(password)
+        captcha_input.clear()
+        captcha_input.send_keys(captcha_val)
+        
+        # Submit the login
+        submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
+        driver.execute_script("arguments[0].click();", submit_btn)
+        
+        # Verify if login worked
+        try:
+            WebDriverWait(driver, 8).until(EC.url_contains("Dashboard"))
+        except:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("AI failed to solve the CAPTCHA correctly after 15 attempts. Please try again.")
+            raise Exception("Login rejected by University! Check your Username, Password, or CAPTCHA.")
             
         # --- POST-LOGIN NAVIGATION ---
-        # Trigger the academic jump
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
-        # Wait for the logininit bridge to finish processing
         WebDriverWait(driver, 35).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        # Navigate through the Menus via XPath (Ignores whitespace issues)
         electronic_reg_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        
-        time.sleep(1.5) # Let the menu animation finish
+        time.sleep(1.5) 
         
         course_plan_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        # Wait for the data table to physically render in the DOM
         WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.XPATH, "//input[contains(@id, ':instructor')]"))
         )
         
-        return driver.page_source
-
-    except Exception as e:
-        # Save a screenshot if the navigation fails after login
-        driver.save_screenshot("error_screenshot.png")
-        raise Exception(f"Failed during navigation. Stuck at URL: {driver.current_url}")
+        html_data = driver.page_source
+        return html_data
 
     finally:
+        # ALWAYS CLOSE THE BROWSER AFTERWARDS TO SAVE SERVER RAM!
         driver.quit()
+        st.session_state.live_driver = None
+        st.session_state.waiting_for_captcha = False
+
 
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
@@ -354,32 +332,82 @@ def parse_html_to_dataframe(html_content):
 # ==========================================
 # 4. INITIALIZE DATA (LIVE FETCH OR FALLBACK)
 # ==========================================
-st.sidebar.header("🌐 Live Portal Sync")
-portal_user = st.sidebar.text_input("Portal Username", placeholder="Student ID")
-portal_pass = st.sidebar.text_input("Portal Password", type="password", placeholder="Password")
 
+# Initialize persistent session states for the Interactive CAPTCHA
 if "live_html_data" not in st.session_state:
     st.session_state.live_html_data = None
+if "waiting_for_captcha" not in st.session_state:
+    st.session_state.waiting_for_captcha = False
+if "live_driver" not in st.session_state:
+    st.session_state.live_driver = None
+if "captcha_img_bytes" not in st.session_state:
+    st.session_state.captcha_img_bytes = None
 
-if st.sidebar.button("Fetch Live Timetable", use_container_width=True):
-    if not portal_user or not portal_pass:
-        st.sidebar.error("Please enter credentials.")
-    else:
-        with st.spinner("Bot is solving CAPTCHA and syncing... (May take up to 60s)"):
-            try:
-                raw_live_html = fetch_live_portal_data(portal_user, portal_pass)
-                st.session_state.live_html_data = raw_live_html
-                st.sidebar.success("Successfully bypassed CAPTCHA and synced with portal!")
-                
-                # Delete old error screenshot if sync is successful
-                if os.path.exists("error_screenshot.png"):
-                    os.remove("error_screenshot.png")
-                    
-            except Exception as e:
-                st.sidebar.error(f"Sync failed. {e}")
-                # IF IT FAILS, SHOW THE SCREENSHOT IN THE APP!
-                if os.path.exists("error_screenshot.png"):
-                    st.sidebar.image("error_screenshot.png", caption="What the bot saw before it crashed:")
+st.sidebar.header("🌐 Interactive Portal Sync")
+
+# --- PHASE 1: ENTER CREDENTIALS & GET CAPTCHA ---
+if not st.session_state.waiting_for_captcha:
+    st.session_state.portal_user = st.sidebar.text_input("Portal Username", placeholder="Student ID")
+    st.session_state.portal_pass = st.sidebar.text_input("Portal Password", type="password", placeholder="Password")
+    
+    if st.sidebar.button("1. Connect & Get CAPTCHA", use_container_width=True):
+        if not st.session_state.portal_user or not st.session_state.portal_pass:
+            st.sidebar.error("Please enter credentials first.")
+        else:
+            with st.spinner("Connecting to server and retrieving CAPTCHA..."):
+                try:
+                    init_browser_and_get_captcha()
+                    st.rerun() # Refresh app to show phase 2
+                except Exception as e:
+                    st.sidebar.error(f"Error: {e}")
+
+# --- PHASE 2: SOLVE CAPTCHA & SCRAPE ---
+else:
+    st.sidebar.success("Connection Established!")
+    
+    # Display the live image grabbed from the portal!
+    st.sidebar.image(st.session_state.captcha_img_bytes, caption="Enter the 5 digits shown above")
+    
+    user_captcha = st.sidebar.text_input("CAPTCHA Value", max_chars=5)
+    
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("2. Submit & Sync", use_container_width=True):
+            if len(user_captcha) != 5:
+                st.sidebar.error("Please enter exactly 5 digits.")
+            else:
+                with st.spinner("Logging in and scraping data... (takes 20s)"):
+                    try:
+                        raw_live_html = submit_captcha_and_scrape(
+                            st.session_state.portal_user, 
+                            st.session_state.portal_pass, 
+                            user_captcha
+                        )
+                        st.session_state.live_html_data = raw_live_html
+                        st.sidebar.success("Successfully synced!")
+                        
+                        if os.path.exists("error_screenshot.png"):
+                            os.remove("error_screenshot.png")
+                            
+                    except Exception as e:
+                        st.sidebar.error(f"Sync failed. {e}")
+                        if os.path.exists("error_screenshot.png"):
+                            st.sidebar.image("error_screenshot.png", caption="What the bot saw before it crashed:")
+                        
+                        # Cleanup driver if it crashed
+                        if st.session_state.live_driver:
+                            st.session_state.live_driver.quit()
+                            st.session_state.live_driver = None
+                        st.session_state.waiting_for_captcha = False
+                    st.rerun() # Refresh to show final state
+
+    with col2:
+        if st.button("Cancel", use_container_width=True):
+            if st.session_state.live_driver:
+                st.session_state.live_driver.quit()
+                st.session_state.live_driver = None
+            st.session_state.waiting_for_captcha = False
+            st.rerun()
 
 st.sidebar.markdown("---")
 
