@@ -101,7 +101,6 @@ st.markdown(
            NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
            ========================================= */
         
-        /* 1. ABSOLUTELY NUKE THE STATIC MIN/MAX LABELS (8 and 18) */
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
         [data-testid="stTickBarMax"] {
@@ -110,7 +109,6 @@ st.markdown(
             visibility: hidden !important;
         }
 
-        /* 2. GLOBALLY DESTROY REACT PORTAL TOOLTIPS */
         div[data-baseweb="tooltip"], 
         div[role="tooltip"],
         div[data-testid="stThumbValue"] {
@@ -119,7 +117,6 @@ st.markdown(
             visibility: hidden !important;
         }
 
-        /* Clean Normal Size Thumbs */
         div[data-baseweb="slider"] div[role="slider"] {
             background-color: #ff4d4d !important;
             border: none !important;
@@ -127,12 +124,10 @@ st.markdown(
             outline: none !important;
         }
         
-        /* Disabled Slider Styling */
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
             background-color: #555555 !important;
         }
 
-        /* Squeeze slider columns together */
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
@@ -153,80 +148,89 @@ def fetch_live_portal_data(username, password):
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    
-    # 1. Force a desktop window size so menus don't collapse
     options.add_argument('--window-size=1920,1080')
     options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     
-    # 2. Force Selenium to use Streamlit Cloud's internal Chromium paths
     options.binary_location = "/usr/bin/chromium"
     service = Service("/usr/bin/chromedriver")
     
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
-        max_attempts = 5
+        max_attempts = 15
         login_success = False
         
         # --- AI CAPTCHA RETRY LOOP ---
         for attempt in range(max_attempts):
-            driver.get("https://sso.iu.edu.sa")
-            time.sleep(3) # Let OIDC redirects settle
-            
-            # Click the "University ID" button if we are on the choice screen
             try:
-                uni_login_btn = driver.find_element(By.XPATH, "//a[contains(., 'الجامعي')] | //button[contains(., 'الجامعي')] | //*[contains(text(), 'الجامعي')]")
-                driver.execute_script("arguments[0].click();", uni_login_btn)
-                time.sleep(1.5)
-            except:
-                pass # Form might already be visible
+                driver.get("https://sso.iu.edu.sa")
+                time.sleep(2) # Let OIDC redirects settle
+                
+                # Check if we need to click the "University ID" / "Employee" button first
+                try:
+                    uni_login_btn = driver.find_element(By.XPATH, "//*[contains(text(), 'الجامعي') or contains(text(), 'Employee')]")
+                    if uni_login_btn.is_displayed():
+                        driver.execute_script("arguments[0].click();", uni_login_btn)
+                        time.sleep(1)
+                except:
+                    pass # The form is already visible (like in your screenshot)
 
-            # Locate User, Pass, Captcha Image, and Captcha Input
-            user_field = WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.XPATH, "//input[@type='text' or @type='email' or contains(translate(@name, 'USER', 'user'), 'user')]"))
-            )
-            pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
-            
-            # Smart XPath to find the Captcha Image (ignores logos) and the Captcha text box
-            captcha_img = driver.find_element(By.XPATH, "//img[contains(translate(@src, 'CAPTCHA', 'captcha'), 'captcha') or contains(translate(@id, 'CAPTCHA', 'captcha'), 'captcha')]")
-            captcha_input = driver.find_element(By.XPATH, "//input[contains(translate(@name, 'CAPTCHA', 'captcha'), 'captcha') or contains(translate(@id, 'CAPTCHA', 'captcha'), 'captcha')]")
-            
-            # 1. Take a screenshot of just the CAPTCHA image element
-            img_bytes = captcha_img.screenshot_as_png
-            image = Image.open(io.BytesIO(img_bytes))
-            
-            # 2. Use Tesseract AI to extract digits (PSM 8 = single word/block, whitelist = numbers only)
-            captcha_text = pytesseract.image_to_string(image, config='--psm 8 -c tessedit_char_whitelist=0123456789').strip()
-            
-            # Clean up the AI output to absolutely ensure only numbers are submitted
-            captcha_text = "".join([c for c in captcha_text if c.isdigit()])
-            
-            # If the AI failed to see any numbers, refresh and try again
-            if not captcha_text:
-                continue
+                # Find all visible text inputs. Index 0 is Username, Last Index is Captcha
+                text_inputs = WebDriverWait(driver, 10).until(
+                    EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
+                )
+                user_field = text_inputs[0]
+                captcha_input = text_inputs[-1] 
+                
+                pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
+                
+                # Find Captcha Image (Robust fallback if the word 'captcha' isn't in the image source)
+                try:
+                    captcha_img = driver.find_element(By.XPATH, "//img[contains(translate(@src, 'CAPTCHA', 'captcha'), 'captcha')]")
+                except:
+                    captcha_img = driver.find_element(By.XPATH, "(//form//img)[last()]")
+                
+                # 1. Take a screenshot of the CAPTCHA
+                img_bytes = captcha_img.screenshot_as_png
+                image = Image.open(io.BytesIO(img_bytes)).convert('L')
+                
+                # 2. Image Processing: Thresholding to remove light background noise and strengthen black text
+                image = image.point(lambda p: 255 if p > 140 else 0)
+                
+                # 3. Use Tesseract AI to extract exactly 5 digits
+                captcha_text = pytesseract.image_to_string(image, config='--psm 8 -c tessedit_char_whitelist=0123456789').strip()
+                captcha_text = "".join([c for c in captcha_text if c.isdigit()])
+                
+                # If the AI failed to read exactly 5 numbers, skip and reload a new captcha immediately
+                if len(captcha_text) != 5:
+                    continue
 
-            # Fill out the form
-            user_field.clear()
-            user_field.send_keys(username)
-            pass_field.clear()
-            pass_field.send_keys(password)
-            captcha_input.clear()
-            captcha_input.send_keys(captcha_text)
-            
-            # Submit the login
-            submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
-            driver.execute_script("arguments[0].click();", submit_btn)
-            
-            # Verify if login worked by waiting for the Dashboard URL
-            try:
-                WebDriverWait(driver, 8).until(EC.url_contains("Dashboard"))
+                # Fill out the form
+                user_field.clear()
+                user_field.send_keys(username)
+                pass_field.clear()
+                pass_field.send_keys(password)
+                captcha_input.clear()
+                captcha_input.send_keys(captcha_text)
+                
+                # Submit the login
+                submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
+                driver.execute_script("arguments[0].click();", submit_btn)
+                
+                # Verify if login worked by waiting for the Dashboard URL
+                WebDriverWait(driver, 5).until(EC.url_contains("Dashboard"))
                 login_success = True
                 break # Break out of the retry loop!
-            except:
-                continue # Login failed (AI probably misread a number). Loop back and try a new captcha!
                 
+            except Exception as loop_e:
+                # If anything in this attempt fails (wrong captcha, element timeout), loop and try again!
+                time.sleep(1)
+                continue 
+                
+        # If all 15 attempts failed, crash and take a screenshot
         if not login_success:
-            raise Exception("AI failed to read the CAPTCHA correctly after 5 attempts. Please try again.")
+            driver.save_screenshot("error_screenshot.png")
+            raise Exception("AI failed to solve the CAPTCHA correctly after 15 attempts. Please try again.")
             
         # --- POST-LOGIN NAVIGATION ---
         # Trigger the academic jump
@@ -239,14 +243,14 @@ def fetch_live_portal_data(username, password):
         
         # Navigate through the Menus via XPath (Ignores whitespace issues)
         electronic_reg_menu = WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني')]"))
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
         
         time.sleep(1.5) # Let the menu animation finish
         
         course_plan_menu = WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة')]"))
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
@@ -258,9 +262,9 @@ def fetch_live_portal_data(username, password):
         return driver.page_source
 
     except Exception as e:
-        # Take a screenshot to show exactly where the bot failed
+        # Save a screenshot if the navigation fails after login
         driver.save_screenshot("error_screenshot.png")
-        raise Exception(f"Stuck at URL: {driver.current_url}")
+        raise Exception(f"Failed during navigation. Stuck at URL: {driver.current_url}")
 
     finally:
         driver.quit()
@@ -361,7 +365,7 @@ if st.sidebar.button("Fetch Live Timetable", use_container_width=True):
     if not portal_user or not portal_pass:
         st.sidebar.error("Please enter credentials.")
     else:
-        with st.spinner("Bot is solving CAPTCHA and syncing... (May take up to 45s)"):
+        with st.spinner("Bot is solving CAPTCHA and syncing... (May take up to 60s)"):
             try:
                 raw_live_html = fetch_live_portal_data(portal_user, portal_pass)
                 st.session_state.live_html_data = raw_live_html
@@ -650,7 +654,6 @@ if len(target_subjects) < total_required_subjects:
       " subjects remaining after filters. Check your filters or rules."
   )
 
-
 @st.cache_data
 def generate_schedules(subjects_dict, targets):
   valid_schedules = []
@@ -703,7 +706,6 @@ def calculate_schedule_score(schedule):
       gaps = span - len(times)
       total_gaps += gaps
   return total_gaps
-
 
 schedules = sorted(schedules, key=calculate_schedule_score)
 
