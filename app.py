@@ -97,7 +97,6 @@ st.markdown(
            NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
            ========================================= */
         
-        /* 1. ABSOLUTELY NUKE THE STATIC MIN/MAX LABELS (8 and 18) */
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
         [data-testid="stTickBarMax"] {
@@ -106,7 +105,6 @@ st.markdown(
             visibility: hidden !important;
         }
 
-        /* 2. GLOBALLY DESTROY REACT PORTAL TOOLTIPS */
         div[data-baseweb="tooltip"], 
         div[role="tooltip"],
         div[data-testid="stThumbValue"] {
@@ -115,7 +113,6 @@ st.markdown(
             visibility: hidden !important;
         }
 
-        /* Clean Normal Size Thumbs */
         div[data-baseweb="slider"] div[role="slider"] {
             background-color: #ff4d4d !important;
             border: none !important;
@@ -123,12 +120,10 @@ st.markdown(
             outline: none !important;
         }
         
-        /* Disabled Slider Styling */
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
             background-color: #555555 !important;
         }
 
-        /* Squeeze slider columns together */
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
@@ -140,82 +135,33 @@ st.markdown(
 
 st.title("Dynamic Timetable Generator")
 
-import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-
 # ==========================================
-# 2. LIVE UNIVERSITY PORTAL SCRAPING LOGIC
+# 2. DIRECT BYPASS PORTAL SCRAPING LOGIC
 # ==========================================
-def fetch_live_portal_data(username, password):
+def fetch_live_portal_data(bypass_link):
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    
-    # 1. Force a desktop window size so menus don't collapse into mobile view
     options.add_argument('--window-size=1920,1080')
-    
-    # 2. Fake a human User-Agent to bypass basic university bot-protection
     options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     
-    # 3. Force Selenium to use Streamlit Cloud's internal Chromium paths
     options.binary_location = "/usr/bin/chromium"
     service = Service("/usr/bin/chromedriver")
     
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
-        # Access the initial login page
-        driver.get("https://sso.iu.edu.sa")
+        # 1. Directly hit the provided bypass link (logininit?key=...)
+        driver.get(bypass_link)
         
-        # IMPORTANT: Wait 3 seconds to allow OIDC redirects to finish settling
-        time.sleep(3)
-        
-        # --- Check if we are on the Choice Screen ---
-        try:
-            # If we don't immediately see a username box, we must click the choice button
-            driver.find_element(By.XPATH, "//input[@type='text' or @type='email' or contains(@name, 'Username') or contains(@name, 'user')]")
-        except:
-            # Look specifically for ANY element that contains the word "الجامعي" and click it
-            uni_login_btn = WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.XPATH, "//a[contains(., 'الجامعي')] | //button[contains(., 'الجامعي')] | //*[contains(text(), 'الجامعي')]"))
-            )
-            driver.execute_script("arguments[0].click();", uni_login_btn)
-            time.sleep(2) # Brief pause to allow the text boxes to slide into view
-        
-        # --- Enter Credentials ---
-        user_field = WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, "//input[@type='text' or @type='email' or contains(@name, 'Username') or contains(@name, 'user')]"))
-        )
-        pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
-        
-        user_field.clear()
-        user_field.send_keys(username)
-        pass_field.clear()
-        pass_field.send_keys(password)
-        
-        # Find and click the Submit/Login button
-        submit_btn = driver.find_element(By.XPATH, "//button[@type='submit'] | //input[@type='submit'] | //button[contains(., 'دخول')] | //button[contains(., 'Login')]")
-        driver.execute_script("arguments[0].click();", submit_btn)
-        
-        # Wait to enter dashboard
-        WebDriverWait(driver, 25).until(EC.url_contains("Dashboard"))
-        
-        # Trigger the academic jump
-        driver.get("https://cas.iu.edu.sa/cas/eregister")
-        
-        # Wait for the logininit bridge to finish processing
-        WebDriverWait(driver, 35).until(
+        # 2. Wait for the server to verify the token and redirect to homeIndex.faces
+        WebDriverWait(driver, 25).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        # Navigate through the Menus via XPath (Ignores whitespace issues)
+        # 3. Navigate through the Menus via XPath (Ignores whitespace issues)
         electronic_reg_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني')]"))
         )
@@ -228,8 +174,8 @@ def fetch_live_portal_data(username, password):
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        # Wait for the data table to physically render in the DOM
-        WebDriverWait(driver, 35).until(
+        # 4. Wait for the data table to physically render in the DOM
+        WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.XPATH, "//input[contains(@id, ':instructor')]"))
         )
         
@@ -242,6 +188,7 @@ def fetch_live_portal_data(username, password):
 
     finally:
         driver.quit()
+
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
 # ==========================================
@@ -327,30 +274,30 @@ def parse_html_to_dataframe(html_content):
 # ==========================================
 # 4. INITIALIZE DATA (LIVE FETCH OR FALLBACK)
 # ==========================================
-st.sidebar.header("🌐 Live Portal Sync")
-portal_user = st.sidebar.text_input("Portal Username", placeholder="Student ID")
-portal_pass = st.sidebar.text_input("Portal Password", type="password", placeholder="Password")
+st.sidebar.header("🌐 Direct Portal Sync")
+bypass_link = st.sidebar.text_input(
+    "Bypass Link (logininit?key=...)", 
+    value="https://eduportal.iu.edu.sa/iu/logininit?key=13c8cc51-47af-40df-8ecc-b27abda23ba5"
+)
 
 if "live_html_data" not in st.session_state:
     st.session_state.live_html_data = None
 
 if st.sidebar.button("Fetch Live Timetable", use_container_width=True):
-    if not portal_user or not portal_pass:
-        st.sidebar.error("Please enter credentials.")
+    if not bypass_link:
+        st.sidebar.error("Please enter a valid bypass link.")
     else:
-        with st.spinner("Connecting to IU portal... (This takes a few moments)"):
+        with st.spinner("Bypassing login and fetching data..."):
             try:
-                raw_live_html = fetch_live_portal_data(portal_user, portal_pass)
+                raw_live_html = fetch_live_portal_data(bypass_link)
                 st.session_state.live_html_data = raw_live_html
                 st.sidebar.success("Successfully synced with portal!")
                 
-                # Delete old error screenshot if sync is successful
                 if os.path.exists("error_screenshot.png"):
                     os.remove("error_screenshot.png")
                     
             except Exception as e:
-                st.sidebar.error(f"Sync failed. {e}")
-                # IF IT FAILS, SHOW THE SCREENSHOT IN THE APP!
+                st.sidebar.error(f"Sync failed. The token may be expired. {e}")
                 if os.path.exists("error_screenshot.png"):
                     st.sidebar.image("error_screenshot.png", caption="What the bot saw before it crashed:")
 
