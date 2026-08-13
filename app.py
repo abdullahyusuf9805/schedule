@@ -148,58 +148,57 @@ def fetch_live_portal_data(username, password):
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     
-    # 1. Force Selenium to use the exact Chrome binary installed by Streamlit Cloud
     options.binary_location = "/usr/bin/chromium"
-    
-    # 2. Force Selenium to use the exact matched driver installed by Streamlit Cloud
     service = Service("/usr/bin/chromedriver")
     
-    # Initialize hidden Chrome browser using the system drivers
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
-        # 1. Access the initial login page
         driver.get("https://sso.iu.edu.sa")
         
-        # 2. Wait for login fields to appear and input credentials
-        user_field = WebDriverWait(driver, 15).until(
+        user_field = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.NAME, "username"))
         )
         pass_field = driver.find_element(By.NAME, "password")
         
         user_field.send_keys(username)
         pass_field.send_keys(password)
-        
-        # Click the login submission button
         pass_field.submit() 
         
-        # 3. Wait to enter dashboard, then trigger the academic jump
-        WebDriverWait(driver, 15).until(EC.url_contains("Dashboard"))
+        WebDriverWait(driver, 25).until(EC.url_contains("Dashboard"))
+        
+        # Trigger the academic jump
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
-        # Wait until it successfully lands on the specific .faces UI index
-        WebDriverWait(driver, 15).until(EC.url_contains("homeIndex.faces"))
-        
-        # 4. Navigate through the JavaServer Faces (.faces) Menu clicks
-        electronic_reg_menu = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "
-                                التسجيل الإلكتروني"))
+        # NEW: Explicitly wait for the logininit bridge to finish processing
+        WebDriverWait(driver, 35).until(
+            EC.url_contains("homeIndex.faces")
         )
-        electronic_reg_menu.click()
         
-        course_plan_menu = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "المقررات المطروحة وفق الخطة"))
+        electronic_reg_menu = WebDriverWait(driver, 25).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني')]"))
         )
-        course_plan_menu.click()
+        driver.execute_script("arguments[0].click();", electronic_reg_menu)
         
-        # 5. Wait for the data table to physically render in the DOM
-        WebDriverWait(driver, 20).until(
+        time.sleep(1.5) # Let the menu animation finish
+        
+        course_plan_menu = WebDriverWait(driver, 25).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة')]"))
+        )
+        driver.execute_script("arguments[0].click();", course_plan_menu)
+        
+        WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.XPATH, "//input[contains(@id, ':instructor')]"))
         )
         
-        # 6. Extract the generated page source
         return driver.page_source
+
+    except Exception as e:
+        driver.save_screenshot("error_screenshot.png")
+        raise Exception(f"Stuck at URL: {driver.current_url}")
 
     finally:
         driver.quit()
