@@ -3,7 +3,6 @@ import os
 import zipfile
 import arabic_reshaper
 from bidi.algorithm import get_display
-import matplotlib.subplots
 import matplotlib.pyplot as plt
 import pandas as pd
 from bs4 import BeautifulSoup
