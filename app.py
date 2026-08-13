@@ -183,7 +183,8 @@ def fetch_live_portal_data(username, password):
         
         # 4. Navigate through the JavaServer Faces (.faces) Menu clicks
         electronic_reg_menu = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "التسجيل"))
+            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "
+                                التسجيل الإلكتروني"))
         )
         electronic_reg_menu.click()
         
