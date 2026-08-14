@@ -526,13 +526,10 @@ if parsed_df.empty:
 # ==========================================
 # 5. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
-# ==========================================
-# 4. UI FILTERS (Matching Final Image Logic)
-# ==========================================
-st.sidebar.header("Day & Time Matrix Filters")
+st.sidebar.header("Filter By Day & Time")
 
 days_config = {
-    1: ("Sunday (Day 1)", False),
+    1: ("Sunday (Day 1)", True),
     2: ("Monday (Day 2)", True),
     3: ("Tuesday (Day 3)", True),
     4: ("Wednesday (Day 4)", True),
@@ -616,18 +613,17 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
 # --- Section Availability Filter ---
 st.sidebar.markdown("---")
-st.sidebar.header("Section Availability & Enrollment")
+st.sidebar.header("Section Availability For Enrollment")
 
 # 1. New Input for already enrolled sections
 enrolled_input = st.sidebar.text_input(
-    "Already Enrolled Sections (IDs)", 
-    placeholder="e.g., 1083, 1085",
+    placeholder="Enter Already Enrolled Section",
     help="These sections will bypass the 'Closed' filter so you can still build a schedule around them."
 )
 enrolled_ids = [s.strip() for s in enrolled_input.split(",") if s.strip()]
 
 if "STATUS" in raw_df.columns:
-  auto_remove = st.sidebar.checkbox("Auto-Remove Closed Sections", value=True)
+  auto_remove = st.sidebar.checkbox("Avoid Closed Sections", value=True)
   if auto_remove:
     # Find which sections are marked as closed
     closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
@@ -643,7 +639,6 @@ if "STATUS" in raw_df.columns:
 # ==========================================
 st.sidebar.markdown("---")
 st.sidebar.header("Global Hall & Shuba Rules")
-st.sidebar.caption("Global filters to require or ban specific Halls and Shubas.")
 
 all_halls = sorted(
     [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
