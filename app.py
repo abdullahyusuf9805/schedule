@@ -526,6 +526,96 @@ if parsed_df.empty:
 # ==========================================
 # 5. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
+# ==========================================
+# 4. UI FILTERS (Matching Final Image Logic)
+# ==========================================
+st.sidebar.header("Day & Time Matrix Filters")
+
+days_config = {
+    1: ("Sunday (Day 1)", False),
+    2: ("Monday (Day 2)", True),
+    3: ("Tuesday (Day 3)", True),
+    4: ("Wednesday (Day 4)", True),
+    5: ("Thursday (Day 5)", True),
+}
+
+day_filters = {}
+day_exceptions = {}
+
+for day_num, (label, default_val) in days_config.items():
+  # Create a visual card container
+  with st.sidebar.container(border=True):
+    # Checkbox
+    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
+
+    # Time Slider and Exception Logic
+    if is_on:
+      # Enabled Slider - format="%02d" keeps the 09, 16 formatting
+      time_range = st.slider(
+          "Hours", 8, 18, (8, 18), 
+          format="%02d",
+          key=f"slide_{day_num}", 
+          label_visibility="collapsed"
+      )
+      
+      ex_list = []
+      # Exception Dock (Permanently Expanded, cleaner placeholder)
+      exception_str = st.text_input(
+          "Exceptions", 
+          value="",
+          placeholder="Enter Excepted Hours", 
+          key=f"txt_{day_num}", 
+          label_visibility="collapsed"
+      )
+      
+      if exception_str.strip():
+        try:
+          ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
+        except ValueError:
+          pass
+
+      day_filters[day_num] = {"range": time_range}
+      day_exceptions[day_num] = ex_list
+
+    else:
+      # Disabled Slider
+      st.slider(
+          "Hours", 8, 18, (8, 18), 
+          format="%02d",
+          disabled=True, 
+          key=f"slide_dis_{day_num}", 
+          label_visibility="collapsed"
+      )
+      
+      # Disabled Exception Dock
+      st.text_input(
+          "Exceptions", 
+          value="",
+          placeholder="Enter Excepted Hours", 
+          key=f"txt_dis_{day_num}", 
+          label_visibility="collapsed",
+          disabled=True
+      )
+      
+      day_filters[day_num] = None
+      day_exceptions[day_num] = []
+
+def is_valid_time(row):
+  day, start = row["day"], row["start_time"]
+  config = day_filters.get(day)
+  if config is not None:
+    r_start, r_end = config["range"]
+    if r_start <= start <= r_end:
+      if start not in day_exceptions.get(day, []):
+        return True
+  return False
+
+parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
+invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
+valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
+
+
+
 st.sidebar.header("Day & Time Matrix Filters")
 
 days_config = {
