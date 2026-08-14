@@ -617,8 +617,10 @@ st.sidebar.header("Section Availability For Enrollment")
 
 # 1. New Input for already enrolled sections
 enrolled_input = st.sidebar.text_input(
+    "Enrolled IDs", # Streamlit demands this exists...
     placeholder="Enter Already Enrolled Section",
-    help="These sections will bypass the 'Closed' filter so you can still build a schedule around them."
+    help="These sections will bypass the 'Closed' filter so you can still build a schedule around them.",
+    label_visibility="collapsed" # <--- ...but this magic line hides it completely!
 )
 enrolled_ids = [s.strip() for s in enrolled_input.split(",") if s.strip()]
 
