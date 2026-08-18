@@ -498,7 +498,7 @@ st.sidebar.markdown("<h3 style='text-align: left; color: white;'>Fetch Data From
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    if st.sidebar.button("Logim And Scrap Data", use_container_width=True):
+    if st.sidebar.button("Login And Scrap Data from Portal", use_container_width=True):
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
             
