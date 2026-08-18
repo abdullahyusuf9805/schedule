@@ -143,14 +143,12 @@ st.markdown(
 st.title("Dynamic Timetable Generator")
 
 html_content = ""
-# Safely check if the session state exists yet
 if st.session_state.get("live_html_data"):
     html_content = st.session_state.live_html_data
 elif os.path.exists("data.html"):
     with open("data.html", "r", encoding="utf-8") as f:
         html_content = f.read()
 
-# Search for the hidden comment we injected
 time_match = re.search(r"<!-- SYNC_TIME: (.*?) -->", html_content)
 updated_str = time_match.group(1) if time_match else "No data file found"
 
@@ -224,17 +222,18 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         captcha_input.clear()
         captcha_input.send_keys(captcha_val)
         
-        time.sleep(0.5) # Let React digest the text
-        
-        # FIX: Press ENTER instead of trying to click the button to guarantee form submission
+        time.sleep(0.5) 
         captcha_input.send_keys(Keys.RETURN)
         
         try:
-            # Increased timeout to 15 seconds for slower server responses
             WebDriverWait(driver, 15).until(EC.url_contains("Dashboard"))
         except:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA. (Note: The CAPTCHA expires if you wait too long to submit).")
+            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA.")
+            
+        # Generate our KSA timestamp once to inject into both files
+        ksa_time = datetime.utcnow() + timedelta(hours=3)
+        time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
             
         # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
@@ -255,18 +254,29 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
         )
         driver.execute_script("arguments[0].click();", enrolled_menu)
-        time.sleep(4) # Wait for enrolled table to load
+        time.sleep(4) 
         
-        # 3. Extract the Shuba IDs
+        # 3. Extract the Shuba IDs & save the raw enrolled HTML
         soup_enrolled = BeautifulSoup(driver.page_source, "html.parser")
+        
+        enrolled_tbody = None
+        for tbody in soup_enrolled.find_all("tbody"):
+            first_tr = tbody.find("tr")
+            if first_tr and first_tr.has_attr("class") and len(first_tr["class"]) > 0 and first_tr["class"][0] in ["ROW1", "ROW2"]:
+                enrolled_tbody = tbody
+                break
+                
         enrolled_ids = []
-        for tr in soup_enrolled.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-            cols = tr.find_all("td")
-            if len(cols) >= 4:
-                shuba = cols[3].text.strip()
-                if shuba.isdigit():
-                    enrolled_ids.append(shuba)
+        if enrolled_tbody:
+            for tr in enrolled_tbody.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                cols = tr.find_all("td")
+                if len(cols) >= 4:
+                    shuba = cols[3].text.strip()
+                    if shuba.isdigit():
+                        enrolled_ids.append(shuba)
+                        
         enrolled_str = ", ".join(enrolled_ids)
+        raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
         # 4. Open Menu Again
         electronic_reg_menu = driver.find_element(By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]")
@@ -279,7 +289,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        # Wait exactly 5 seconds for the table to load
         time.sleep(5)
         
         soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -293,15 +302,12 @@ def submit_captcha_and_scrape(username, password, captcha_val):
                 
         if target_tbody is None:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Could not find the <tbody> containing <tr class=>. The table did not load properly.")
+            raise Exception("Could not find the main timetable <tbody>.")
             
-        # --- INJECT KSA TIMESTAMP DIRECTLY INTO HTML ---
-        ksa_time = datetime.utcnow() + timedelta(hours=3)
-        time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
-        
         final_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(target_tbody)
         
-        return final_html, enrolled_str
+        # We now return 3 items: Main Data, Enrolled Data, and Enrolled String
+        return final_html, raw_enrolled_html, enrolled_str
         
     finally:
         driver.quit()
@@ -392,6 +398,15 @@ def parse_html_to_dataframe(html_content):
     return pd.DataFrame(extracted_rows)
 
 
+# GitHub Push Helper
+def push_to_github(repo, file_path, content, commit_message):
+    try:
+        contents = repo.get_contents(file_path)
+        repo.update_file(contents.path, commit_message, content, contents.sha)
+    except Exception:
+        repo.create_file(file_path, commit_message, content)
+
+
 # ==========================================
 # 4. INITIALIZE DATA & INTERACTIVE CAPTCHA
 # ==========================================
@@ -441,7 +456,7 @@ else:
             else:
                 with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
                     try:
-                        raw_live_html, auto_enrolled = submit_captcha_and_scrape(
+                        raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
                             st.session_state.portal_user, 
                             st.session_state.portal_pass, 
                             user_captcha
@@ -449,28 +464,20 @@ else:
                         st.session_state.live_html_data = raw_live_html
                         st.session_state.auto_enrolled = auto_enrolled
                         
+                        # 1. ALWAYS write locally 
                         with open("data.html", "w", encoding="utf-8") as f:
                             f.write(raw_live_html)
+                        with open("enrolled.html", "w", encoding="utf-8") as f:
+                            f.write(raw_enrolled_html)
                             
+                        # 2. Push BOTH to GitHub
                         if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
                             try:
                                 g = Github(st.secrets["GITHUB_TOKEN"])
                                 repo = g.get_repo(st.secrets["GITHUB_REPO"])
-                                try:
-                                    contents = repo.get_contents("data.html")
-                                    repo.update_file(
-                                        contents.path, 
-                                        "Bot automatically synced trimmed <tbody>", 
-                                        raw_live_html, 
-                                        contents.sha
-                                    )
-                                except Exception:
-                                    repo.create_file(
-                                        "data.html", 
-                                        "Bot created trimmed <tbody> data file", 
-                                        raw_live_html
-                                    )
-                                st.sidebar.success("✅ Synced and pushed to GitHub permanently!")
+                                push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
+                                push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
+                                st.sidebar.success("✅ Synced and pushed both files to GitHub!")
                             except Exception as github_e:
                                 st.sidebar.warning(f"Saved locally, but GitHub push failed: {github_e}")
                         else:
@@ -479,17 +486,15 @@ else:
                         if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
                             
-                        st.rerun() # Refresh only on success
+                        st.rerun() 
                             
                     except Exception as e:
-                        # FIX: We now stop the app instead of rerunning so you can READ the error!
                         st.sidebar.error(f"Sync failed: {e}")
-                        
                         if st.session_state.live_driver:
                             st.session_state.live_driver.quit()
                             st.session_state.live_driver = None
                         st.session_state.waiting_for_captcha = False
-                        st.stop() # Do not wipe the screen!
+                        st.stop() 
 
     with col2:
         if st.button("Cancel", use_container_width=True):
@@ -501,6 +506,7 @@ else:
 
 st.sidebar.markdown("---")
 
+# Read main data
 raw_df = pd.DataFrame() 
 if st.session_state.live_html_data:
     raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
@@ -510,6 +516,7 @@ elif os.path.exists("data.html"):
         if html_content.strip():
             raw_df = parse_html_to_dataframe(html_content)
 
+# Safety kill switch
 if raw_df is None or raw_df.empty:
     if st.session_state.waiting_for_captcha:
         st.info("👈 Please open the sidebar menu (top left) to enter your CAPTCHA and complete the sync!")
@@ -656,29 +663,53 @@ parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
 invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
 valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
-# --- Section Availability Filter ---
+
+# ==========================================
+# 5B. ENROLLMENT & AVAILABILITY OVERRIDES
+# ==========================================
 st.sidebar.markdown("---")
-st.sidebar.header("Section Availability & Enrollment")
+st.sidebar.header("Enrollment & Availability")
 
-if "STATUS" in raw_df.columns:
-    auto_remove = st.sidebar.checkbox("Avoid Closed Sections", value=True)
-    
-    # Pre-fill input with automatically scraped enrolled IDs
-    default_enrolled = st.session_state.get("auto_enrolled", "")
-    
-    enrolled_input = st.sidebar.text_input(
-        "Enrolled IDs", 
-        value=default_enrolled,
-        placeholder="Enter Already Enrolled Section",
-        help="These sections will bypass the 'Closed' filter so you can still build a schedule around them.",
-        label_visibility="collapsed" 
-    )
-    enrolled_ids = [s.strip() for s in enrolled_input.split(",") if s.strip()]
+# Read Enrolled HTML locally to prefill text box if memory is empty
+default_enrolled = st.session_state.get("auto_enrolled", "")
+if not default_enrolled and os.path.exists("enrolled.html"):
+    with open("enrolled.html", "r", encoding="utf-8") as f:
+        soup_enc = BeautifulSoup(f.read(), "html.parser")
+        enc_ids = []
+        for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+            cols = tr.find_all("td")
+            if len(cols) >= 4:
+                sh = cols[3].text.strip()
+                if sh.isdigit():
+                    enc_ids.append(sh)
+        default_enrolled = ", ".join(enc_ids)
 
-    if auto_remove:
-        closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
-        is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
-        valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
+enrolled_input = st.sidebar.text_input(
+    "Enrolled IDs", 
+    value=default_enrolled,
+    placeholder="e.g. 1989, 628",
+    help="These sections can bypass the 'Closed' filter, or be used to view your exact current schedule.",
+)
+enrolled_ids = [s.strip() for s in enrolled_input.split(",") if s.strip()]
+
+show_enrolled_only = st.sidebar.checkbox("🌟 Show my enrolled timetable ONLY", value=False)
+
+if show_enrolled_only and enrolled_ids:
+    # STRICT MODE: Delete everything except enrolled IDs
+    valid_blocks_df = valid_blocks_df[valid_blocks_df["ID"].astype(str).isin(enrolled_ids)]
+else:
+    # REGULAR MODE: Apply closed-section logic
+    if "STATUS" in raw_df.columns:
+        auto_remove = st.sidebar.checkbox("Remove Closed Sections", value=True)
+        skip_closeness = st.sidebar.checkbox("Skip closeness for enrolled sections", value=True)
+        
+        if auto_remove:
+            closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
+            if skip_closeness and enrolled_ids:
+                is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
+                valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
+            else:
+                valid_blocks_df = valid_blocks_df[~closed_mask]
 
 
 # ==========================================
@@ -802,7 +833,7 @@ for code, group in valid_blocks_df.groupby("CODE"):
 target_subjects = list(sections_by_subject.keys())
 total_required_subjects = len(all_subjects)
 
-if len(target_subjects) < total_required_subjects:
+if len(target_subjects) < total_required_subjects and not show_enrolled_only:
     st.warning(
         f"Only {len(target_subjects)} out of {total_required_subjects} valid"
         " subjects remaining after filters. Check your filters or rules."
