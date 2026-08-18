@@ -425,7 +425,7 @@ st.sidebar.markdown(
     <style>
         /* Force text inputs to right-to-left (RTL) for authentic Arabic layout */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
-            direction: rtl !important;
+            direction: !important;
             text-align: right !important;
             font-size: 16px !important;
         }
@@ -480,7 +480,19 @@ st.sidebar.markdown("<h3 style='text-align: left; color: white;'>System Login</h
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    st.sidebar.info("")
+    if st.sidebar.button("🔄 Connect & Get CAPTCHA", use_container_width=True):
+        if os.path.exists("error_screenshot.png"):
+            os.remove("error_screenshot.png")
+            
+        with st.spinner("Connecting to server and retrieving CAPTCHA..."):
+            try:
+                init_browser_and_get_captcha()
+                st.rerun()
+            except Exception as e:
+                st.sidebar.error(f"Error: {e}")
+
+# --- PHASE 1: Fetch Captcha Session ---
+if not st.session_state.waiting_for_captcha:
     if st.sidebar.button("🔄 Fetch data from University Portal", use_container_width=True):
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
@@ -495,10 +507,10 @@ if not st.session_state.waiting_for_captcha:
 # --- PHASE 2: The Exact English Login Form ---
 else:
     # 1. ID Input
-    portal_user = st.sidebar.text_input("ID", placeholder="Student ID *", label_visibility="collapsed")
+    portal_user = st.sidebar.text_input("ID", placeholder=" Enter Student ID", label_visibility="collapsed")
     
     # 2. Password Input
-    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="Password *", label_visibility="collapsed")
+    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder=" Enter Password", label_visibility="collapsed")
     
     # 3. Captcha Row (Image perfectly matches input height)
     col_img, col_input = st.sidebar.columns([1, 1.2])
