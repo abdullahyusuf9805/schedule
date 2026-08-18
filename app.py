@@ -420,42 +420,81 @@ if "live_driver" not in st.session_state:
 if "captcha_img_bytes" not in st.session_state:
     st.session_state.captcha_img_bytes = None
 
-st.sidebar.header("🌐 Auto-Fetch & Update data.html")
+st.sidebar.markdown(
+    """
+    <style>
+        /* Force text inputs to right-to-left (RTL) for authentic Arabic layout */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
+            direction: rtl !important;
+            text-align: right !important;
+            font-size: 16px !important;
+        }
+        
+        /* Style the Primary "دخول" button green */
+        [data-testid="stSidebar"] button[kind="primary"] {
+            background-color: #1f8a53 !important;
+            border: none !important;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 18px !important;
+            border-radius: 4px !important;
+        }
+        [data-testid="stSidebar"] button[kind="primary"]:hover {
+            background-color: #176c40 !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# --- PHASE 1 ---
+st.sidebar.markdown("<h3 style='text-align: right; color: white;'>تسجيل الدخول</h3>", unsafe_allow_html=True)
+
+# --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    st.session_state.portal_user = st.sidebar.text_input("Portal Username", placeholder="Student ID")
-    st.session_state.portal_pass = st.sidebar.text_input("Portal Password", type="password", placeholder="Password")
-    
-    if st.sidebar.button("1. Connect & Get CAPTCHA", use_container_width=True):
-        if not st.session_state.portal_user or not st.session_state.portal_pass:
-            st.sidebar.error("Please enter credentials first.")
-        else:
-            if os.path.exists("error_screenshot.png"):
-                os.remove("error_screenshot.png")
-                
-            with st.spinner("Connecting to server and retrieving CAPTCHA..."):
-                try:
-                    init_browser_and_get_captcha()
-                    st.rerun()
-                except Exception as e:
-                    st.sidebar.error(f"Error: {e}")
+    st.sidebar.info("👈 لبدء المزامنة، اضغط لجلب رمز التحقق أولاً")
+    if st.sidebar.button("🔄 بدء الاتصال (Load CAPTCHA)", use_container_width=True):
+        if os.path.exists("error_screenshot.png"):
+            os.remove("error_screenshot.png")
+            
+        with st.spinner("Connecting to server and retrieving CAPTCHA..."):
+            try:
+                init_browser_and_get_captcha()
+                st.rerun()
+            except Exception as e:
+                st.sidebar.error(f"Error: {e}")
 
-# --- PHASE 2 ---
+# --- PHASE 2: The Exact Arabic Login Form ---
 else:
-    st.sidebar.success("Connection Established!")
-    st.sidebar.image(st.session_state.captcha_img_bytes, caption="Enter the 5 digits shown above")
+    # 1. ID Input
+    portal_user = st.sidebar.text_input("ID", placeholder="ادخل الرقم الجامعي *", label_visibility="collapsed")
     
-    user_captcha = st.sidebar.text_input("CAPTCHA Value", max_chars=5)
+    # 2. Password Input
+    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="ادخل كلمة المرور *", label_visibility="collapsed")
     
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("2. Submit & Sync", use_container_width=True):
-            if len(user_captcha) != 5:
-                st.sidebar.error("Please enter exactly 5 digits.")
+    # 3. Captcha Row (Image on left, Input on right)
+    col_img, col_input = st.sidebar.columns([1, 1.2])
+    with col_img:
+        # Push image down slightly so it aligns perfectly with the input box
+        st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
+        st.image(st.session_state.captcha_img_bytes, use_container_width=True)
+    with col_input:
+        user_captcha = st.text_input("CAPTCHA", placeholder="ادخل رمز التحقق *", max_chars=5, label_visibility="collapsed")
+    
+    # 4. Action Buttons (Green Login & Cancel)
+    col_btn1, col_btn2 = st.sidebar.columns([3, 1])
+    with col_btn1:
+        if st.button("دخول", type="primary", use_container_width=True):
+            if not portal_user or not portal_pass:
+                st.sidebar.error("يرجى إدخال الرقم الجامعي وكلمة المرور.")
+            elif len(user_captcha) != 5:
+                st.sidebar.error("يرجى إدخال 5 أرقام لرمز التحقق.")
             else:
                 with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
                     try:
+                        # Save credentials back to memory for the scraper function
+                        st.session_state.portal_user = portal_user
+                        st.session_state.portal_pass = portal_pass
+                        
                         raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
                             st.session_state.portal_user, 
                             st.session_state.portal_pass, 
@@ -496,8 +535,8 @@ else:
                         st.session_state.waiting_for_captcha = False
                         st.stop() 
 
-    with col2:
-        if st.button("Cancel", use_container_width=True):
+    with col_btn2:
+        if st.button("إلغاء", use_container_width=True):
             if st.session_state.live_driver:
                 st.session_state.live_driver.quit()
                 st.session_state.live_driver = None
