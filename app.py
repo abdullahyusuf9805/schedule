@@ -478,7 +478,7 @@ st.sidebar.markdown(
             display: flex;
             justify-content: center; 
             align-items: center;
-            height: 46px !important; /* Force container height to match input */
+            height: 36px !important; /* Force container height to match input */
         }
         
         [data-testid="stSidebar"] [data-testid="stImage"] img {
