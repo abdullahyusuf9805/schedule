@@ -419,13 +419,15 @@ st.sidebar.markdown(
     <style>
         /* 1. Target the WRAPPER to fix white edges and keep the eye icon inside */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
-            border: 1px solid #ffffff !important; /* White border when not selected */
+            border: 1px solid #ffffff !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
+            height: 46px !important; /* Lock height to match image */
+            min-height: 46px !important;
             transition: all 0.2s;
         }
         
-        /* 2. Change focus border to Green instead of Red */
+        /* 2. Change focus border to Green */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
             border: 1px solid #1d8a59 !important; 
             box-shadow: 0 0 0 1px #1d8a59 !important;
@@ -434,23 +436,26 @@ st.sidebar.markdown(
         /* 3. The actual text inside the input box */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             color: #ffffff !important;
-            background-color: transparent !important; /* Let wrapper color show through */
-            height: 42px !important;
+            background-color: transparent !important; 
+            height: 44px !important; 
             padding: 10px 12px !important;
             font-size: 15px !important;
-            border: none !important; /* Remove individual border */
+            border: none !important; 
             outline: none !important;
             box-shadow: none !important;
         }
 
-        /* Make placeholder text grey */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
             color: #888888 !important; 
         }
 
-        /* Fix the Eye Icon background color */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
+        }
+        
+        /* Hide the annoying 0/5 counter that pushes the box out of alignment */
+        [data-testid="stSidebar"] div[data-testid="InputInstructions"] {
+            display: none !important;
         }
         
         /* Style the Primary Button */
@@ -471,21 +476,18 @@ st.sidebar.markdown(
         /* 4. Fix Captcha Image (Align Right, Fixed Width, White Border) */
         [data-testid="stSidebar"] [data-testid="stImage"] {
             display: flex;
-            justify-content: flex-end; /* Force alignment to the very right */
+            justify-content: flex-end; 
+            align-items: center;
         }
         
         [data-testid="stSidebar"] [data-testid="stImage"] img {
-            height: 44px !important; /* Matches wrapper height */
-            width: 120px !important; /* Fixed width so it never stretches */
+            height: 46px !important; /* EXACTLY matches input wrapper height */
+            width: 120px !important; 
             max-width: 120px !important; 
             object-fit: fill !important;
             border-radius: 6px !important;
-            border: 1px solid #ffffff !important; /* White border */
+            border: 1px solid #ffffff !important; 
             background-color: #ffffff !important; 
-        }
-        
-        [data-testid="stImage"] {
-            margin-top: -1px !important;
         }
     </style>
     """,
@@ -515,15 +517,15 @@ else:
     # 2. Password Input
     portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
     
-    # 3. Captcha Row (Gap reduced to small)
+    # 3. Captcha Row
     col_input, col_img = st.sidebar.columns([1.6, 1], gap="small")
     with col_input:
         user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
     with col_img:
         st.image(st.session_state.captcha_img_bytes, use_container_width=False)
     
-    # 4. Fetch Data Action Button (Cancel button removed completely)
-    if st.button("Fetch Data From University Portal", type="primary", use_container_width=True):
+    # 4. Fetch Data Action Button (Notice it's st.SIDEBAR.button now!)
+    if st.sidebar.button("Fetch Data From University Portal", type="primary", use_container_width=True):
         if not portal_user or not portal_pass:
             st.sidebar.error("Please enter your Student ID and Password.")
         elif len(user_captcha) != 5:
