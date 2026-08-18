@@ -22,6 +22,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from PIL import Image
+from datetime import datetime, timedelta
 
 # ==========================================
 # 1. STREAMLIT CONFIGURATION & THEME STYLING
@@ -140,10 +141,14 @@ st.markdown(
 )
 
 st.title("Dynamic Timetable Generator")
-# --- Last Updated Timestamp Display ---
+# --- Last Updated Timestamp Display (Local Time) ---
 if os.path.exists("data.html"):
     last_mod_time = os.path.getmtime("data.html")
-    updated_str = datetime.fromtimestamp(last_mod_time).strftime("%d/%m/%Y at %I:%M %p")
+    # Get the raw UTC time from the server
+    utc_time = datetime.utcfromtimestamp(last_mod_time)
+    # Add exactly 3 hours for local time
+    local_time = utc_time + timedelta(hours=3)
+    updated_str = local_time.strftime("%d/%m/%Y at %I:%M %p")
 else:
     updated_str = "No data file found"
 
