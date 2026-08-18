@@ -447,12 +447,41 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-st.sidebar.markdown("<h3 style='text-align: right; color: white;'>تسجيل الدخول</h3>", unsafe_allow_html=True)
+st.sidebar.markdown(
+    """
+    <style>
+        /* Style the Primary "Login" button green */
+        [data-testid="stSidebar"] button[kind="primary"] {
+            background-color: #1f8a53 !important;
+            border: none !important;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 16px !important;
+            border-radius: 6px !important;
+        }
+        [data-testid="stSidebar"] button[kind="primary"]:hover {
+            background-color: #176c40 !important;
+        }
+        
+        /* Force CAPTCHA image to match the exact height of the text input */
+        [data-testid="stImage"] img {
+            height: 39px !important; 
+            width: 100% !important;
+            object-fit: fill !important;
+            border-radius: 6px !important;
+            border: 1px solid #333333 !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown("<h3 style='text-align: left; color: white;'>System Login</h3>", unsafe_allow_html=True)
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    st.sidebar.info("👈 لبدء المزامنة، اضغط لجلب رمز التحقق أولاً")
-    if st.sidebar.button("🔄 بدء الاتصال (Load CAPTCHA)", use_container_width=True):
+    st.sidebar.info("👈 Click below to load the CAPTCHA and start the sync.")
+    if st.sidebar.button("🔄 Connect & Get CAPTCHA", use_container_width=True):
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
             
@@ -463,31 +492,29 @@ if not st.session_state.waiting_for_captcha:
             except Exception as e:
                 st.sidebar.error(f"Error: {e}")
 
-# --- PHASE 2: The Exact Arabic Login Form ---
+# --- PHASE 2: The Exact English Login Form ---
 else:
     # 1. ID Input
-    portal_user = st.sidebar.text_input("ID", placeholder="ادخل الرقم الجامعي *", label_visibility="collapsed")
+    portal_user = st.sidebar.text_input("ID", placeholder="Student ID *", label_visibility="collapsed")
     
     # 2. Password Input
-    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="ادخل كلمة المرور *", label_visibility="collapsed")
+    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="Password *", label_visibility="collapsed")
     
-    # 3. Captcha Row (Image on left, Input on right)
+    # 3. Captcha Row (Image perfectly matches input height)
     col_img, col_input = st.sidebar.columns([1, 1.2])
     with col_img:
-        # Push image down slightly so it aligns perfectly with the input box
-        st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
         st.image(st.session_state.captcha_img_bytes, use_container_width=True)
     with col_input:
-        user_captcha = st.text_input("CAPTCHA", placeholder="ادخل رمز التحقق *", max_chars=5, label_visibility="collapsed")
+        user_captcha = st.text_input("CAPTCHA", placeholder="Enter CAPTCHA *", max_chars=5, label_visibility="collapsed")
     
     # 4. Action Buttons (Green Login & Cancel)
     col_btn1, col_btn2 = st.sidebar.columns([3, 1])
     with col_btn1:
-        if st.button("دخول", type="primary", use_container_width=True):
+        if st.button("Login", type="primary", use_container_width=True):
             if not portal_user or not portal_pass:
-                st.sidebar.error("يرجى إدخال الرقم الجامعي وكلمة المرور.")
+                st.sidebar.error("Please enter your Student ID and Password.")
             elif len(user_captcha) != 5:
-                st.sidebar.error("يرجى إدخال 5 أرقام لرمز التحقق.")
+                st.sidebar.error("Please enter exactly 5 digits for the CAPTCHA.")
             else:
                 with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
                     try:
@@ -536,7 +563,7 @@ else:
                         st.stop() 
 
     with col_btn2:
-        if st.button("إلغاء", use_container_width=True):
+        if st.button("Cancel", use_container_width=True):
             if st.session_state.live_driver:
                 st.session_state.live_driver.quit()
                 st.session_state.live_driver = None
