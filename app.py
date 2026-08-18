@@ -667,7 +667,6 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 # ==========================================
 # 5B. ENROLLMENT & AVAILABILITY OVERRIDES
 # ==========================================
-
 st.sidebar.markdown("---")
 st.sidebar.header("Section Availability")
 
@@ -685,15 +684,16 @@ if not enrolled_ids and os.path.exists("enrolled.html"):
                 if sh.isdigit():
                     enrolled_ids.append(sh)
 
-# 2. Apply closed-section logic with automatic bypass for enrolled classes
+# 2. Apply logic with the new Checkbox
 if "STATUS" in raw_df.columns:
     auto_remove = st.sidebar.checkbox("Remove Closed Sections", value=True)
+    protect_enrolled = st.sidebar.checkbox("Mark enrolled sections as opened", value=True)
     
     if auto_remove:
         closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
         
-        if enrolled_ids:
-            # Skip closed sections, BUT keep them if they are already enrolled!
+        if protect_enrolled and enrolled_ids:
+            # Skip closed sections, BUT treat enrolled sections as opened!
             is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
             valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
         else:
