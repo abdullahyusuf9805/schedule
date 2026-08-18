@@ -480,19 +480,6 @@ st.sidebar.markdown("<h3 style='text-align: left; color: white;'>System Login</h
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    if st.sidebar.button("🔄 Connect & Get CAPTCHA", use_container_width=True):
-        if os.path.exists("error_screenshot.png"):
-            os.remove("error_screenshot.png")
-            
-        with st.spinner("Connecting to server and retrieving CAPTCHA..."):
-            try:
-                init_browser_and_get_captcha()
-                st.rerun()
-            except Exception as e:
-                st.sidebar.error(f"Error: {e}")
-
-# --- PHASE 1: Fetch Captcha Session ---
-if not st.session_state.waiting_for_captcha:
     if st.sidebar.button("🔄 Fetch data from University Portal", use_container_width=True):
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
