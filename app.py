@@ -423,71 +423,17 @@ if "captcha_img_bytes" not in st.session_state:
 st.sidebar.markdown(
     """
     <style>
-        /* Force text inputs to right-to-left (RTL) for authentic Arabic layout */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
-            direction: !important;
-            text-align: right !important;
-            font-size: 16px !important;
-        }
-        
-        /* Style the Primary "دخول" button green */
-        [data-testid="stSidebar"] button[kind="primary"] {
-            background-color: #1f8a53 !important;
-            border: none !important;
-            color: white !important;
-            font-weight: bold !important;
-            font-size: 18px !important;
-            border-radius: 4px !important;
-        }
-        [data-testid="stSidebar"] button[kind="primary"]:hover {
-            background-color: #176c40 !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-st.sidebar.markdown(
-    """
-    <style>
-        /* Style the Primary "Login" button green */
-        [data-testid="stSidebar"] button[kind="primary"] {
-            background-color: #1f8a53 !important;
-            border: none !important;
-            color: white !important;
-            font-weight: bold !important;
-            font-size: 16px !important;
-            border-radius: 6px !important;
-        }
-        [data-testid="stSidebar"] button[kind="primary"]:hover {
-            background-color: #176c40 !important;
-        }
-        
-        /* Force CAPTCHA image to match the exact height of the text input */
-        [data-testid="stImage"] img {
-            height: 39px !important; 
-            width: 100% !important;
-            object-fit: fill !important;
-            border-radius: 6px !important;
-            border: 1px solid #333333 !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-st.sidebar.markdown(
-    """
-    <style>
-        /* Match the input styling from the HTML */
+        /* Sleek Dark Mode Inputs */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             width: 100%;
             padding: 10px 12px !important;
-            border: 1px solid #aeb2bc !important;
-            border-radius: 4px !important;
+            border: 1px solid #444444 !important;
+            border-radius: 6px !important;
             font-size: 15px !important;
-            color: #333 !important;
-            background-color: #ffffff !important;
+            color: #ffffff !important; /* Bright white text */
+            background-color: #1a1a1a !important; /* Dark input background */
+            text-align: left !important; /* Fix weird alignment */
+            direction: ltr !important;
             transition: border-color 0.2s;
         }
         [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus {
@@ -495,7 +441,7 @@ st.sidebar.markdown(
             box-shadow: 0 0 0 1px #1d8a59 !important;
         }
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
-            color: #000000 !important;
+            color: #888888 !important; /* Visible light grey placeholder */
         }
         
         /* Style the Primary Button */
@@ -505,7 +451,7 @@ st.sidebar.markdown(
             color: #ffffff !important;
             font-weight: bold !important;
             font-size: 16px !important;
-            border-radius: 4px !important;
+            border-radius: 6px !important;
             padding: 12px !important;
         }
         [data-testid="stSidebar"] button[kind="primary"]:hover {
@@ -514,16 +460,19 @@ st.sidebar.markdown(
         
         /* Force CAPTCHA image to perfectly match the CSS box height and styling */
         [data-testid="stImage"] img {
-            height: 45px !important; 
+            height: 42px !important; /* Matched exactly to the input box height */
             width: 100% !important;
             object-fit: fill !important;
-            border-radius: 4px !important;
-            border: 1px solid #aeb2bc !important;
+            border-radius: 6px !important;
+            border: 1px solid #444444 !important;
+            background-color: #ffffff !important; /* Keep CAPTCHA white so numbers are readable */
         }
     </style>
     """,
     unsafe_allow_html=True
 )
+
+st.sidebar.markdown("<h3 style='text-align: left; color: white;'>System Login</h3>", unsafe_allow_html=True)
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
@@ -556,7 +505,7 @@ else:
     # 4. Fetch Data Action Button
     col_btn1, col_btn2 = st.sidebar.columns([3, 1])
     with col_btn1:
-        if st.button("🔄 Fetch Data From University Portal", type="primary", use_container_width=True):
+        if st.button("Fetch Data From University Portal", type="primary", use_container_width=True):
             if not portal_user or not portal_pass:
                 st.sidebar.error("Please enter your Student ID and Password.")
             elif len(user_captcha) != 5:
@@ -616,7 +565,6 @@ else:
             st.session_state.waiting_for_captcha = False
             st.rerun()
 
-st.sidebar.markdown("---")
 
 # Read main data
 raw_df = pd.DataFrame() 
@@ -631,9 +579,9 @@ elif os.path.exists("data.html"):
 # Safety kill switch
 if raw_df is None or raw_df.empty:
     if st.session_state.waiting_for_captcha:
-        st.info("👈 Please open the sidebar menu (top left) to enter your CAPTCHA and complete the sync!")
+        pass # Let the user fill out the form
     else:
-        st.error("⚠️ No schedule data found. Please open the sidebar and run 'Connect & Get CAPTCHA' to fetch fresh data.")
+        st.error("⚠️ No schedule data found. Please login to fetch fresh data.")
         if os.path.exists("error_screenshot.png"):
             st.image("error_screenshot.png", caption="Bot's view during the last failed attempt:")
     st.stop()
@@ -642,6 +590,7 @@ if raw_df is None or raw_df.empty:
 # ==========================================
 # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
 # ==========================================
+st.sidebar.markdown("---")
 st.sidebar.subheader("📥 Export Raw Data")
 
 try:
@@ -697,6 +646,7 @@ if parsed_df.empty:
 # ==========================================
 # 5. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
+st.sidebar.markdown("---")
 st.sidebar.header("Filter By Day & Time")
 
 days_config = {
@@ -799,7 +749,7 @@ if not enrolled_ids and os.path.exists("enrolled.html"):
 # 2. Apply logic with the new Checkbox
 if "STATUS" in raw_df.columns:
     auto_remove = st.sidebar.checkbox("Remove Closed Sections", value=True)
-    protect_enrolled = st.sidebar.checkbox("Mark enrolled sections as Opened", value=True)
+    protect_enrolled = st.sidebar.checkbox("Mark enrolled sections as opened", value=True)
     
     if auto_remove:
         closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
@@ -810,6 +760,7 @@ if "STATUS" in raw_df.columns:
             valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
         else:
             valid_blocks_df = valid_blocks_df[~closed_mask]
+
 
 # ==========================================
 # 6. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
@@ -932,7 +883,7 @@ for code, group in valid_blocks_df.groupby("CODE"):
 target_subjects = list(sections_by_subject.keys())
 total_required_subjects = len(all_subjects)
 
-if len(target_subjects) < total_required_subjects and not show_enrolled_only:
+if len(target_subjects) < total_required_subjects:
     st.warning(
         f"Only {len(target_subjects)} out of {total_required_subjects} valid"
         " subjects remaining after filters. Check your filters or rules."
