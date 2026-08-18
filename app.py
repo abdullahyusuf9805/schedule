@@ -146,13 +146,6 @@ elif os.path.exists("data.html"):
 time_match = re.search(r"<!-- SYNC_TIME: (.*?) -->", html_content)
 updated_str = time_match.group(1) if time_match else "No data file found"
 
-st.markdown(
-    f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
-    f"🕒 <b>Last Update:</b> {updated_str}"
-    f"</p>",
-    unsafe_allow_html=True,
-)
-
 # ==========================================
 # 2. TWO-STEP INTERACTIVE SELENIUM LOGIC
 # ==========================================
@@ -227,7 +220,7 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             
         # Generate our KSA timestamp once to inject into both files
         ksa_time = datetime.utcnow() + timedelta(hours=3)
-        time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
+        time_str = ksa_time.strftime("%d/%m/%Y %I:%M %p")
             
         # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
@@ -577,6 +570,12 @@ else:
                     st.session_state.waiting_for_captcha = False
                     st.stop() 
 
+st.markdown(
+    f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
+    f"🕒 <b>Last Update:</b> {updated_str}"
+    f"</p>",
+    unsafe_allow_html=True,
+)
 
 # Read main data
 raw_df = pd.DataFrame() 
