@@ -157,7 +157,7 @@ updated_str = time_match.group(1) if time_match else "No data file found"
 
 st.markdown(
     f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
-    f"🕒 <b>Updated on:</b> {updated_str}"
+    f"🕒 <b>Last Update:</b> {updated_str}"
     f"</p>",
     unsafe_allow_html=True,
 )
