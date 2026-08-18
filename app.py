@@ -575,7 +575,7 @@ else:
                     st.session_state.waiting_for_captcha = False
                     st.stop()
 
-st.markdown(
+st.sidebar.markdown(
     f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
     f"🕒 <b>Last Update:</b> {updated_str}"
     f"</p>",
