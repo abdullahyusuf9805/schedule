@@ -422,8 +422,8 @@ st.sidebar.markdown(
         
         /* 2. Change focus border to Green */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-            border: 1px solid #2b2c36 !important; 
-            box-shadow: 0 0 0 1px #2b2c36 !important;
+            border: 1px solid #1d8a59 !important; 
+            box-shadow: 0 0 0 1px #1d8a59 !important;
         }
 
         /* 3. The actual text inside the input box */
@@ -449,6 +449,13 @@ st.sidebar.markdown(
         /* Hide the annoying 0/5 counter that pushes the box out of alignment */
         [data-testid="stSidebar"] div[data-testid="InputInstructions"] {
             display: none !important;
+        }
+
+        /* Remove the ugly default border Streamlit adds around forms */
+        [data-testid="stForm"] {
+            border: none !important;
+            padding: 0 !important;
+            background-color: transparent !important;
         }
         
         /* Style the Primary Button */
