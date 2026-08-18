@@ -429,8 +429,8 @@ st.sidebar.markdown(
         
         /* 2. Change focus border to Green */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-            border: 1px solid #1d8a59 !important; 
-            box-shadow: 0 0 0 1px #1d8a59 !important;
+            border: 1px solid #2b2c36 !important; 
+            box-shadow: 0 0 0 1px #2b2c36 !important;
         }
 
         /* 3. The actual text inside the input box */
@@ -494,15 +494,15 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-st.sidebar.markdown("<h3 style='text-align: left; color: white;'>System Login</h3>", unsafe_allow_html=True)
+st.sidebar.markdown("<h3 style='text-align: left; color: white;'>Fetch Data From University Portal</h3>", unsafe_allow_html=True)
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    if st.sidebar.button("🔄 Connect & Get CAPTCHA", use_container_width=True):
+    if st.sidebar.button("Logim And Scrap Data", use_container_width=True):
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
             
-        with st.spinner("Connecting to server and retrieving CAPTCHA..."):
+        with st.spinner(""):
             try:
                 init_browser_and_get_captcha()
                 st.rerun()
@@ -525,7 +525,7 @@ else:
         st.image(st.session_state.captcha_img_bytes, use_container_width=False)
     
     # 4. Fetch Data Action Button (Notice it's st.SIDEBAR.button now!)
-    if st.sidebar.button("Fetch Data From University Portal", type="primary", use_container_width=True):
+    if st.sidebar.button("Continue", type="primary", use_container_width=True):
         if not portal_user or not portal_pass:
             st.sidebar.error("Please enter your Student ID and Password.")
         elif len(user_captcha) != 5:
