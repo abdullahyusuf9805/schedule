@@ -667,50 +667,37 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 # ==========================================
 # 5B. ENROLLMENT & AVAILABILITY OVERRIDES
 # ==========================================
-st.sidebar.markdown("---")
-st.sidebar.header("Enrollment & Availability")
 
-# Read Enrolled HTML locally to prefill text box if memory is empty
-default_enrolled = st.session_state.get("auto_enrolled", "")
-if not default_enrolled and os.path.exists("enrolled.html"):
+st.sidebar.markdown("---")
+st.sidebar.header("Section Availability")
+
+# 1. Silently read Enrolled HTML in the background (No UI Text Box)
+enrolled_ids_str = st.session_state.get("auto_enrolled", "")
+enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
+
+if not enrolled_ids and os.path.exists("enrolled.html"):
     with open("enrolled.html", "r", encoding="utf-8") as f:
         soup_enc = BeautifulSoup(f.read(), "html.parser")
-        enc_ids = []
         for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
             cols = tr.find_all("td")
             if len(cols) >= 4:
                 sh = cols[3].text.strip()
                 if sh.isdigit():
-                    enc_ids.append(sh)
-        default_enrolled = ", ".join(enc_ids)
+                    enrolled_ids.append(sh)
 
-enrolled_input = st.sidebar.text_input(
-    "Enrolled IDs", 
-    value=default_enrolled,
-    placeholder="e.g. 1989, 628",
-    help="These sections can bypass the 'Closed' filter, or be used to view your exact current schedule.",
-)
-enrolled_ids = [s.strip() for s in enrolled_input.split(",") if s.strip()]
-
-show_enrolled_only = st.sidebar.checkbox("🌟 Show my enrolled timetable ONLY", value=False)
-
-if show_enrolled_only and enrolled_ids:
-    # STRICT MODE: Delete everything except enrolled IDs
-    valid_blocks_df = valid_blocks_df[valid_blocks_df["ID"].astype(str).isin(enrolled_ids)]
-else:
-    # REGULAR MODE: Apply closed-section logic
-    if "STATUS" in raw_df.columns:
-        auto_remove = st.sidebar.checkbox("Remove Closed Sections", value=True)
-        skip_closeness = st.sidebar.checkbox("Skip closeness for enrolled sections", value=True)
+# 2. Apply closed-section logic with automatic bypass for enrolled classes
+if "STATUS" in raw_df.columns:
+    auto_remove = st.sidebar.checkbox("Remove Closed Sections", value=True)
+    
+    if auto_remove:
+        closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
         
-        if auto_remove:
-            closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
-            if skip_closeness and enrolled_ids:
-                is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
-                valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
-            else:
-                valid_blocks_df = valid_blocks_df[~closed_mask]
-
+        if enrolled_ids:
+            # Skip closed sections, BUT keep them if they are already enrolled!
+            is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
+            valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
+        else:
+            valid_blocks_df = valid_blocks_df[~closed_mask]
 
 # ==========================================
 # 6. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
