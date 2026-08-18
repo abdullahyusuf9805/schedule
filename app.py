@@ -423,26 +423,40 @@ if "captcha_img_bytes" not in st.session_state:
 st.sidebar.markdown(
     """
     <style>
-        /* Sleek Dark Mode Inputs */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
-            width: 100%;
-            height: 42px !important; /* STRICT HEIGHT */
-            padding: 10px 12px !important;
-            border: 1px solid #444444 !important;
+        /* 1. Target the WRAPPER to fix white edges and keep the eye icon inside */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
+            border: 1px solid #ffffff !important; /* White border when not selected */
             border-radius: 6px !important;
-            font-size: 15px !important;
-            color: #ffffff !important; 
-            background-color: #1a1a1a !important; 
-            text-align: left !important; 
-            direction: ltr !important;
-            transition: border-color 0.2s;
+            background-color: #1a1a1a !important;
+            transition: all 0.2s;
         }
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus {
-            border-color: #1d8a59 !important;
+        
+        /* 2. Change focus border to Green instead of Red */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
+            border: 1px solid #1d8a59 !important; 
             box-shadow: 0 0 0 1px #1d8a59 !important;
         }
+
+        /* 3. The actual text inside the input box */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
+            color: #ffffff !important;
+            background-color: transparent !important; /* Let wrapper color show through */
+            height: 42px !important;
+            padding: 10px 12px !important;
+            font-size: 15px !important;
+            border: none !important; /* Remove individual border */
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Make placeholder text grey */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
             color: #888888 !important; 
+        }
+
+        /* Fix the Eye Icon background color */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
+            background-color: transparent !important;
         }
         
         /* Style the Primary Button */
@@ -460,17 +474,22 @@ st.sidebar.markdown(
             background-color: #1a6e47 !important;
         }
         
-        /* Force CAPTCHA image to perfectly match the input box */
-        [data-testid="stImage"] img {
-            height: 42px !important; /* STRICT HEIGHT */
-            width: 100% !important;
+        /* 4. Fix Captcha Image (Align Right, Fixed Width, White Border) */
+        [data-testid="stSidebar"] [data-testid="stImage"] {
+            display: flex;
+            justify-content: flex-end; /* Force alignment to the very right */
+        }
+        
+        [data-testid="stSidebar"] [data-testid="stImage"] img {
+            height: 44px !important; /* Matches wrapper height */
+            width: 120px !important; /* Fixed width so it never stretches */
+            max-width: 120px !important; 
             object-fit: fill !important;
             border-radius: 6px !important;
-            border: 1px solid #444444 !important;
+            border: 1px solid #ffffff !important; /* White border */
             background-color: #ffffff !important; 
         }
         
-        /* Nudge the image up slightly to fix Streamlit's invisible label gap */
         [data-testid="stImage"] {
             margin-top: -1px !important;
         }
@@ -502,68 +521,65 @@ else:
     # 2. Password Input
     portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
     
-    # 3. Captcha Row
-    # 3. Captcha Row (Fixed width & gap)
+    # 3. Captcha Row (Gap reduced to small)
     col_input, col_img = st.sidebar.columns([1.6, 1], gap="small")
     with col_input:
         user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
     with col_img:
-        st.image(st.session_state.captcha_img_bytes, use_container_width=True)
+        st.image(st.session_state.captcha_img_bytes, use_container_width=False)
     
-    # 4. Fetch Data Action Button
-    col_btn1, col_btn2 = st.sidebar.columns([3, 1])
-    with col_btn1:
-        if st.button("Fetch Data From University Portal", type="primary", use_container_width=True):
-            if not portal_user or not portal_pass:
-                st.sidebar.error("Please enter your Student ID and Password.")
-            elif len(user_captcha) != 5:
-                st.sidebar.error("Please enter exactly 5 digits for the CAPTCHA.")
-            else:
-                with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
-                    try:
-                        # Save credentials back to memory for the scraper function
-                        st.session_state.portal_user = portal_user
-                        st.session_state.portal_pass = portal_pass
+    # 4. Fetch Data Action Button (Cancel button removed completely)
+    if st.button("Fetch Data From University Portal", type="primary", use_container_width=True):
+        if not portal_user or not portal_pass:
+            st.sidebar.error("Please enter your Student ID and Password.")
+        elif len(user_captcha) != 5:
+            st.sidebar.error("Please enter exactly 5 digits for the CAPTCHA.")
+        else:
+            with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
+                try:
+                    # Save credentials back to memory for the scraper function
+                    st.session_state.portal_user = portal_user
+                    st.session_state.portal_pass = portal_pass
+                    
+                    raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
+                        st.session_state.portal_user, 
+                        st.session_state.portal_pass, 
+                        user_captcha
+                    )
+                    st.session_state.live_html_data = raw_live_html
+                    st.session_state.auto_enrolled = auto_enrolled
+                    
+                    # 1. ALWAYS write locally 
+                    with open("data.html", "w", encoding="utf-8") as f:
+                        f.write(raw_live_html)
+                    with open("enrolled.html", "w", encoding="utf-8") as f:
+                        f.write(raw_enrolled_html)
                         
-                        raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
-                            st.session_state.portal_user, 
-                            st.session_state.portal_pass, 
-                            user_captcha
-                        )
-                        st.session_state.live_html_data = raw_live_html
-                        st.session_state.auto_enrolled = auto_enrolled
+                    # 2. Push BOTH to GitHub
+                    if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
+                        try:
+                            g = Github(st.secrets["GITHUB_TOKEN"])
+                            repo = g.get_repo(st.secrets["GITHUB_REPO"])
+                            push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
+                            push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
+                            st.sidebar.success("✅ Synced and pushed both files to GitHub!")
+                        except Exception as github_e:
+                            st.sidebar.warning(f"Saved locally, but GitHub push failed: {github_e}")
+                    else:
+                        st.sidebar.success("✅ Saved locally (GitHub secrets not configured).")
+                    
+                    if os.path.exists("error_screenshot.png"):
+                        os.remove("error_screenshot.png")
                         
-                        # 1. ALWAYS write locally 
-                        with open("data.html", "w", encoding="utf-8") as f:
-                            f.write(raw_live_html)
-                        with open("enrolled.html", "w", encoding="utf-8") as f:
-                            f.write(raw_enrolled_html)
-                            
-                        # 2. Push BOTH to GitHub
-                        if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
-                            try:
-                                g = Github(st.secrets["GITHUB_TOKEN"])
-                                repo = g.get_repo(st.secrets["GITHUB_REPO"])
-                                push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
-                                push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
-                                st.sidebar.success("✅ Synced and pushed both files to GitHub!")
-                            except Exception as github_e:
-                                st.sidebar.warning(f"Saved locally, but GitHub push failed: {github_e}")
-                        else:
-                            st.sidebar.success("✅ Saved locally (GitHub secrets not configured).")
+                    st.rerun() 
                         
-                        if os.path.exists("error_screenshot.png"):
-                            os.remove("error_screenshot.png")
-                            
-                        st.rerun() 
-                            
-                    except Exception as e:
-                        st.sidebar.error(f"Sync failed: {e}")
-                        if st.session_state.live_driver:
-                            st.session_state.live_driver.quit()
-                            st.session_state.live_driver = None
-                        st.session_state.waiting_for_captcha = False
-                        st.stop() 
+                except Exception as e:
+                    st.sidebar.error(f"Sync failed: {e}")
+                    if st.session_state.live_driver:
+                        st.session_state.live_driver.quit()
+                        st.session_state.live_driver = None
+                    st.session_state.waiting_for_captcha = False
+                    st.stop()
 
     with col_btn2:
         if st.button("Cancel", use_container_width=True):
