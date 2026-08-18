@@ -476,11 +476,58 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-st.sidebar.markdown("<h3 style='text-align: left; color: white;'>System Login</h3>", unsafe_allow_html=True)
+st.sidebar.markdown(
+    """
+    <style>
+        /* Match the input styling from the HTML */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
+            width: 100%;
+            padding: 10px 12px !important;
+            border: 1px solid #aeb2bc !important;
+            border-radius: 4px !important;
+            font-size: 15px !important;
+            color: #333 !important;
+            background-color: #ffffff !important;
+            transition: border-color 0.2s;
+        }
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus {
+            border-color: #1d8a59 !important;
+            box-shadow: 0 0 0 1px #1d8a59 !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
+            color: #000000 !important;
+        }
+        
+        /* Style the Primary Button */
+        [data-testid="stSidebar"] button[kind="primary"] {
+            background-color: #1d8a59 !important;
+            border: none !important;
+            color: #ffffff !important;
+            font-weight: bold !important;
+            font-size: 16px !important;
+            border-radius: 4px !important;
+            padding: 12px !important;
+        }
+        [data-testid="stSidebar"] button[kind="primary"]:hover {
+            background-color: #1a6e47 !important;
+        }
+        
+        /* Force CAPTCHA image to perfectly match the CSS box height and styling */
+        [data-testid="stImage"] img {
+            height: 45px !important; 
+            width: 100% !important;
+            object-fit: fill !important;
+            border-radius: 4px !important;
+            border: 1px solid #aeb2bc !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    if st.sidebar.button("🔄 Fetch data from University Portal", use_container_width=True):
+    if st.sidebar.button("🔄 Connect & Get CAPTCHA", use_container_width=True):
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
             
@@ -491,25 +538,25 @@ if not st.session_state.waiting_for_captcha:
             except Exception as e:
                 st.sidebar.error(f"Error: {e}")
 
-# --- PHASE 2: The Exact English Login Form ---
+# --- PHASE 2: The UI Form ---
 else:
     # 1. ID Input
-    portal_user = st.sidebar.text_input("ID", placeholder=" Enter Student ID", label_visibility="collapsed")
+    portal_user = st.sidebar.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
     
     # 2. Password Input
-    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder=" Enter Password", label_visibility="collapsed")
+    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
     
-    # 3. Captcha Row (Image perfectly matches input height)
-    col_img, col_input = st.sidebar.columns([1, 1.2])
+    # 3. Captcha Row
+    col_input, col_img = st.sidebar.columns([1.2, 1])
+    with col_input:
+        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
     with col_img:
         st.image(st.session_state.captcha_img_bytes, use_container_width=True)
-    with col_input:
-        user_captcha = st.text_input("CAPTCHA", placeholder="Enter CAPTCHA *", max_chars=5, label_visibility="collapsed")
     
-    # 4. Action Buttons (Green Login & Cancel)
+    # 4. Fetch Data Action Button
     col_btn1, col_btn2 = st.sidebar.columns([3, 1])
     with col_btn1:
-        if st.button("Login", type="primary", use_container_width=True):
+        if st.button("🔄 Fetch Data From University Portal", type="primary", use_container_width=True):
             if not portal_user or not portal_pass:
                 st.sidebar.error("Please enter your Student ID and Password.")
             elif len(user_captcha) != 5:
