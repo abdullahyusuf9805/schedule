@@ -504,21 +504,26 @@ if not st.session_state.waiting_for_captcha:
 
 # --- PHASE 2: The UI Form ---
 else:
-    # 1. ID Input
-    portal_user = st.sidebar.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
-    
-    # 2. Password Input
-    portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
-    
-    # 3. Captcha Row
-    col_input, col_img = st.sidebar.columns([1.6, 1], gap="small")
-    with col_input:
-        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
-    with col_img:
-        st.image(st.session_state.captcha_img_bytes, use_container_width=False)
-    
-    # 4. Fetch Data Action Button (Notice it's st.SIDEBAR.button now!)
-    if st.sidebar.button("Continue", type="primary", use_container_width=True):
+    # Wrap everything in a Form so the button captures all inputs instantly!
+    with st.sidebar.form(key="login_form", clear_on_submit=False):
+        # 1. ID Input
+        portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
+        
+        # 2. Password Input
+        portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
+        
+        # 3. Captcha Row 
+        col_input, col_img = st.columns([1.6, 1], gap="small")
+        with col_input:
+            user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
+        with col_img:
+            st.image(st.session_state.captcha_img_bytes, use_container_width=False)
+        
+        # 4. Form Submit Button (This now acts as the 'Enter' key for all 3 inputs!)
+        submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
+        
+    # The scraping logic triggers immediately when the form button is clicked
+    if submit_form:
         if not portal_user or not portal_pass:
             st.sidebar.error("Please enter your Student ID and Password.")
         elif len(user_captcha) != 5:
@@ -568,7 +573,7 @@ else:
                         st.session_state.live_driver.quit()
                         st.session_state.live_driver = None
                     st.session_state.waiting_for_captcha = False
-                    st.stop() 
+                    st.stop()
 
 st.markdown(
     f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
