@@ -426,13 +426,14 @@ st.sidebar.markdown(
         /* Sleek Dark Mode Inputs */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             width: 100%;
+            height: 42px !important; /* STRICT HEIGHT */
             padding: 10px 12px !important;
             border: 1px solid #444444 !important;
             border-radius: 6px !important;
             font-size: 15px !important;
-            color: #ffffff !important; /* Bright white text */
-            background-color: #1a1a1a !important; /* Dark input background */
-            text-align: left !important; /* Fix weird alignment */
+            color: #ffffff !important; 
+            background-color: #1a1a1a !important; 
+            text-align: left !important; 
             direction: ltr !important;
             transition: border-color 0.2s;
         }
@@ -441,7 +442,7 @@ st.sidebar.markdown(
             box-shadow: 0 0 0 1px #1d8a59 !important;
         }
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
-            color: #888888 !important; /* Visible light grey placeholder */
+            color: #888888 !important; 
         }
         
         /* Style the Primary Button */
@@ -453,19 +454,25 @@ st.sidebar.markdown(
             font-size: 16px !important;
             border-radius: 6px !important;
             padding: 12px !important;
+            margin-top: 4px !important;
         }
         [data-testid="stSidebar"] button[kind="primary"]:hover {
             background-color: #1a6e47 !important;
         }
         
-        /* Force CAPTCHA image to perfectly match the CSS box height and styling */
+        /* Force CAPTCHA image to perfectly match the input box */
         [data-testid="stImage"] img {
-            height: 42px !important; /* Matched exactly to the input box height */
+            height: 42px !important; /* STRICT HEIGHT */
             width: 100% !important;
             object-fit: fill !important;
             border-radius: 6px !important;
             border: 1px solid #444444 !important;
-            background-color: #ffffff !important; /* Keep CAPTCHA white so numbers are readable */
+            background-color: #ffffff !important; 
+        }
+        
+        /* Nudge the image up slightly to fix Streamlit's invisible label gap */
+        [data-testid="stImage"] {
+            margin-top: -1px !important;
         }
     </style>
     """,
@@ -496,7 +503,8 @@ else:
     portal_pass = st.sidebar.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
     
     # 3. Captcha Row
-    col_input, col_img = st.sidebar.columns([1.2, 1])
+    # 3. Captcha Row (Fixed width & gap)
+    col_input, col_img = st.sidebar.columns([1.6, 1], gap="small")
     with col_input:
         user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
     with col_img:
