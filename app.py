@@ -415,7 +415,7 @@ st.sidebar.markdown(
             border: 1px solid #ffffff !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
-            height: 46px !important; 
+            height: 46px !important; /* Lock height to match image */
             min-height: 46px !important;
             transition: all 0.2s;
         }
@@ -438,12 +438,10 @@ st.sidebar.markdown(
             box-shadow: none !important;
         }
 
-        /* Make placeholder text grey */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
             color: #888888 !important; 
         }
 
-        /* Fix the Eye Icon background color */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
         }
@@ -475,19 +473,18 @@ st.sidebar.markdown(
             background-color: #1a6e47 !important;
         }
         
-        /* 4. Fix Captcha Image (New line, 100% Width, Centered) */
+        /* 4. Fix Captcha Image (Inline, perfectly level with input) */
         [data-testid="stSidebar"] [data-testid="stImage"] {
             display: flex;
             justify-content: center; 
             align-items: center;
-            width: 100% !important;
-            margin-bottom: 5px !important; /* Tiny gap before the text input */
+            height: 46px !important; /* Force container height to match input */
         }
         
         [data-testid="stSidebar"] [data-testid="stImage"] img {
-            width: 100% !important; /* Stretch to full width */
+            height: 46px !important; /* EXACTLY matches input wrapper height */
+            width: 100% !important; /* Fills its left column perfectly */
             max-width: 100% !important; 
-            height: 60px !important; /* Taller height to look proportionate at 100% width */
             object-fit: fill !important;
             border-radius: 6px !important;
             border: 1px solid #ffffff !important; 
@@ -524,13 +521,16 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Captcha Image (Now on its own line, full width)
-        st.image(st.session_state.captcha_img_bytes, use_container_width=True)
+        # 3. Captcha Row (Image on Left, Input on Right)
+        col_img, col_input = st.columns([1, 1.6], gap="small")
         
-        # 4. Captcha Input (Stacked below the image)
-        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
+        with col_img:
+            st.image(st.session_state.captcha_img_bytes, use_container_width=True)
+            
+        with col_input:
+            user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         
-        # 5. Form Submit Button
+        # 4. Form Submit Button
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
         
     # The scraping logic triggers immediately when the form button is clicked
