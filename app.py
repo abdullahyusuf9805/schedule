@@ -687,7 +687,7 @@ if not enrolled_ids and os.path.exists("enrolled.html"):
 # 2. Apply logic with the new Checkbox
 if "STATUS" in raw_df.columns:
     auto_remove = st.sidebar.checkbox("Remove Closed Sections", value=True)
-    protect_enrolled = st.sidebar.checkbox("Mark enrolled sections as opened", value=True)
+    protect_enrolled = st.sidebar.checkbox("Mark enrolled sections as Opened", value=True)
     
     if auto_remove:
         closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
