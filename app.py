@@ -94,12 +94,6 @@ st.markdown(
             margin-bottom: 0px !important;
         }
         
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
-            font-size: 0.85rem !important;
-            background-color: #121212 !important;
-            border-color: #333333 !important;
-        }
-
         /* =========================================
            NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
            ========================================= */
@@ -579,15 +573,7 @@ else:
                         st.session_state.live_driver.quit()
                         st.session_state.live_driver = None
                     st.session_state.waiting_for_captcha = False
-                    st.stop()
-
-    with col_btn2:
-        if st.button("Cancel", use_container_width=True):
-            if st.session_state.live_driver:
-                st.session_state.live_driver.quit()
-                st.session_state.live_driver = None
-            st.session_state.waiting_for_captcha = False
-            st.rerun()
+                    st.stop() 
 
 
 # Read main data
