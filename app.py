@@ -140,6 +140,19 @@ st.markdown(
 )
 
 st.title("Dynamic Timetable Generator")
+# --- Last Updated Timestamp Display ---
+if os.path.exists("data.html"):
+    last_mod_time = os.path.getmtime("data.html")
+    updated_str = datetime.fromtimestamp(last_mod_time).strftime("%d/%m/%Y at %I:%M %p")
+else:
+    updated_str = "No data file found"
+
+st.markdown(
+    f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
+    f"🕒 <b>Updated on:</b> {updated_str}"
+    f"</p>",
+    unsafe_allow_html=True,
+)
 
 # ==========================================
 # 2. TWO-STEP INTERACTIVE SELENIUM LOGIC
