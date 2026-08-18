@@ -141,20 +141,22 @@ st.markdown(
 )
 
 st.title("Dynamic Timetable Generator")
-# --- Last Updated Timestamp Display (Local Time) ---
-if os.path.exists("data.html"):
-    last_mod_time = os.path.getmtime("data.html")
-    # Get the raw UTC time from the server
-    utc_time = datetime.utcfromtimestamp(last_mod_time)
-    # Add exactly 3 hours for local time
-    local_time = utc_time + timedelta(hours=3)
-    updated_str = local_time.strftime("%d/%m/%Y at %I:%M %p")
-else:
-    updated_str = "No data file found"
+import re
+
+html_content = ""
+if st.session_state.live_html_data:
+    html_content = st.session_state.live_html_data
+elif os.path.exists("data.html"):
+    with open("data.html", "r", encoding="utf-8") as f:
+        html_content = f.read()
+
+# Search for the hidden comment we injected
+time_match = re.search(r"<!-- SYNC_TIME: (.*?) -->", html_content)
+updated_str = time_match.group(1) if time_match else "No data file found"
 
 st.markdown(
     f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
-    f"🕒 <b>Last Update:</b> {updated_str}"
+    f"🕒 <b>Updated on:</b> {updated_str}"
     f"</p>",
     unsafe_allow_html=True,
 )
@@ -268,8 +270,16 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             driver.save_screenshot("error_screenshot.png")
             raise Exception("Could not find the <tbody> containing <tr class=>. The table did not load properly.")
             
-        return str(target_tbody)
-
+# --- INJECT KSA TIMESTAMP DIRECTLY INTO HTML ---
+        from datetime import timedelta # Just in case it's missing at the top
+        
+        ksa_time = datetime.utcnow() + timedelta(hours=3)
+        time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
+        
+        final_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(target_tbody)
+        
+        return final_html
+        
     finally:
         driver.quit()
         st.session_state.live_driver = None
