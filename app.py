@@ -144,7 +144,8 @@ st.title("Dynamic Timetable Generator")
 import re
 
 html_content = ""
-if st.session_state.live_html_data:
+# FIX: Use .get() to safely check if the session state exists yet
+if st.session_state.get("live_html_data"):
     html_content = st.session_state.live_html_data
 elif os.path.exists("data.html"):
     with open("data.html", "r", encoding="utf-8") as f:
