@@ -480,7 +480,7 @@ st.sidebar.markdown("<h3 style='text-align: left; color: white;'>System Login</h
 
 # --- PHASE 1: Fetch Captcha Session ---
 if not st.session_state.waiting_for_captcha:
-    st.sidebar.info("👈 Click below to load the CAPTCHA and start the sync.")
+    st.sidebar.info("👈 Fetch data from University portal")
     if st.sidebar.button("🔄 Connect & Get CAPTCHA", use_container_width=True):
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
