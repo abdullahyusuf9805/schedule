@@ -478,16 +478,16 @@ st.sidebar.markdown(
             display: flex;
             justify-content: center; 
             align-items: center;
-            height: 36px !important; /* Force container height to match input */
+            height: 46px !important; /* Force container height to match input */
         }
         
         [data-testid="stSidebar"] [data-testid="stImage"] img {
-            height: 46px !important; /* EXACTLY matches input wrapper height */
+            height: 36px !important; /* EXACTLY matches input wrapper height */
             width: 100% !important; /* Fills its left column perfectly */
             max-width: 100% !important; 
             object-fit: fill !important;
             border-radius: 6px !important;
-            border: 1px solid #ffffff !important; 
+            border: 1px solid #000000 !important; 
             background-color: #ffffff !important; 
         }
     </style>
