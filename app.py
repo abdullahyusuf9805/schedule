@@ -415,20 +415,21 @@ captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8
 st.sidebar.markdown(
     """
     <style>
-        /* Default state (no cursor): Force the gray border using box-shadow */
+        /* Default state: INSET box-shadow guarantees Streamlit can't clip or hide it */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
-            border: none !important; /* Strip Streamlit's hidden zero-width borders */
-            box-shadow: 0 0 0 1px #888888 !important; /* The guaranteed gray border */
+            border: 1px solid #888888 !important;
+            box-shadow: inset 0 0 0 1px #888888 !important; /* Draws the border on the INSIDE */
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             height: 46px !important; 
             min-height: 46px !important;
-            transition: box-shadow 0.2s ease-in-out; /* Smooth transition */
+            transition: all 0.2s ease-in-out;
         }
         
-        /* Active state (with cursor): Red focus border */
+        /* Active state (with cursor): Switches both inner and outer borders to Red */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-            box-shadow: 0 0 0 1px #ff4b4b !important; /* Switches to red */
+            border: 1px solid #ff4b4b !important;
+            box-shadow: inset 0 0 0 1px #ff4b4b, 0 0 0 1px #ff4b4b !important; 
         }
 
         /* Text inside inputs */
