@@ -429,7 +429,7 @@ st.sidebar.markdown(
             box-shadow: 0 0 0 1px #ff4b4b !important;
         }
 
-        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders, EVEN ON FOCUS */
+        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
         [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
         [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
         [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
@@ -440,6 +440,7 @@ st.sidebar.markdown(
             background-color: transparent !important;
             box-shadow: none !important;
             outline: none !important;
+            border-radius: 0px !important; /* <--- THE FIX: Squares off the inside so the outside curve is perfect */
         }
 
         /* 4. TEXT INPUT STYLING */
@@ -469,7 +470,7 @@ st.sidebar.markdown(
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
-            margin-top: 14px !important; /* Pushes the form down to match the gap above the button */
+            margin-top: 14px !important; 
             background-color: transparent !important;
         }
 
