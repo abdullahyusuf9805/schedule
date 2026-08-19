@@ -286,7 +286,7 @@ st.markdown(
         margin-bottom: 0 !important;
         padding-top: 0 !important;
         padding-bottom: 16px !important;
-        line-height: 1.3 !important;
+        line-height: 1 !important;
     }}
     </style>
     """,
