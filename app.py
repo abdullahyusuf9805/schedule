@@ -90,13 +90,13 @@ st.markdown(
         }
 
         /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] {
-                border: 1px solid #777777 !important; 
-                border-radius: 6px !important;
-                background-color: #1a1a1a !important;
-                overflow: hidden !important; 
-                margin-bottom: 4px !important; 
-            }
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] {
+            border: 1px solid #777777 !important; 
+            border-radius: 6px !important;
+            background-color: #1a1a1a !important;
+            overflow: hidden !important; 
+            margin-bottom: 4px !important; 
+        }
             
         /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
         [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {
@@ -299,14 +299,18 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             EC.url_contains("homeIndex.faces")
         )
         
-        electronic_reg_menu = WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]"))
+        time.sleep(2)
+        
+        # --- ROBUST MENU FINDER ---
+        electronic_reg_menu = WebDriverWait(driver, 30).until(
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(1.5) 
+        time.sleep(2.0) 
 
-        enrolled_menu = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
+        # Click "المقررات المسجلة" (Enrolled Courses)
+        enrolled_menu = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المسجلة') or contains(text(), 'Enrolled')]"))
         )
         driver.execute_script("arguments[0].click();", enrolled_menu)
         time.sleep(4) 
@@ -332,12 +336,16 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         enrolled_str = ", ".join(enrolled_ids)
         raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-        electronic_reg_menu = driver.find_element(By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]")
+        # Open Menu Again
+        electronic_reg_menu = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
+        )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(1.5)
+        time.sleep(2.0)
 
+        # Click "المقررات المطروحة وفق الخطة" (Course Plan)
         course_plan_menu = WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المطروحة') or contains(text(), 'Course Plan') or contains(text(), 'Plan')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
@@ -614,13 +622,12 @@ with st.sidebar:
     # Subtle sidebar divider separating fetch and export sections
     st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
 
-    # ==========================================
-    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
-    # ==========================================
 
-    # ==========================================
-    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
-    # ==========================================
+    
+    # ========================================================================================================================================================================
+    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL) ===================================================================================================================================
+    # ========================================================================================================================================================================
+
     st.markdown("<h3 style='margin-bottom: 15px; color: white;'>📥 Export Raw Data</h3>", unsafe_allow_html=True)
     
     # Read main data for export and filters
