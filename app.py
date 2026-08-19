@@ -415,19 +415,19 @@ captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8
 st.sidebar.markdown(
     """
     <style>
-        /* Target the WRAPPER for Student ID, Password, and Captcha */
+        /* Default state (no cursor): Gray border */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
-            border: 1px solid #ffffff !important; 
+            border: 1px solid #555555 !important; /* <--- Changed to Gray */
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             height: 46px !important; 
             min-height: 46px !important;
         }
         
-        /* Green focus border */
+        /* Active state (with cursor): Red border to match your button */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-            border: 1px solid #1d8a59 !important; 
-            box-shadow: 0 0 0 1px #1d8a59 !important;
+            border: 1px solid #ff4b4b !important; /* <--- Red focus */
+            box-shadow: 0 0 0 1px #ff4b4b !important;
         }
 
         /* Text inside inputs */
@@ -463,7 +463,7 @@ st.sidebar.markdown(
         
         /* Primary Button */
         [data-testid="stSidebar"] button[kind="primary"] {
-            background-color: #1d8a59 !important;
+            background-color: #ff4b4b !important; 
             border: none !important;
             color: #ffffff !important;
             font-weight: bold !important;
@@ -473,7 +473,7 @@ st.sidebar.markdown(
             margin-top: 4px !important;
         }
         [data-testid="stSidebar"] button[kind="primary"]:hover {
-            background-color: #1a6e47 !important;
+            background-color: #ff3333 !important;
         }
     </style>
     """,
