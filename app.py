@@ -76,7 +76,7 @@ st.markdown(
         
         /* UI TIGHTENING CSS (Squish Elements in Card) */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 1rem 0.8rem 0.5rem 0.8rem !important;
+            padding: 0.2rem 0.8rem 0.5rem 0.8rem !important;
             background-color: #1a1a1a !important;
             border-radius: 8px !important;
             border: 1px solid #2a2a2a !important;
