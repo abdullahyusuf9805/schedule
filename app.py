@@ -40,11 +40,6 @@ st.markdown(
             color: #ffffff;
         }
 
-        /* Force Streamlit sidebar background to pure black */
-        [data-testid="stSidebar"] > div:first-child {
-            background-color: #000000 !important;
-        }
-
         h1 {
             font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
             white-space: nowrap !important;
@@ -90,88 +85,13 @@ st.markdown(
         }
 
         /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] {
-            border: 1px solid #777777 !important; 
-            border-radius: 6px !important;
-            background-color: #1a1a1a !important;
-            overflow: hidden !important; 
-            margin-bottom: 4px !important; 
-        }
-            
-        /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
-        [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {
-            border: 1px solid #ff4b4b !important;
-            box-shadow: 0 0 0 1px #ff4b4b !important;
-        }
-
-        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {
-            border: none !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
-            outline: none !important;
-            border-radius: 0px !important; 
-        }
-
-        /* 4. TEXT INPUT STYLING */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
-            color: #ffffff !important;
-            background-color: transparent !important; 
-            height: 44px !important; 
-            padding: 10px 12px !important;
-            font-size: 15px !important;
-            border: none !important; 
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* Placeholder text color */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
-            color: #888888 !important; 
-        }
-
-        /* Keep the password eye icon background transparent */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
-            background-color: transparent !important;
-        }
-        
-        /* 5. FORM LAYOUT & CLEANUP */
-        [data-testid="stForm"] {
-            border: none !important;
-            padding: 0 !important;
-            margin-top: 0px !important; 
-            background-color: transparent !important;
-        }
-
-        /* Completely delete the "Press Enter to submit form" text */
-        [data-testid="stSidebar"] [data-testid="InputInstructions"], 
-        [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {
-            display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            height: 0 !important;
-            width: 0 !important;
-        }
-        
-        /* 6. PRIMARY BUTTON STYLING */
-        [data-testid="stSidebar"] button[kind="primary"] {
-            background-color: #ff4b4b !important; 
-            border: none !important;
-            color: #ffffff !important;
-            font-weight: bold !important;
-            font-size: 16px !important;
-            border-radius: 6px !important;
-            padding: 12px !important;
-            margin-top: 4px !important;
-        }
-        [data-testid="stSidebar"] button[kind="primary"]:hover {
-            background-color: #ff3333 !important;
-        }
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] {
+                border: 1px solid #777777 !important; 
+                border-radius: 6px !important;
+                background-color: #1a1a1a !important;
+                overflow: hidden !important; 
+                margin-bottom: 12px !important; 
+            }
         
         /* =========================================
            NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
@@ -193,6 +113,13 @@ st.markdown(
             visibility: hidden !important;
         }
 
+        div[data-baseweb="slider"] div[role="slider"] {
+            background-color: #ff4d4d !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+        
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
             background-color: #555555 !important;
         }
@@ -299,18 +226,14 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             EC.url_contains("homeIndex.faces")
         )
         
-        time.sleep(2)
-        
-        # --- ROBUST MENU FINDER ---
-        electronic_reg_menu = WebDriverWait(driver, 30).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
+        electronic_reg_menu = WebDriverWait(driver, 25).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(2.0) 
+        time.sleep(1.5) 
 
-        # Click "المقررات المسجلة" (Enrolled Courses)
-        enrolled_menu = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المسجلة') or contains(text(), 'Enrolled')]"))
+        enrolled_menu = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
         )
         driver.execute_script("arguments[0].click();", enrolled_menu)
         time.sleep(4) 
@@ -336,16 +259,12 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         enrolled_str = ", ".join(enrolled_ids)
         raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-        # Open Menu Again
-        electronic_reg_menu = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
-        )
+        electronic_reg_menu = driver.find_element(By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]")
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(2.0)
+        time.sleep(1.5)
 
-        # Click "المقررات المطروحة وفق الخطة" (Course Plan)
         course_plan_menu = WebDriverWait(driver, 25).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المطروحة') or contains(text(), 'Course Plan') or contains(text(), 'Plan')]"))
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
@@ -479,12 +398,140 @@ if "live_driver" not in st.session_state:
 if "captcha_img_bytes" not in st.session_state:
     st.session_state.captcha_img_bytes = None
 
-# ==========================================
-# MASTER SIDEBAR LAYOUT (PHASE 1 & PHASE 2)
-# ==========================================
-with st.sidebar:
-    st.markdown("<h3 style='margin-bottom: 0px; color: white;'>🌐 Fetch Data From University Portal</h3>", unsafe_allow_html=True)
-    
+import base64
+
+# Convert CAPTCHA bytes for CSS background injection
+captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
+
+st.markdown(
+            f"""
+            <style>
+            /* Targets our specific CAPTCHA text input */
+            [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
+                background-image: url("data:image/png;base64,{captcha_b64}") !important;
+                background-position: right 6px center !important;
+                background-size: 106px 34px !important;
+                background-repeat: no-repeat !important;
+                padding-right: 120px !important; 
+            }}
+            
+            /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] {{
+                border: 1px solid #777777 !important; 
+                border-radius: 6px !important;
+                background-color: #1a1a1a !important;
+                overflow: hidden !important; 
+                margin-bottom: 12px !important; 
+            }}
+            
+            /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
+            [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {{
+                border: 1px solid #ff4b4b !important;
+                box-shadow: 0 0 0 1px #ff4b4b !important;
+            }}
+
+            /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {{
+                border: none !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
+                outline: none !important;
+                border-radius: 0px !important; 
+            }}
+
+            /* 4. TEXT INPUT STYLING */
+            [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
+                color: #ffffff !important;
+                background-color: transparent !important; 
+                height: 44px !important; 
+                padding: 10px 12px !important;
+                font-size: 15px !important;
+                border: none !important; 
+                outline: none !important;
+                box-shadow: none !important;
+            }}
+
+            /* Placeholder text color */
+            [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
+                color: #888888 !important; 
+            }}
+
+            /* Keep the password eye icon background transparent */
+            [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
+                background-color: transparent !important;
+            }}
+            
+            /* 5. FORM LAYOUT & CLEANUP */
+            /* Form container border removal & Top Gap Equalizer */
+            [data-testid="stForm"] {{
+                border: none !important;
+                padding: 0 !important;
+                margin-top: 14px !important; 
+                background-color: transparent !important;
+            }}
+
+            /* Completely delete the "Press Enter to submit form" text */
+            [data-testid="stSidebar"] [data-testid="InputInstructions"], 
+            [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {{
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                width: 0 !important;
+            }}
+            
+            /* 6. PRIMARY BUTTON STYLING */
+            [data-testid="stSidebar"] button[kind="primary"] {{
+                background-color: #ff4b4b !important; 
+                border: none !important;
+                color: #ffffff !important;
+                font-weight: bold !important;
+                font-size: 16px !important;
+                border-radius: 6px !important;
+                padding: 12px !important;
+                margin-top: 4px !important;
+            }}
+            [data-testid="stSidebar"] button[kind="primary"]:hover {{
+                background-color: #ff3333 !important;
+            }}
+
+          /* =========================================
+               7. REFINED UX & SPACING (Clean & Modern)
+               ========================================= */
+               
+            /* Keep the top flush so the header aligns nicely */
+            [data-testid="stSidebarUserContent"] {{
+                padding-top: 0rem !important; 
+            }}
+
+            /* Relax the gaps slightly so elements aren't suffocating */
+            [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
+                gap: 0.8rem !important; 
+            }}
+
+            /* Clean typography spacing */
+            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                line-height: 1.3 !important;
+            }}
+
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+with st.sidebar.expander("🌐 Fetch Data From University Portal", expanded=False):
+
     # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
         if st.button("Login And Scrap Data from Portal", use_container_width=True):
@@ -498,6 +545,7 @@ with st.sidebar:
                 except Exception as e:
                     st.error(f"Error: {e}")
                     
+        # Tucked nicely INSIDE the Phase 1 block
         st.markdown(
             f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 15px; margin-bottom: 0px; text-align: center;'>"
             f"<b>Last Update:</b> {updated_str}"
@@ -505,36 +553,31 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-    # --- PHASE 2: The UI Form & Transparent Inversion Handler ---
+    # --- PHASE 2: The UI Form ---
     else:
         import base64
         import io
-        from PIL import Image
+        from PIL import Image, ImageOps
         
-        # Bulletproof Grayscale-Masking Inversion & Background Removal
+        # 1. Dynamically invert, remove background, and inject the CAPTCHA
         if st.session_state.get("captcha_img_bytes"):
             try:
                 image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
-                img = Image.open(image_stream).convert("RGBA")
+                img = Image.open(image_stream).convert("RGB") 
+                inverted_img = ImageOps.invert(img)
+                rgba_img = inverted_img.convert("RGBA")
+                data = rgba_img.getdata()
                 
-                r, g, b, a = img.split()
-                rgb_img = Image.merge("RGB", (r, g, b))
-                gray_img = rgb_img.convert("L")
-                
-                new_image = Image.new("RGBA", img.size, (0, 0, 0, 0))
                 new_data = []
-                gray_data = gray_img.getdata()
-                
-                for pixel in gray_data:
-                    if pixel < 180:  # Dark text threshold
-                        new_data.append((255, 255, 255, 255))  # Crisp white text
+                for item in data:
+                    if item[0] < 50 and item[1] < 50 and item[2] < 50:
+                        new_data.append((255, 255, 255, 0)) 
                     else:
-                        new_data.append((255, 255, 255, 0))   # Transparent background
+                        new_data.append(item) 
                         
-                new_image.putdata(new_data)
-                
+                rgba_img.putdata(new_data)
                 buffered = io.BytesIO()
-                new_image.save(buffered, format="PNG")
+                rgba_img.save(buffered, format="PNG") 
                 captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
                 
             except Exception as e:
@@ -555,13 +598,14 @@ with st.sidebar:
                 unsafe_allow_html=True
             )
 
-        # Build the Form
+        # 2. Build the Form inside the expander
         with st.form(key="login_form", clear_on_submit=False):
             portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
             portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
             submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
             
+        # Tucked nicely INSIDE the Phase 2 block
         st.markdown(
             f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 5px; margin-bottom: 0px; text-align: center;'>"
             f"<b>Last Update:</b> {updated_str}"
@@ -569,7 +613,7 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
             
-        # Handle Form Submission
+        # 3. Handle Submit
         if submit_form:
             if not portal_user or not portal_pass:
                 st.error("Please enter your Student ID and Password.")
@@ -619,582 +663,660 @@ with st.sidebar:
                         st.session_state.waiting_for_captcha = False
                         st.stop()
 
-    # Subtle sidebar divider separating fetch and export sections
-    st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
 
-    # ==========================================
-    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
-    # ==========================================
+# Read main data
+raw_df = pd.DataFrame() 
+if st.session_state.live_html_data:
+    raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
+elif os.path.exists("data.html"):
+    with open("data.html", "r", encoding="utf-8") as f:
+        html_content = f.read()
+        if html_content.strip():
+            raw_df = parse_html_to_dataframe(html_content)
 
-    # ==========================================
-    # EXPORT RAW DATA (EXCEL)
-    # ==========================================
-    st.markdown("<h3 style='margin-bottom: 15px; color: white;'>📥 Export Raw Data</h3>", unsafe_allow_html=True)
-    
-    raw_df = pd.DataFrame() 
-    if st.session_state.live_html_data:
-        raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
-    elif os.path.exists("data.html"):
-        with open("data.html", "r", encoding="utf-8") as f:
-            html_content = f.read()
-            if html_content.strip():
-                raw_df = parse_html_to_dataframe(html_content)
-
-    if raw_df is None or raw_df.empty:
-        if not st.session_state.waiting_for_captcha:
-            st.error("⚠️ No schedule data found. Please login to fetch fresh data.")
-            if os.path.exists("error_screenshot.png"):
-                st.image("error_screenshot.png", caption="Bot's view during last failed attempt:")
-            st.stop()
+# Safety kill switch
+if raw_df is None or raw_df.empty:
+    if st.session_state.waiting_for_captcha:
+        pass # Let the user fill out the form
     else:
-        try:
-            current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
-            excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
+        st.error("⚠️ No schedule data found. Please login to fetch fresh data.")
+        if os.path.exists("error_screenshot.png"):
+            st.image("error_screenshot.png", caption="Bot's view during the last failed attempt:")
+    st.stop()
+
+
+# ==========================================
+# EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
+# ==========================================
+with st.sidebar.expander("📥 Export Raw Data", expanded=False):
+    try:
+        current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
+        excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
+        
+        raw_excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
+            raw_df.to_excel(writer, index=False, sheet_name="Scraped_Data")
+        
+        st.download_button(
+            label="Download All Scraped Data (Excel)",
+            data=raw_excel_buffer.getvalue(),
+            file_name=excel_filename,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+    except ModuleNotFoundError:
+        st.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
+
+
+@st.cache_data
+def parse_schedule_blocks(df_input):
+    parsed_rows = []
+    for index, row in df_input.iterrows():
+        venue_str = str(row["VENUE"]).strip()
+        if venue_str == "nan" or not venue_str:
+            continue
+    
+        blocks = [b.strip() for b in venue_str.split(",")]
+        for block in blocks:
+            if "-" in block:
+                parts = block.split("-")
+                try:
+                    day = int(parts[0].strip())
+                    start_time = int(parts[1].strip())
+                    new_row = row.copy()
+                    new_row["day"] = day
+                    new_row["start_time"] = start_time
+                    new_row["end_time"] = start_time + 1
+                    parsed_rows.append(new_row)
+                except ValueError:
+                    continue
+    return pd.DataFrame(parsed_rows)
+
+parsed_df = parse_schedule_blocks(raw_df)
+
+if parsed_df.empty:
+    st.error("⚠️ The scraped data contains no valid schedule blocks. The university portal might be empty.")
+    st.stop()
+
+
+# ==========================================
+# 5. PURE NATIVE STREAMLIT FILTERS (Tight UI)
+# ==========================================
+with st.sidebar.expander("⏳ Filter By Day & Time", expanded=False):
+    days_config = {
+        1: ("Sunday (Day 1)", True),
+        2: ("Monday (Day 2)", True),
+        3: ("Tuesday (Day 3)", True),
+        4: ("Wednesday (Day 4)", True),
+        5: ("Thursday (Day 5)", True),
+    }
+
+    day_filters = {}
+    day_exceptions = {}
+
+    for day_num, (label, default_val) in days_config.items():
+        with st.container(border=True):
+            is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
+
+            if is_on:
+                time_range = st.slider(
+                    "Hours", 8, 18, (8, 18), 
+                    format="%02d",
+                    key=f"slide_{day_num}", 
+                    label_visibility="collapsed"
+                )
+                
+                ex_list = []
+                exception_str = st.text_input(
+                    "Exceptions", 
+                    value="",
+                    placeholder="Enter Excepted Hours", 
+                    key=f"txt_{day_num}", 
+                    label_visibility="collapsed"
+                )
+                
+                if exception_str.strip():
+                    try:
+                        ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
+                    except ValueError:
+                        pass
+
+                day_filters[day_num] = {"range": time_range}
+                day_exceptions[day_num] = ex_list
+
+            else:
+                st.slider(
+                    "Hours", 8, 18, (8, 18), 
+                    format="%02d",
+                    disabled=True, 
+                    key=f"slide_dis_{day_num}", 
+                    label_visibility="collapsed"
+                )
+                
+                st.text_input(
+                    "Exceptions", 
+                    value="",
+                    placeholder="Enter Excepted Hours", 
+                    key=f"txt_dis_{day_num}", 
+                    label_visibility="collapsed",
+                    disabled=True
+                )
+                
+                day_filters[day_num] = None
+                day_exceptions[day_num] = []
+
+def is_valid_time(row):
+    day, start = row["day"], row["start_time"]
+    config = day_filters.get(day)
+    if config is not None:
+        r_start, r_end = config["range"]
+        if r_start <= start <= r_end:
+            if start not in day_exceptions.get(day, []):
+                return True
+    return False
+
+parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
+invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
+valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
+
+
+# ==========================================
+# 5B. ENROLLMENT & AVAILABILITY OVERRIDES
+# ==========================================
+with st.sidebar.expander("🛡️ Section Availability", expanded=False):
+    # 1. Silently read Enrolled HTML in the background
+    enrolled_ids_str = st.session_state.get("auto_enrolled", "")
+    enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
+
+    if not enrolled_ids and os.path.exists("enrolled.html"):
+        with open("enrolled.html", "r", encoding="utf-8") as f:
+            soup_enc = BeautifulSoup(f.read(), "html.parser")
+            for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                cols = tr.find_all("td")
+                if len(cols) >= 4:
+                    sh = cols[3].text.strip()
+                    if sh.isdigit():
+                        enrolled_ids.append(sh)
+
+    # 2. Apply logic with the new Checkbox
+    if "STATUS" in raw_df.columns:
+        auto_remove = st.checkbox("Remove Closed Sections", value=True)
+        protect_enrolled = st.checkbox("Mark enrolled sections as opened", value=True)
+        
+        if auto_remove:
+            closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
             
-            raw_excel_buffer = io.BytesIO()
-            with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
-                raw_df.to_excel(writer, index=False, sheet_name="Scraped_Data")
+            if protect_enrolled and enrolled_ids:
+                is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
+                valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
+            else:
+                valid_blocks_df = valid_blocks_df[~closed_mask]
+
+
+# ==========================================
+# 6. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
+# ==========================================
+with st.sidebar.expander("🌍 Global Hall & Shuba Rules", expanded=False):
+    all_halls = sorted(
+        [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
+    )
+    all_shubas = sorted(
+        [str(s) for s in raw_df["ID"].dropna().astype(str).unique() if s.strip()]
+    )
+
+    banned_halls = st.multiselect(
+        "Ban Halls", options=all_halls, key="global_ban_halls"
+    )
+    remaining_halls = [h for h in all_halls if h not in banned_halls]
+    required_halls = st.multiselect(
+        "Require Halls", options=remaining_halls, key="global_req_halls"
+    )
+
+    banned_shubas = st.multiselect(
+        "Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas"
+    )
+    remaining_shubas = [s for s in all_shubas if s not in banned_shubas]
+    required_shubas = st.multiselect(
+        "Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas"
+    )
+
+# Apply Hall filters
+if banned_halls:
+    valid_blocks_df = valid_blocks_df[
+        ~valid_blocks_df["HALL"].astype(str).isin(banned_halls)
+    ]
+if required_halls:
+    valid_blocks_df = valid_blocks_df[
+        valid_blocks_df["HALL"].astype(str).isin(required_halls)
+    ]
+
+# Apply Shuba filters
+if banned_shubas:
+    valid_blocks_df = valid_blocks_df[
+        ~valid_blocks_df["ID"].astype(str).isin(banned_shubas)
+    ]
+if required_shubas:
+    valid_blocks_df = valid_blocks_df[
+        valid_blocks_df["ID"].astype(str).isin(required_shubas)
+    ]
+
+# ==========================================
+# 7. SUBJECT-SPECIFIC TEACHER RULES
+# ==========================================
+# We wrap everything in one master expander to keep the UI clean!
+with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
+    
+    all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
+    subject_rules = {}
+    
+    if not all_subjects:
+        st.markdown("<p style='color: #888888; font-size: 14px;'>No subjects available to filter.</p>", unsafe_allow_html=True)
+
+    for subj in all_subjects:
+        subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
+        subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
+
+        # Use bordered containers instead of nested expanders to bypass Streamlit's restriction!
+        with st.container(border=True):
+            st.markdown(f"<div style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff;'>📚 {subj_name} <span style='color: #ff4b4b;'>({subj})</span></div>", unsafe_allow_html=True)
+            
+            teachers_for_subj = sorted(
+                raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
+            )
+
+            banned_t = st.multiselect(
+                "Ban Teachers", options=teachers_for_subj, key=f"ban_{subj}"
+            )
+            remaining_t = [t for t in teachers_for_subj if t not in banned_t]
+            required_t = st.multiselect(
+                "Require Teacher", options=remaining_t, key=f"req_{subj}"
+            )
+
+            subject_rules[subj] = {"ban": banned_t, "require": required_t}
+
+# Process the rules silently outside the UI block
+for subj, rules in subject_rules.items():
+    if rules["ban"]:
+        valid_blocks_df = valid_blocks_df[
+            ~(
+                (valid_blocks_df["CODE"].astype(str) == subj)
+                & (valid_blocks_df["TEACHER"].isin(rules["ban"]))
+            )
+        ]
+    if rules["require"]:
+        valid_blocks_df = valid_blocks_df[
+            ~(
+                (valid_blocks_df["CODE"].astype(str) == subj)
+                & (~valid_blocks_df["TEACHER"].isin(rules["require"]))
+            )
+        ]
+
+# ==========================================
+# 8. DATA GROUPING & SOLVER
+# ==========================================
+sections_by_subject = {}
+for code, group in valid_blocks_df.groupby("CODE"):
+    sections_by_subject[str(code)] = []
+    for sec_id, sec_group in group.groupby("ID"):
+        blocks = [
+            {"day": r["day"], "start_time": r["start_time"]}
+            for _, r in sec_group.iterrows()
+        ]
+        matching_row = raw_df[raw_df["ID"] == sec_id].iloc[0]
+
+        sections_by_subject[str(code)].append({
+            "code": str(code),
+            "name": matching_row["NAME"],
+            "id": sec_id,
+            "hall": matching_row["HALL"],
+            "venue": matching_row["VENUE"],
+            "teacher": matching_row["TEACHER"],
+            "status": matching_row.get("STATUS", "N/A"),
+            "blocks": blocks,
+        })
+
+target_subjects = list(sections_by_subject.keys())
+total_required_subjects = len(all_subjects)
+
+if len(target_subjects) < total_required_subjects:
+    st.warning(
+        f"Only {len(target_subjects)} out of {total_required_subjects} valid"
+        " subjects remaining after filters. Check your filters or rules."
+    )
+
+@st.cache_data
+def generate_schedules(subjects_dict, targets):
+    valid_schedules = []
+
+    def backtrack(idx, current_schedule, occupied_slots):
+        if len(valid_schedules) >= 50:
+            return
+        if idx == len(targets):
+            valid_schedules.append(list(current_schedule))
+            return
+        for section in subjects_dict[targets[idx]]:
+            overlap = False
+            for b in section["blocks"]:
+                if (b["day"], b["start_time"]) in occupied_slots:
+                    overlap = True
+                    break
+            if not overlap:
+                current_schedule.append(section)
+                for b in section["blocks"]:
+                    occupied_slots.add((b["day"], b["start_time"]))
+                backtrack(idx + 1, current_schedule, occupied_slots)
+                current_schedule.pop()
+                for b in section["blocks"]:
+                    occupied_slots.remove((b["day"], b["start_time"]))
+
+    backtrack(0, [], set())
+    return valid_schedules
+
+
+schedules = (
+    generate_schedules(sections_by_subject, target_subjects)
+    if target_subjects
+    else []
+)
+
+def calculate_schedule_score(schedule):
+    day_slots = {}
+    for sec in schedule:
+        for b in sec["blocks"]:
+            d, t = b["day"], b["start_time"]
+            if d not in day_slots:
+                day_slots[d] = []
+            day_slots[d].append(t)
+
+    total_gaps = 0
+    for d, times in day_slots.items():
+        times = sorted(list(set(times)))
+        if len(times) > 1:
+            span = (max(times) + 1) - min(times)
+            gaps = span - len(times)
+            total_gaps += gaps
+    return total_gaps
+
+schedules = sorted(schedules, key=calculate_schedule_score)
+
+# ==========================================
+# 9. IMAGE GENERATOR & UI RENDERING
+# ==========================================
+
+def fix_arabic(text):
+    if not text.strip():
+        return ""
+    return get_display(arabic_reshaper.reshape(str(text)))
+
+def draw_schedule_image(schedule):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.axis("tight")
+    ax.axis("off")
+
+    cols = ["الخميس", "الأربعاء", "الثلاثاء", "الاثنين", "الأحد", "الوقت"]
+    cols_reshaped = [fix_arabic(c) for c in cols]
+
+    cell_text = [["" for _ in range(6)] for _ in range(11)]
+    col_map = {1: 4, 2: 3, 3: 2, 4: 1, 5: 0}
+
+    for row_idx in range(11):
+        hour = 8 + row_idx
+        cell_text[row_idx][5] = f"{hour}:00"
+
+    for section in schedule:
+        cell_label = fix_arabic(f"{section['code']} (ش {section['id']})")
+        for b in section["blocks"]:
+            if 8 <= b["start_time"] <= 18:
+                row_idx = b["start_time"] - 8
+                col_idx = col_map.get(b["day"])
+                if col_idx is not None and row_idx < 11:
+                    cell_text[row_idx][col_idx] = cell_label
+
+    table = ax.table(
+        cellText=cell_text,
+        colLabels=cols_reshaped,
+        loc="center",
+        cellLoc="center",
+    )
+    table.scale(1, 2)
+
+    for (row, col), cell in table.get_celld().items():
+        cell.set_text_props(fontname="Segoe UI", size=12)
+        if row == 0:
+            cell.set_facecolor("#212121")
+            cell.get_text().set_color("white")
+            cell.get_text().set_weight("bold")
+        elif col == 5:
+            cell.set_facecolor("#212121")
+            cell.get_text().set_color("white")
+            cell.get_text().set_weight("bold")
+        else:
+            if cell_text[row - 1][col].strip() != "":
+                cell.set_facecolor("#ffffff")
+                cell.get_text().set_color("#000000")
+            else:
+                cell.set_facecolor("#424242")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="jpg", dpi=300, bbox_inches="tight")
+    buf.seek(0)
+    plt.close(fig)
+    return buf.getvalue()
+
+
+if not schedules:
+    st.warning("No valid non-overlapping schedules found with these filters.")
+else:
+    st.info(
+        f"Found {len(schedules)} valid schedules (Ranked by least gaps)."
+    )
+
+    if "sched_idx" not in st.session_state:
+        st.session_state.sched_idx = 0
+    if "active_view" not in st.session_state:
+        st.session_state.active_view = "Visual View"
+
+    if st.session_state.sched_idx >= len(schedules):
+        st.session_state.sched_idx = 0
+
+    st.markdown('<div class="nav-row">', unsafe_allow_html=True)
+    c_prev, c_sel, c_next = st.columns([1, 8, 1])
+
+    with c_prev:
+        if st.button("◀", key="prev_btn", use_container_width=True):
+            if st.session_state.sched_idx > 0:
+                st.session_state.sched_idx -= 1
+            else:
+                st.session_state.sched_idx = len(schedules) - 1
+            st.rerun()
+
+    with c_sel:
+        selected_idx = st.selectbox(
+            "Browse Schedule Options:",
+            range(len(schedules)),
+            index=st.session_state.sched_idx,
+            format_func=lambda x: (
+                f"Option #{x + 1} (Best Fit)" if x == 0 else f"Option #{x + 1}"
+            ),
+            label_visibility="collapsed",
+        )
+        if selected_idx != st.session_state.sched_idx:
+            st.session_state.sched_idx = selected_idx
+            st.rerun()
+
+    with c_next:
+        if st.button("▶", key="next_btn", use_container_width=True):
+            if st.session_state.sched_idx < len(schedules) - 1:
+                st.session_state.sched_idx += 1
+            else:
+                st.session_state.sched_idx = 0
+            st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    active_sched = schedules[st.session_state.sched_idx]
+
+    is_visual = st.session_state.active_view == "Visual View"
+    v_bg = "#000000" if is_visual else "#212121"
+    v_border = "#ffffff" if is_visual else "#424242"
+
+    is_excel = st.session_state.active_view == "Excel View"
+    e_bg = "#000000" if is_excel else "#212121"
+    e_border = "#ffffff" if is_excel else "#424242"
+
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button(
+            "Visual View", use_container_width=True, key="btn_visual_toggle"
+        ):
+            st.session_state.active_view = "Visual View"
+            st.rerun()
+    with col_btn2:
+        if st.button(
+            "Excel View", use_container_width=True, key="btn_excel_toggle"
+        ):
+            st.session_state.active_view = "Excel View"
+            st.rerun()
+
+    st.markdown(
+        f"""
+        <style>
+            div[data-testid="column"] button[key="btn_visual_toggle"] {{
+                background-color: {v_bg} !important;
+                color: #ffffff !important;
+                border: 2px solid {v_border} !important;
+                font-weight: bold;
+            }}
+            div[data-testid="column"] button[key="btn_excel_toggle"] {{
+                background-color: {e_bg} !important;
+                color: #ffffff !important;
+                border: 2px solid {e_border} !important;
+                font-weight: bold;
+            }}
+        </style>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    if st.session_state.active_view == "Visual View":
+        html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
+        html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
+        html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
+
+        col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+
+        for row_idx in range(11):
+            hour = 8 + row_idx
+            bg_color = "#121212" if row_idx % 2 == 0 else "#1a1a1a"
+            html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
+            html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
+
+            row_cells = [""] * 5
+            for section in active_sched:
+                for b in section["blocks"]:
+                    if b["start_time"] == hour:
+                        c_idx = col_map_html.get(b["day"])
+                        if c_idx:
+                            row_cells[c_idx - 1] = (
+                                f"<b>{section['code']}</b><br><small>(ش"
+                                f" {section['id']})</small>"
+                            )
+
+            for c in row_cells:
+                cell_bg = "#ffffff" if c else "#212121"
+                cell_fg = "#000000" if c else "#888888"
+                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
+            html_grid += "</tr>"
+        html_grid += "</table>"
+
+        st.markdown(html_grid, unsafe_allow_html=True)
+
+    else:
+        df_excel = pd.DataFrame([{
+            "CODE": s["code"],
+            "NAME": s["name"],
+            "ID (ش)": s["id"],
+            "HALL": s["hall"],
+            "VENUE": s["venue"],
+            "TEACHER": s["teacher"],
+            "STATUS": s["status"],
+        } for s in active_sched])
+
+        st.dataframe(df_excel, use_container_width=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        try:
+            excel_buffer = io.BytesIO()
+            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                df_excel.to_excel(writer, index=False, sheet_name="Schedule")
             
             st.download_button(
-                label="Download All Scraped Data (Excel)",
-                data=raw_excel_buffer.getvalue(),
-                file_name=excel_filename,
+                label="📥 Download Current Schedule (Excel)",
+                data=excel_buffer.getvalue(),
+                file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True
             )
         except ModuleNotFoundError:
-            st.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
-
-    st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
-
-    # ==========================================
-    # MASTER FILTERS SECTION
-    # ==========================================
-    st.markdown("<h3 style='margin-bottom: 15px; color: white;'>⚙️ Filters</h3>", unsafe_allow_html=True)
-
-    @st.cache_data
-    def parse_schedule_blocks(df_input):
-        parsed_rows = []
-        for index, row in df_input.iterrows():
-            venue_str = str(row["VENUE"]).strip()
-            if venue_str == "nan" or not venue_str:
-                continue
-        
-            blocks = [b.strip() for b in venue_str.split(",")]
-            for block in blocks:
-                if "-" in block:
-                    parts = block.split("-")
-                    try:
-                        day = int(parts[0].strip())
-                        start_time = int(parts[1].strip())
-                        new_row = row.copy()
-                        new_row["day"] = day
-                        new_row["start_time"] = start_time
-                        new_row["end_time"] = start_time + 1
-                        parsed_rows.append(new_row)
-                    except ValueError:
-                        continue
-        return pd.DataFrame(parsed_rows)
-
-    if not raw_df.empty:
-        parsed_df = parse_schedule_blocks(raw_df)
-
-        if parsed_df.empty:
-            st.error("⚠️ The scraped data contains no valid schedule blocks.")
-            st.stop()
-
-        with st.expander("⏳ Filter By Day & Time", expanded=False):
-            days_config = {
-                1: ("Sunday (Day 1)", True),
-                2: ("Monday (Day 2)", True),
-                3: ("Tuesday (Day 3)", True),
-                4: ("Wednesday (Day 4)", True),
-                5: ("Thursday (Day 5)", True),
-            }
-
-            day_filters = {}
-            day_exceptions = {}
-
-            for day_num, (label, default_val) in days_config.items():
-                with st.container(border=True):
-                    is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
-
-                    if is_on:
-                        time_range = st.slider(
-                            "Hours", 8, 18, (8, 18), 
-                            format="%02d",
-                            key=f"slide_{day_num}", 
-                            label_visibility="collapsed"
-                        )
-                        
-                        ex_list = []
-                        exception_str = st.text_input(
-                            "Exceptions", 
-                            value="",
-                            placeholder="Enter Excepted Hours", 
-                            key=f"txt_{day_num}", 
-                            label_visibility="collapsed"
-                        )
-                        
-                        if exception_str.strip():
-                            try:
-                                ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
-                            except ValueError:
-                                pass
-
-                        day_filters[day_num] = {"range": time_range}
-                        day_exceptions[day_num] = ex_list
-
-                    else:
-                        st.slider(
-                            "Hours", 8, 18, (8, 18), 
-                            format="%02d",
-                            disabled=True, 
-                            key=f"slide_dis_{day_num}", 
-                            label_visibility="collapsed"
-                        )
-                        
-                        st.text_input(
-                            "Exceptions", 
-                            value="",
-                            placeholder="Enter Excepted Hours", 
-                            key=f"txt_dis_{day_num}", 
-                            label_visibility="collapsed",
-                            disabled=True
-                        )
-                        
-                        day_filters[day_num] = None
-                        day_exceptions[day_num] = []
-
-        def is_valid_time(row):
-            day, start = row["day"], row["start_time"]
-            config = day_filters.get(day)
-            if config is not None:
-                r_start, r_end = config["range"]
-                if r_start <= start <= r_end:
-                    if start not in day_exceptions.get(day, []):
-                        return True
-            return False
-
-        parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
-        invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
-        valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
-
-        # 3-Status Filter Support: 🟢 Open, 🔵 Registered, 🔴 Closed
-        with st.expander("🛡️ Section Availability (3 Statuses)", expanded=False):
-            def assign_three_status_category(row):
-                st_text = str(row["STATUS"]).strip().lower()
-                if "registered" in st_text or "مسجلة" in st_text:
-                    return "registered"
-                elif "closed" in st_text or "مغلقة" in st_text:
-                    return "closed"
-                else:
-                    return "open"
-                
-            valid_blocks_df["status_cat"] = valid_blocks_df.apply(assign_three_status_category, axis=1)
-
-            st.markdown("<p style='color: #888888; font-size: 13px; margin-bottom: 8px;'>Select allowed section categories:</p>", unsafe_allow_html=True)
-            
-            allow_open = st.checkbox("🟢 Open", value=True)
-            allow_registered = st.checkbox("🔵 Registered", value=True)
-            allow_closed = st.checkbox("🔴 Closed", value=False)
-
-            allowed_cats = []
-            if allow_open: allowed_cats.append("open")
-            if allow_registered: allowed_cats.append("registered")
-            if allow_closed: allowed_cats.append("closed")
-
-            valid_blocks_df = valid_blocks_df[valid_blocks_df["status_cat"].isin(allowed_cats)]
-
-        with st.expander("🌍 Global Hall & Shuba Rules", expanded=False):
-            all_halls = sorted(
-                [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
-            )
-            all_shubas = sorted(
-                [str(s) for s in raw_df["ID"].dropna().astype(str).unique() if s.strip()]
+            st.error("Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
+            csv_data = df_excel.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Current Schedule (CSV Backup)",
+                data=csv_data,
+                file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.csv",
+                mime="text/csv",
+                use_container_width=True
             )
 
-            banned_halls = st.multiselect("Ban Halls", options=all_halls, key="global_ban_halls")
-            remaining_halls = [h for h in all_halls if h not in banned_halls]
-            required_halls = st.multiselect("Require Halls", options=remaining_halls, key="global_req_halls")
-
-            banned_shubas = st.multiselect("Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas")
-            remaining_shubas = [s for s in all_shubas if s not in banned_shubas]
-            required_shubas = st.multiselect("Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas")
-
-        if banned_halls:
-            valid_blocks_df = valid_blocks_df[~valid_blocks_df["HALL"].astype(str).isin(banned_halls)]
-        if required_halls:
-            valid_blocks_df = valid_blocks_df[valid_blocks_df["HALL"].astype(str).isin(required_halls)]
-
-        if banned_shubas:
-            valid_blocks_df = valid_blocks_df[~valid_blocks_df["ID"].astype(str).isin(banned_shubas)]
-        if required_shubas:
-            valid_blocks_df = valid_blocks_df[valid_blocks_df["ID"].astype(str).isin(required_shubas)]
-
-        with st.expander("🛞 Specific Teachers Rules", expanded=False):
-            all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
-            subject_rules = {}
-
-            for subj in all_subjects:
-                subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
-                subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
-
-                with st.container(border=True):
-                    st.markdown(f"<div style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff;'>📚 {subj_name} <span style='color: #ff4b4b;'>({subj})</span></div>", unsafe_allow_html=True)
-                    
-                    teachers_for_subj = sorted(
-                        raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
-                    )
-
-                    banned_t = st.multiselect("Ban Teachers", options=teachers_for_subj, key=f"ban_{subj}")
-                    remaining_t = [t for t in teachers_for_subj if t not in banned_t]
-                    required_t = st.multiselect("Require Teacher", options=remaining_t, key=f"req_{subj}")
-
-                    subject_rules[subj] = {"ban": banned_t, "require": required_t}
-
-        for subj, rules in subject_rules.items():
-            if rules["ban"]:
-                valid_blocks_df = valid_blocks_df[
-                    ~((valid_blocks_df["CODE"].astype(str) == subj) & (valid_blocks_df["TEACHER"].isin(rules["ban"])))
-                ]
-            if rules["require"]:
-                valid_blocks_df = valid_blocks_df[
-                    ~((valid_blocks_df["CODE"].astype(str) == subj) & (~valid_blocks_df["TEACHER"].isin(rules["require"])))
-                ]
-
-
-# ==========================================
-# MAIN APP BODY: DATA GROUPING & SOLVER
-# ==========================================
-if not raw_df.empty and 'valid_blocks_df' in locals():
-    sections_by_subject = {}
-    for code, group in valid_blocks_df.groupby("CODE"):
-        sections_by_subject[str(code)] = []
-        for sec_id, sec_group in group.groupby("ID"):
-            blocks = [
-                {"day": r["day"], "start_time": r["start_time"]}
-                for _, r in sec_group.iterrows()
-            ]
-            matching_row = raw_df[raw_df["ID"] == sec_id].iloc[0]
-
-            sections_by_subject[str(code)].append({
-                "code": str(code),
-                "name": matching_row["NAME"],
-                "id": sec_id,
-                "hall": matching_row["HALL"],
-                "venue": matching_row["VENUE"],
-                "teacher": matching_row["TEACHER"],
-                "status": matching_row.get("STATUS", "N/A"),
-                "blocks": blocks,
-            })
-
-    target_subjects = list(sections_by_subject.keys())
-    total_required_subjects = len(all_subjects) if 'all_subjects' in locals() else len(target_subjects)
-
-    @st.cache_data
-    def generate_schedules(subjects_dict, targets):
-        valid_schedules = []
-
-        def backtrack(idx, current_schedule, occupied_slots):
-            if len(valid_schedules) >= 50:
-                return
-            if idx == len(targets):
-                valid_schedules.append(list(current_schedule))
-                return
-            for section in subjects_dict[targets[idx]]:
-                overlap = False
-                for b in section["blocks"]:
-                    if (b["day"], b["start_time"]) in occupied_slots:
-                        overlap = True
-                        break
-                if not overlap:
-                    current_schedule.append(section)
-                    for b in section["blocks"]:
-                        occupied_slots.add((b["day"], b["start_time"]))
-                    backtrack(idx + 1, current_schedule, occupied_slots)
-                    current_schedule.pop()
-                    for b in section["blocks"]:
-                        occupied_slots.remove((b["day"], b["start_time"]))
-
-        backtrack(0, [], set())
-        return valid_schedules
-
-
-    schedules = generate_schedules(sections_by_subject, target_subjects) if target_subjects else []
-
-    def calculate_schedule_score(schedule):
-        day_slots = {}
-        for sec in schedule:
-            for b in sec["blocks"]:
-                d, t = b["day"], b["start_time"]
-                if d not in day_slots:
-                    day_slots[d] = []
-                day_slots[d].append(t)
-
-        total_gaps = 0
-        for d, times in day_slots.items():
-            times = sorted(list(set(times)))
-            if len(times) > 1:
-                span = (max(times) + 1) - min(times)
-                gaps = span - len(times)
-                total_gaps += gaps
-        return total_gaps
-
-    schedules = sorted(schedules, key=calculate_schedule_score)
-
-    def fix_arabic(text):
-        if not text.strip():
-            return ""
-        return get_display(arabic_reshaper.reshape(str(text)))
-
-    def draw_schedule_image(schedule):
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.axis("tight")
-        ax.axis("off")
-
-        cols = ["الخميس", "الأربعاء", "الثلاثاء", "الاثنين", "الأحد", "الوقت"]
-        cols_reshaped = [fix_arabic(c) for c in cols]
-
-        cell_text = [["" for _ in range(6)] for _ in range(11)]
-        col_map = {1: 4, 2: 3, 3: 2, 4: 1, 5: 0}
-
-        for row_idx in range(11):
-            hour = 8 + row_idx
-            cell_text[row_idx][5] = f"{hour}:00"
-
-        for section in schedule:
-            cell_label = fix_arabic(f"{section['code']} (ش {section['id']})")
-            for b in section["blocks"]:
-                if 8 <= b["start_time"] <= 18:
-                    row_idx = b["start_time"] - 8
-                    col_idx = col_map.get(b["day"])
-                    if col_idx is not None and row_idx < 11:
-                        cell_text[row_idx][col_idx] = cell_label
-
-        table = ax.table(
-            cellText=cell_text,
-            colLabels=cols_reshaped,
-            loc="center",
-            cellLoc="center",
-        )
-        table.scale(1, 2)
-
-        for (row, col), cell in table.get_celld().items():
-            cell.set_text_props(fontname="Segoe UI", size=12)
-            if row == 0 or col == 5:
-                cell.set_facecolor("#212121")
-                cell.get_text().set_color("white")
-                cell.get_text().set_weight("bold")
-            else:
-                if cell_text[row - 1][col].strip() != "":
-                    cell.set_facecolor("#ffffff")
-                    cell.get_text().set_color("#000000")
-                else:
-                    cell.set_facecolor("#424242")
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format="jpg", dpi=300, bbox_inches="tight")
-        buf.seek(0)
-        plt.close(fig)
-        return buf.getvalue()
-
-
-    if not schedules:
-        st.warning("No valid non-overlapping schedules found with these filters.")
-    else:
-        st.info(f"Found {len(schedules)} valid schedules (Ranked by least gaps).")
-
-        if "sched_idx" not in st.session_state:
-            st.session_state.sched_idx = 0
-        if "active_view" not in st.session_state:
-            st.session_state.active_view = "Visual View"
-
-        if st.session_state.sched_idx >= len(schedules):
-            st.session_state.sched_idx = 0
-
-        st.markdown('<div class="nav-row">', unsafe_allow_html=True)
-        c_prev, c_sel, c_next = st.columns([1, 8, 1])
-
-        with c_prev:
-            if st.button("◀", key="prev_btn", use_container_width=True):
-                if st.session_state.sched_idx > 0:
-                    st.session_state.sched_idx -= 1
-                else:
-                    st.session_state.sched_idx = len(schedules) - 1
-                st.rerun()
-
-        with c_sel:
-            selected_idx = st.selectbox(
-                "Browse Schedule Options:",
-                range(len(schedules)),
-                index=st.session_state.sched_idx,
-                format_func=lambda x: (
-                    f"Option #{x + 1} (Best Fit)" if x == 0 else f"Option #{x + 1}"
-                ),
-                label_visibility="collapsed",
-            )
-            if selected_idx != st.session_state.sched_idx:
-                st.session_state.sched_idx = selected_idx
-                st.rerun()
-
-        with c_next:
-            if st.button("▶", key="next_btn", use_container_width=True):
-                if st.session_state.sched_idx < len(schedules) - 1:
-                    st.session_state.sched_idx += 1
-                else:
-                    st.session_state.sched_idx = 0
-                st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        active_sched = schedules[st.session_state.sched_idx]
-
-        is_visual = st.session_state.active_view == "Visual View"
-        v_bg = "#000000" if is_visual else "#212121"
-        v_border = "#ffffff" if is_visual else "#424242"
-
-        is_excel = st.session_state.active_view == "Excel View"
-        e_bg = "#000000" if is_excel else "#212121"
-        e_border = "#ffffff" if is_excel else "#424242"
-
-        col_btn1, col_btn2 = st.columns(2)
-        with col_btn1:
-            if st.button("Visual View", use_container_width=True, key="btn_visual_toggle"):
-                st.session_state.active_view = "Visual View"
-                st.rerun()
-        with col_btn2:
-            if st.button("Excel View", use_container_width=True, key="btn_excel_toggle"):
-                st.session_state.active_view = "Excel View"
-                st.rerun()
-
-        st.markdown(
-            f"""
-            <style>
-                div[data-testid="column"] button[key="btn_visual_toggle"] {{
-                    background-color: {v_bg} !important;
-                    color: #ffffff !important;
-                    border: 2px solid {v_border} !important;
-                    font-weight: bold;
-                }}
-                div[data-testid="column"] button[key="btn_excel_toggle"] {{
-                    background-color: {e_bg} !important;
-                    color: #ffffff !important;
-                    border: 2px solid {e_border} !important;
-                    font-weight: bold;
-                }}
-            </style>
-        """,
-            unsafe_allow_html=True,
-        )
-
-        if st.session_state.active_view == "Visual View":
-            html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
-            html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-            html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
-
-            col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-
-            for row_idx in range(11):
-                hour = 8 + row_idx
-                bg_color = "#121212" if row_idx % 2 == 0 else "#1a1a1a"
-                html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
-                html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
-
-                row_cells = [""] * 5
-                for section in active_sched:
-                    for b in section["blocks"]:
-                        if b["start_time"] == hour:
-                            c_idx = col_map_html.get(b["day"])
-                            if c_idx:
-                                row_cells[c_idx - 1] = (
-                                    f"<b>{section['code']}</b><br><small>(ش"
-                                    f" {section['id']})</small>"
-                                )
-
-                for c in row_cells:
-                    cell_bg = "#ffffff" if c else "#212121"
-                    cell_fg = "#000000" if c else "#888888"
-                    html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
-                html_grid += "</tr>"
-            html_grid += "</table>"
-
-            st.markdown(html_grid, unsafe_allow_html=True)
-
-        else:
-            df_excel = pd.DataFrame([{
-                "CODE": s["code"],
-                "NAME": s["name"],
-                "ID (ش)": s["id"],
-                "HALL": s["hall"],
-                "VENUE": s["venue"],
-                "TEACHER": s["teacher"],
-                "STATUS": s["status"],
-            } for s in active_sched])
-
-            st.dataframe(df_excel, use_container_width=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            try:
-                excel_buffer = io.BytesIO()
-                with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                    df_excel.to_excel(writer, index=False, sheet_name="Schedule")
-                
-                st.download_button(
-                    label="📥 Download Current Schedule (Excel)",
-                    data=excel_buffer.getvalue(),
-                    file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    use_container_width=True
-                )
-            except ModuleNotFoundError:
-                st.error("Please add 'openpyxl' to your requirements.txt")
-
-        st.markdown("---")
-        st.markdown('<div class="center-download">', unsafe_allow_html=True)
-        
-        col_zip, col_excel = st.columns(2)
-        
-        with col_zip:
-            if st.button("Render All as JPGs (ZIP)", key="download_zip_btn", use_container_width=True):
-                with st.spinner("Drawing high-res images..."):
-                    zip_buffer = io.BytesIO()
-                    with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
-                        for i, sched in enumerate(schedules):
-                            img_bytes = draw_schedule_image(sched)
-                            zip_file.writestr(f"Schedule_Option_{i+1}.jpg", img_bytes)
-        
-                    st.download_button(
-                        label="📥 Click Here to Download ZIP",
-                        data=zip_buffer.getvalue(),
-                        file_name="All_Schedules.zip",
-                        mime="application/zip",
-                        use_container_width=True
-                    )
-                
-        with col_excel:
-            try:
-                all_excel_buffer = io.BytesIO()
-                with pd.ExcelWriter(all_excel_buffer, engine='openpyxl') as writer:
+    st.markdown("---")
+    st.markdown('<div class="center-download">', unsafe_allow_html=True)
+    
+    col_zip, col_excel = st.columns(2)
+    
+    # --- 1. ZIP JPG DOWNLOAD ---
+    with col_zip:
+        if st.button("Render All as JPGs (ZIP)", key="download_zip_btn", use_container_width=True):
+            with st.spinner("Drawing high-res images..."):
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
                     for i, sched in enumerate(schedules):
-                        df_sched = pd.DataFrame([{
-                            "CODE": s["code"],
-                            "NAME": s["name"],
-                            "ID (ش)": s["id"],
-                            "HALL": s["hall"],
-                            "VENUE": s["venue"],
-                            "TEACHER": s["teacher"],
-                            "STATUS": s["status"],
-                        } for s in sched])
-                        df_sched.to_excel(writer, index=False, sheet_name=f"Option_{i+1}")
-                
+                        img_bytes = draw_schedule_image(sched)
+                        zip_file.writestr(f"Schedule_Option_{i+1}.jpg", img_bytes)
+       
                 st.download_button(
-                    label="📥 Download All Schedules (1 Excel File)",
-                    data=all_excel_buffer.getvalue(),
-                    file_name="All_Generated_Schedules.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    label="📥 Click Here to Download ZIP",
+                    data=zip_buffer.getvalue(),
+                    file_name="All_Schedules.zip",
+                    mime="application/zip",
                     use_container_width=True
                 )
-            except ModuleNotFoundError:
-                st.error("⚠️ Please add 'openpyxl' to your requirements.txt")
+            
+    # --- 2. ALL SCHEDULES EXCEL DOWNLOAD ---
+    with col_excel:
+        try:
+            import openpyxl
+            all_excel_buffer = io.BytesIO()
+            with pd.ExcelWriter(all_excel_buffer, engine='openpyxl') as writer:
+                for i, sched in enumerate(schedules):
+                    df_sched = pd.DataFrame([{
+                        "CODE": s["code"],
+                        "NAME": s["name"],
+                        "ID (ش)": s["id"],
+                        "HALL": s["hall"],
+                        "VENUE": s["venue"],
+                        "TEACHER": s["teacher"],
+                        "STATUS": s["status"],
+                    } for s in sched])
+                    # Put each schedule on its own sheet in the Excel file
+                    df_sched.to_excel(writer, index=False, sheet_name=f"Option_{i+1}")
+            
+            st.download_button(
+                label="📥 Download All Schedules (1 Excel File)",
+                data=all_excel_buffer.getvalue(),
+                file_name="All_Generated_Schedules.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+        except ModuleNotFoundError:
+            st.error("⚠️ Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
