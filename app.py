@@ -95,7 +95,7 @@ st.markdown(
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             overflow: hidden !important; 
-            margin-bottom: 4px !important; 
+            margin-bottom: -6px !important; /* <--- NEGATIVE MARGIN CLOSES THE GAP COMPLETELY */
         }
             
         /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
