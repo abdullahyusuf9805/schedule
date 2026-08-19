@@ -415,50 +415,48 @@ captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8
 st.sidebar.markdown(
     """
     <style>
-        /* 1. Default state (no cursor): BRUTE FORCE every single border property */
+        /* 1. Base Wrapper: Strip away Streamlit's rules entirely */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
+            position: relative !important; /* Crucial for the hack below */
             background-color: #1a1a1a !important;
-            
-            /* Force the Width */
-            border-top-width: 1px !important;
-            border-bottom-width: 1px !important;
-            border-left-width: 1px !important;
-            border-right-width: 1px !important;
-            
-            /* Force the Style */
-            border-top-style: solid !important;
-            border-bottom-style: solid !important;
-            border-left-style: solid !important;
-            border-right-style: solid !important;
-            
-            /* Force the Gray Color (#555555) */
-            border-top-color: #555555 !important;
-            border-bottom-color: #555555 !important;
-            border-left-color: #555555 !important;
-            border-right-color: #555555 !important;
-            
+            border: none !important; 
+            box-shadow: none !important;
             border-radius: 6px !important;
             height: 46px !important; 
             min-height: 46px !important;
-            box-shadow: none !important; /* Strip Streamlit's hidden shadows */
-            outline: none !important;
-        }
-        
-        /* Make sure inner wrappers don't accidentally cover the border with their own backgrounds */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="base-input"] {
-            background-color: transparent !important;
-        }
-        
-        /* 2. Active state (with cursor): Switch colors to Red */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-            border-top-color: #ff4b4b !important;
-            border-bottom-color: #ff4b4b !important;
-            border-left-color: #ff4b4b !important;
-            border-right-color: #ff4b4b !important;
-            box-shadow: 0 0 0 1px #ff4b4b !important; /* Gives it that nice glow */
         }
 
-        /* 3. Text inside inputs */
+        /* 2. THE NUCLEAR OPTION: We draw our OWN border box that Streamlit can't touch */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]::before {
+            content: "" !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            
+            /* THIS IS THE GRAY BORDER */
+            border: 1px solid #999999 !important; 
+            
+            border-radius: 6px !important;
+            pointer-events: none !important; /* Lets you click completely through it */
+            z-index: 10 !important; /* Forces it to sit on top */
+            box-sizing: border-box !important;
+            transition: border 0.2s ease-in-out !important;
+        }
+        
+        /* 3. Active State: Turn our custom box border Red when clicked */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within::before {
+            border: 2px solid #ff4b4b !important; /* Slightly thicker so it pops! */
+        }
+
+        /* Strip background/borders from the hidden inner containers */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="base-input"] {
+            background-color: transparent !important;
+            border: none !important;
+        }
+
+        /* 4. Text inside inputs */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             color: #ffffff !important;
             background-color: transparent !important; 
