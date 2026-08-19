@@ -275,7 +275,9 @@ def init_browser_and_get_captcha():
         raise Exception(f"Failed to initialize login page. {str(e)}")
 
 def submit_captcha_and_scrape(username, password, captcha_val):
-    driver = st.session_state.live_driver
+    driver = st.session_state.get("live_driver")
+    if not driver:
+        raise Exception("Browser session expired or failed to initialize. Please click 'Login And Scrap Data from Portal' again.")
 
     try:
         text_inputs = WebDriverWait(driver, 10).until(
