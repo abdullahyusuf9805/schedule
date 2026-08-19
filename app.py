@@ -415,7 +415,7 @@ captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8
 st.sidebar.markdown(
     """
     <style>
-        /* 1. Target the WRAPPER for Student ID and Password */
+        /* Target the WRAPPER for Student ID, Password, and Captcha */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
             border: 1px solid #ffffff !important; 
             border-radius: 6px !important;
@@ -446,14 +446,15 @@ st.sidebar.markdown(
             color: #888888 !important; 
         }
 
+        /* Hide Streamlit's default button backgrounds and counters */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
         }
-        
         [data-testid="stSidebar"] div[data-testid="InputInstructions"] {
             display: none !important;
         }
 
+        /* Form container border removal */
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
@@ -473,56 +474,6 @@ st.sidebar.markdown(
         }
         [data-testid="stSidebar"] button[kind="primary"]:hover {
             background-color: #1a6e47 !important;
-        }
-
-        /* --- THE ULTIMATE ALIGNMENT FIX --- */
-        
-        /* Kill the "Collapsed" Ghost Label footprint that pushes the text input out of alignment */
-        [data-testid="stSidebar"] label[data-testid="stWidgetLabel"] {
-            display: none !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        /* Force the row to use Flexbox with a CONSTANT gap and perfect vertical centering */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: center !important; 
-            gap: 12px !important; 
-        }
-
-        /* Strip inner spacing from the columns */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stVerticalBlock"] {
-            gap: 0 !important;
-        }
-
-        /* Left Column (Input Box): Expands to fill space */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(1) {
-            width: auto !important;
-            flex: 1 1 auto !important;
-            padding: 0 !important;
-        }
-
-        /* Right Column (Image): Locked width */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) {
-            width: 120px !important;
-            min-width: 120px !important;
-            max-width: 120px !important;
-            flex: 0 0 120px !important;
-            padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-
-        /* Obliterate the hidden paragraph margin that physically pushes the image down */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) p {
-            margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-            display: flex !important;
-            align-items: center !important;
         }
     </style>
     """,
@@ -548,31 +499,47 @@ if not st.session_state.waiting_for_captcha:
 else:
     import base64
     
-    captcha_b64 = ""
+    # 1. Dynamically inject the CAPTCHA image into the background of the text box
     if st.session_state.get("captcha_img_bytes"):
         captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
+        st.markdown(
+            f"""
+            <style>
+            /* The aria-label^="CAPTCHA" targets our specific text input below */
+            [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
+                /* Layer 1: The Captcha Image, Layer 2: A solid white background acting as a border */
+                background-image: 
+                    url("data:image/png;base64,{captcha_b64}"),
+                    linear-gradient(#ffffff, #ffffff) !important;
+                background-position: 
+                    right 6px center,
+                    right 4px center !important;
+                background-size: 
+                    106px 34px, 
+                    110px 38px !important;
+                background-repeat: no-repeat !important;
+                
+                /* Push the typing cursor left so user text doesn't overlap the image */
+                padding-right: 120px !important; 
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 
+    # 2. Build the Form using standard, natively perfectly aligned inputs
     with st.sidebar.form(key="login_form", clear_on_submit=False):
-        # 1. ID Input
+        
         portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
         
-        # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Side-by-Side Row
-        col_input, col_img = st.columns(2) 
-        with col_input:
-            user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
-        with col_img:
-            if captcha_b64:
-                # Render the image with strict inline styling to guarantee 46px height and 120px width
-                st.markdown(f'<img src="data:image/png;base64,{captcha_b64}" style="height: 46px; width: 120px; object-fit: fill; border-radius: 6px; border: 1px solid #ffffff; background-color: #ffffff; display: block;" />', unsafe_allow_html=True)
-            else:
-                st.warning("Loading...")
-
-        # 4. Form Submit Button
+        # This is now a SINGLE native box. The CSS above magically paints the image inside its right edge!
+        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
+        
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
         
+    # 3. Handle Submit
     if submit_form:
         if not portal_user or not portal_pass:
             st.sidebar.error("Please enter your Student ID and Password.")
