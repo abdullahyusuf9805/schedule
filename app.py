@@ -859,7 +859,7 @@ with st.sidebar.expander("⚙️ Filter By Day & Time", expanded=False):
 
             if is_on:
                 time_range = st.slider(
-                    "Hours", 8, 18, (8, 18), 
+                    "Hours", 8, 17, (8, 12), 
                     format="%02d",
                     key=f"slide_{day_num}", 
                     label_visibility="collapsed"
