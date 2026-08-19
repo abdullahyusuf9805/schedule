@@ -40,10 +40,16 @@ st.markdown(
             color: #ffffff;
         }
         
-        [data-testid="stSidebar"] {
-            background-color: #121212;
-            color: #ffffff;
-        }
+        /* Style the horizontal divider lines (---) to be bold and red */
+            [data-testid="stSidebar"] hr {{
+                margin-top: 0.8rem !important;
+                margin-bottom: 0.8rem !important;
+                border-top: 3px solid #ff4b4b !important; /* Makes it 3px thick and Red */
+                border-bottom: none !important;
+                border-left: none !important;
+                border-right: none !important;
+                opacity: 1 !important; /* Removes Streamlit's default faded/transparent look */
+            }}
 
         h1 {
             font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
