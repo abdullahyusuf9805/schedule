@@ -410,12 +410,39 @@ if "captcha_img_bytes" not in st.session_state:
 st.sidebar.markdown(
     """
     <style>
+        /* Unified Captcha Container Box (Matches ID & Password height/width) */
+        .captcha-container {
+            display: flex;
+            align-items: center;
+            background-color: #1a1a1a;
+            border: 1px solid #ffffff;
+            border-radius: 6px;
+            height: 46px;
+            padding: 0 4px;
+            margin-bottom: 0px;
+            transition: all 0.2s;
+        }
+        .captcha-container:focus-within {
+            border: 1px solid #1d8a59;
+            box-shadow: 0 0 0 1px #1d8a59;
+        }
+        
+        /* Captcha Image on the Left inside the box */
+        .captcha-container img {
+            height: 36px !important;
+            width: 110px !important;
+            object-fit: fill !important;
+            border-radius: 4px;
+            background-color: #ffffff;
+            margin-right: 8px;
+        }
+        
         /* 1. Target the WRAPPER to fix white edges and keep the eye icon inside */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
             border: 1px solid #ffffff !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
-            height: 46px !important; /* Lock height to match image */
+            height: 46px !important; 
             min-height: 46px !important;
             transition: all 0.2s;
         }
@@ -446,12 +473,10 @@ st.sidebar.markdown(
             background-color: transparent !important;
         }
         
-        /* Hide the annoying 0/5 counter that pushes the box out of alignment */
         [data-testid="stSidebar"] div[data-testid="InputInstructions"] {
             display: none !important;
         }
 
-        /* Remove the ugly default border Streamlit adds around forms */
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
@@ -471,24 +496,6 @@ st.sidebar.markdown(
         }
         [data-testid="stSidebar"] button[kind="primary"]:hover {
             background-color: #1a6e47 !important;
-        }
-        
-        /* 4. Fix Captcha Image (Inline, perfectly level with input) */
-        [data-testid="stSidebar"] [data-testid="stImage"] {
-            display: flex;
-            justify-content: center; 
-            align-items: center;
-            height: 46px !important; /* Force container height to match input */
-        }
-        
-        [data-testid="stSidebar"] [data-testid="stImage"] img {
-            height: 36px !important; /* EXACTLY matches input wrapper height */
-            width: 100% !important; /* Fills its left column perfectly */
-            max-width: 100% !important; 
-            object-fit: fill !important;
-            border-radius: 6px !important;
-            border: 1px solid #000000 !important; 
-            background-color: #ffffff !important; 
         }
     </style>
     """,
