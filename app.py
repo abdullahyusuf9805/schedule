@@ -77,10 +77,6 @@ st.markdown(
             text-align: center;
         }
         
-        /* =========================================
-           UI TIGHTENING CSS (Squish Elements in Card) 
-           ========================================= */
-        
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 1rem 0.8rem 0.5rem 0.8rem !important;
             background-color: #1a1a1a !important;
@@ -89,28 +85,21 @@ st.markdown(
             margin-bottom: 12px !important;
         }
 
-        /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
         [data-testid="stSidebar"] div[data-testid="stTextInput"] {
             border: 1px solid #777777 !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             overflow: hidden !important; 
-            margin-bottom: -6px !important; 
+            margin-bottom: -10px !important; 
         }
             
-        /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
         [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {
             border: 1px solid #ff4b4b !important;
             box-shadow: 0 0 0 1px #ff4b4b !important;
         }
 
-        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
         [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
             border: none !important;
             background-color: transparent !important;
             box-shadow: none !important;
@@ -118,7 +107,6 @@ st.markdown(
             border-radius: 0px !important; 
         }
 
-        /* 4. TEXT INPUT STYLING */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             color: #ffffff !important;
             background-color: transparent !important; 
@@ -130,17 +118,18 @@ st.markdown(
             box-shadow: none !important;
         }
 
-        /* Placeholder text color */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
             color: #888888 !important; 
         }
 
-        /* Keep the password eye icon background transparent */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
         }
         
-        /* 5. FORM LAYOUT & CLEANUP - REMOVE GAPS */
+        [data-testid="stSidebar"] [data-testid="stForm"] [data-testid="stVerticalBlock"] {
+            gap: 0rem !important;
+        }
+
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
@@ -148,18 +137,6 @@ st.markdown(
             background-color: transparent !important;
         }
 
-        /* Collapse empty spacing blocks inside the sidebar form */
-        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
-            margin-top: 0px !important;
-            margin-bottom: 0px !important;
-        }
-
-        /* Keep the green spacing intact for the main section divider */
-        hr {
-            margin: 15px 0 15px 0 !important;
-        }
-
-        /* Completely delete the "Press Enter to submit form" text */
         [data-testid="stSidebar"] [data-testid="InputInstructions"], 
         [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {
             display: none !important;
@@ -169,7 +146,6 @@ st.markdown(
             width: 0 !important;
         }
         
-        /* 6. PRIMARY BUTTON STYLING */
         [data-testid="stSidebar"] button[kind="primary"] {
             background-color: #ff4b4b !important; 
             border: none !important;
@@ -183,10 +159,6 @@ st.markdown(
         [data-testid="stSidebar"] button[kind="primary"]:hover {
             background-color: #ff3333 !important;
         }
-        
-        /* =========================================
-           NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
-           ========================================= */
         
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
@@ -204,14 +176,9 @@ st.markdown(
             visibility: hidden !important;
         }
 
-        div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
-            background-color: #555555 !important;
-        }
-
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
-        
     </style>
 """,
     unsafe_allow_html=True,
@@ -274,6 +241,7 @@ def init_browser_and_get_captcha():
         driver.quit()
         raise Exception(f"Failed to initialize login page. {str(e)}")
 
+
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.get("live_driver")
     if not driver:
@@ -283,7 +251,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         text_inputs = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
         )
-        
         user_field = text_inputs[0]
         captcha_input = text_inputs[-1] 
         pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
@@ -295,21 +262,18 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         captcha_input.clear()
         captcha_input.send_keys(captcha_val)
         
-        time.sleep(0.5) # Let React digest the text
-        
-        # Press ENTER to submit form
+        time.sleep(0.5) 
         captcha_input.send_keys(Keys.RETURN)
         
         try:
             WebDriverWait(driver, 15).until(EC.url_contains("Dashboard"))
         except:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA. (Note: The CAPTCHA expires if you wait too long to submit).")
+            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA.")
             
         ksa_time = datetime.utcnow() + timedelta(hours=3)
         time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
             
-        # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
         WebDriverWait(driver, 35).until(
@@ -322,7 +286,7 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
         time.sleep(1.5) 
 
-        # --- NEW: SCRAPE ALREADY ENROLLED COURSES FIRST ---
+        # Scrape Already Enrolled Courses
         try:
             enrolled_menu = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
@@ -350,21 +314,17 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             enrolled_str = ", ".join(enrolled_ids)
             raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-            # Re-open Electronic Registration menu to navigate to course plan
             driver.execute_script("arguments[0].click();", electronic_reg_menu)
             time.sleep(1.5)
-        except Exception as e:
-            # Fallback if enrolled menu fails so it doesn't block the core timetable scraping
+        except Exception:
             enrolled_str = ""
             raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-        # --- SCRAPE COURSE PLAN TIMETABLE ---
         course_plan_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        # Wait 5 seconds for the table to load
         time.sleep(5)
         
         soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -378,16 +338,21 @@ def submit_captcha_and_scrape(username, password, captcha_val):
                 
         if target_tbody is None:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Could not find the <tbody> containing <tr class=>. The table did not load properly.")
+            raise Exception("Could not find the main timetable <tbody>.")
             
         final_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(target_tbody)
         
         return final_html, raw_enrolled_html, enrolled_str
-
+        
     finally:
-        driver.quit()
+        if driver:
+            try:
+                driver.quit()
+            except:
+                pass
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
+
 
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
@@ -395,18 +360,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
 def parse_html_to_dataframe(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     extracted_rows = []
-
-    # Load enrolled IDs on the fly so they are always recognized
-    enrolled_ids = []
-    if os.path.exists("enrolled.html"):
-        with open("enrolled.html", "r", encoding="utf-8") as f:
-            soup_enc = BeautifulSoup(f.read(), "html.parser")
-            for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-                cols = tr.find_all("td")
-                if len(cols) >= 4:
-                    sh = cols[3].text.strip()
-                    if sh.isdigit():
-                        enrolled_ids.append(sh)
 
     rows = soup.find_all("tr")
     for row in rows:
@@ -418,11 +371,9 @@ def parse_html_to_dataframe(html_content):
         name = cols[1].text.strip()
         course_id = cols[2].text.strip()
         
-        # --- FORCE STATUS TO REGISTERED IF MATCHES ENROLLED LIST ---
-        if course_id in enrolled_ids:
-            status = "Registered"
-        else:
-            status = cols[5].text.strip()
+        # Parse status dynamically
+        status_span = cols[5].find("span")
+        status = status_span.text.strip() if status_span else cols[5].text.strip()
 
         instructor_input = cols[6].find(
             "input", id=lambda x: x and x.endswith(":instructor")
@@ -487,7 +438,7 @@ def parse_html_to_dataframe(html_content):
         })
 
     return pd.DataFrame(extracted_rows)
-    
+
 
 # GitHub Push Helper
 def push_to_github(repo, file_path, content, commit_message):
@@ -512,12 +463,11 @@ if "captcha_img_bytes" not in st.session_state:
     st.session_state.captcha_img_bytes = None
 
 # ==========================================
-# MASTER SIDEBAR LAYOUT (PHASE 1 & PHASE 2)
+# MASTER SIDEBAR LAYOUT
 # ==========================================
 with st.sidebar:
     st.markdown("<h3 style='margin-bottom: 0px; color: white;'>🌐 Fetch Data From University Portal</h3>", unsafe_allow_html=True)
     
-    # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
         if st.button("Login And Scrap Data from Portal", use_container_width=True):
             if os.path.exists("error_screenshot.png"):
@@ -537,7 +487,6 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-    # --- PHASE 2: The UI Form & Transparent Inversion Handler ---
     else:
         import base64
         import io
@@ -568,7 +517,7 @@ with st.sidebar:
                 new_image.save(buffered, format="PNG")
                 captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
                 
-            except Exception as e:
+            except Exception:
                 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
                 
             st.markdown(
@@ -615,22 +564,14 @@ with st.sidebar:
                             st.session_state.portal_pass, 
                             user_captcha
                         )
-                        st.session_state.live_html_data = raw_live_html
-                        st.session_state.auto_enrolled = auto_enrolled
 
-                        raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
-                            st.session_state.portal_user, 
-                            st.session_state.portal_pass, 
-                            user_captcha
-                        )
-                        st.session_state.live_html_data = raw_live_html
-                        st.session_state.auto_enrolled = auto_enrolled
-                        
-                        # --- INSERT SNIPPET HERE ---
+                        # Parse enrolled.html first, then update data.html status tags to مسجلة
                         enrolled_ids = []
-                        if os.path.exists("enrolled.html") or 'raw_enrolled_html' in locals():
-                            enc_html = raw_enrolled_html if 'raw_enrolled_html' in locals() else open("enrolled.html", "r", encoding="utf-8").read()
-                            soup_enc = BeautifulSoup(enc_html, "html.parser")
+                        if auto_enrolled:
+                            enrolled_ids = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
+                        
+                        if not enrolled_ids and raw_enrolled_html:
+                            soup_enc = BeautifulSoup(raw_enrolled_html, "html.parser")
                             for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
                                 cols = tr.find_all("td")
                                 if len(cols) >= 4:
@@ -647,67 +588,31 @@ with st.sidebar:
                                     status_cell = cols[5]
                                     status_cell['data-th'] = ""
                                     status_cell.clear()
-                                    
                                     new_span = soup_data.new_tag("span", style="color:red")
                                     new_span.string = "مسجلة"
                                     status_cell.append(new_span)
 
-                        updated_live_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(soup_data.find("tbody") or soup_data)
-                        st.session_state.live_html_data = updated_live_html
-                        # ---------------------------
+                        updated_live_html = f"<!-- SYNC_TIME: {time_match.group(1) if 'time_match' in locals() and time_match else datetime.now().strftime('%d/%m/%Y at %I:%M %p')} -->\n" + str(soup_data.find("tbody") or soup_data)
 
+                        st.session_state.live_html_data = updated_live_html
+                        st.session_state.auto_enrolled = ",".join(enrolled_ids)
+                        
                         with open("data.html", "w", encoding="utf-8") as f:
                             f.write(updated_live_html)
                         with open("enrolled.html", "w", encoding="utf-8") as f:
                             f.write(raw_enrolled_html)
-                        
-                        with open("data.html", "w", encoding="utf-8") as f:
-                            f.write(raw_live_html)
-                        with open("enrolled.html", "w", encoding="utf-8") as f:
-                            f.write(raw_enrolled_html)
-
-                        # --- ROBUST ENROLLED STATUS UPDATER ---
-                        enrolled_list = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
-                        
-                        if not enrolled_list and os.path.exists("enrolled.html"):
-                            with open("enrolled.html", "r", encoding="utf-8") as f:
-                                soup_enc = BeautifulSoup(f.read(), "html.parser")
-                                for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-                                    cols = tr.find_all("td")
-                                    if len(cols) >= 4:
-                                        sh = cols[3].text.strip()
-                                        if sh.isdigit():
-                                            enrolled_list.append(sh)
-
-                        if enrolled_list:
-                            soup_data = BeautifulSoup(raw_live_html, "html.parser")
-                            for tr in soup_data.find_all("tr"):
-                                cols = tr.find_all("td")
-                                if len(cols) >= 6:
-                                    shuba_id = cols[2].text.strip()
-                                    if shuba_id in enrolled_list:
-                                        # Force clear inner tags and set text safely
-                                        status_cell = cols[5]
-                                        status_cell.clear()
-                                        status_cell.string = "Registered"
-                                        
-                            updated_live_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(soup_data.find("tbody") or soup_data)
-                            st.session_state.live_html_data = updated_live_html
-                            with open("data.html", "w", encoding="utf-8") as f:
-                                f.write(updated_live_html)
-                        
                             
                         if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
                             try:
                                 g = Github(st.secrets["GITHUB_TOKEN"])
                                 repo = g.get_repo(st.secrets["GITHUB_REPO"])
-                                push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
+                                push_to_github(repo, "data.html", updated_live_html, "Bot synced timetable <tbody>")
                                 push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
                                 st.success("✅ Synced and pushed both files to GitHub!")
                             except Exception as github_e:
                                 st.warning(f"Saved locally, but GitHub push failed: {github_e}")
                         else:
-                            st.success("✅ Saved locally (GitHub secrets not configured).")
+                            st.success("✅ Saved locally.")
                         
                         if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
@@ -715,15 +620,13 @@ with st.sidebar:
                         st.rerun() 
                             
                     except Exception as e:
-                        # Smooth reset if the browser was already closed
                         if "SESSION_EXPIRED" in str(e) or "'NoneType'" in str(e):
                             st.session_state.live_driver = None
                             st.session_state.waiting_for_captcha = False
-                            st.warning("⚠️ Session expired or previous attempt failed. Refreshing...")
+                            st.warning("⚠️ Session expired. Refreshing...")
                             time.sleep(2)
                             st.rerun()
                             
-                        # Show normal errors if it's an actual scraping failure
                         import traceback
                         error_details = traceback.format_exc()
                         st.sidebar.error(f"Detailed Error:\n{error_details}")
@@ -734,15 +637,13 @@ with st.sidebar:
                             except:
                                 pass
                             st.session_state.live_driver = None
-                            
                         st.session_state.waiting_for_captcha = False
                         st.stop()
 
-    # Subtle sidebar divider separating fetch and export sections
     st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
 
     # ==========================================
-    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
+    # EXPORT RAW DATA (EXCEL)
     # ==========================================
     st.markdown("<h3 style='margin-bottom: 15px; color: white;'>📥 Export Raw Data</h3>", unsafe_allow_html=True)
     
@@ -759,7 +660,7 @@ with st.sidebar:
         if not st.session_state.waiting_for_captcha:
             st.error("⚠️ No schedule data found. Please login to fetch fresh data.")
             if os.path.exists("error_screenshot.png"):
-                st.image("error_screenshot.png", caption="Bot's view during the last failed attempt:")
+                st.image("error_screenshot.png", caption="Bot's view during last failed attempt:")
             st.stop()
     else:
         try:
@@ -815,7 +716,7 @@ with st.sidebar:
         parsed_df = parse_schedule_blocks(raw_df)
 
         if parsed_df.empty:
-            st.error("⚠️ The scraped data contains no valid schedule blocks. The university portal might be empty.")
+            st.error("⚠️ The scraped data contains no valid schedule blocks.")
             st.stop()
 
         with st.expander("⏳ Filter By Day & Time", expanded=False):
@@ -895,27 +796,13 @@ with st.sidebar:
         invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
         valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
-# 2. Section Availability (3 Statuses: Open, Registered, Closed)
+        # 3-Status Filter Support: 🟢 Open, 🔵 Registered, 🔴 Closed
         with st.expander("🛡️ Section Availability (3 Statuses)", expanded=False):
-            enrolled_ids_str = st.session_state.get("auto_enrolled", "")
-            enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
-
-            # Fallback to enrolled.html parser check
-            if not enrolled_ids and os.path.exists("enrolled.html"):
-                with open("enrolled.html", "r", encoding="utf-8") as f:
-                    soup_enc = BeautifulSoup(f.read(), "html.parser")
-                    for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-                        cols = tr.find_all("td")
-                        if len(cols) >= 4:
-                            sh = cols[3].text.strip()
-                            if sh.isdigit():
-                                enrolled_ids.append(sh)
-
             def assign_three_status_category(row):
-                status_text = str(row["STATUS"]).lower()
-                if str(row["ID"]) in enrolled_ids or "registered" in status_text or "مسجلة" in status_text:
+                st_text = str(row["STATUS"]).strip()
+                if "مسجلة" in st_text or "Registered" in st_text:
                     return "registered"
-                elif "closed" in status_text or "مغلقة" in status_text:
+                elif "مغلقة" in st_text or "Closed" in st_text:
                     return "closed"
                 else:
                     return "open"
@@ -935,7 +822,6 @@ with st.sidebar:
 
             valid_blocks_df = valid_blocks_df[valid_blocks_df["status_cat"].isin(allowed_cats)]
 
-        
         with st.expander("🌍 Global Hall & Shuba Rules", expanded=False):
             all_halls = sorted(
                 [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
@@ -944,46 +830,27 @@ with st.sidebar:
                 [str(s) for s in raw_df["ID"].dropna().astype(str).unique() if s.strip()]
             )
 
-            banned_halls = st.multiselect(
-                "Ban Halls", options=all_halls, key="global_ban_halls"
-            )
+            banned_halls = st.multiselect("Ban Halls", options=all_halls, key="global_ban_halls")
             remaining_halls = [h for h in all_halls if h not in banned_halls]
-            required_halls = st.multiselect(
-                "Require Halls", options=remaining_halls, key="global_req_halls"
-            )
+            required_halls = st.multiselect("Require Halls", options=remaining_halls, key="global_req_halls")
 
-            banned_shubas = st.multiselect(
-                "Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas"
-            )
+            banned_shubas = st.multiselect("Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas")
             remaining_shubas = [s for s in all_shubas if s not in banned_shubas]
-            required_shubas = st.multiselect(
-                "Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas"
-            )
+            required_shubas = st.multiselect("Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas")
 
         if banned_halls:
-            valid_blocks_df = valid_blocks_df[
-                ~valid_blocks_df["HALL"].astype(str).isin(banned_halls)
-            ]
+            valid_blocks_df = valid_blocks_df[~valid_blocks_df["HALL"].astype(str).isin(banned_halls)]
         if required_halls:
-            valid_blocks_df = valid_blocks_df[
-                valid_blocks_df["HALL"].astype(str).isin(required_halls)
-            ]
+            valid_blocks_df = valid_blocks_df[valid_blocks_df["HALL"].astype(str).isin(required_halls)]
 
         if banned_shubas:
-            valid_blocks_df = valid_blocks_df[
-                ~valid_blocks_df["ID"].astype(str).isin(banned_shubas)
-            ]
+            valid_blocks_df = valid_blocks_df[~valid_blocks_df["ID"].astype(str).isin(banned_shubas)]
         if required_shubas:
-            valid_blocks_df = valid_blocks_df[
-                valid_blocks_df["ID"].astype(str).isin(required_shubas)
-            ]
+            valid_blocks_df = valid_blocks_df[valid_blocks_df["ID"].astype(str).isin(required_shubas)]
 
         with st.expander("🛞 Specific Teachers Rules", expanded=False):
             all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
             subject_rules = {}
-            
-            if not all_subjects:
-                st.markdown("<p style='color: #888888; font-size: 14px;'>No subjects available to filter.</p>", unsafe_allow_html=True)
 
             for subj in all_subjects:
                 subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
@@ -996,30 +863,20 @@ with st.sidebar:
                         raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
                     )
 
-                    banned_t = st.multiselect(
-                        "Ban Teachers", options=teachers_for_subj, key=f"ban_{subj}"
-                    )
+                    banned_t = st.multiselect("Ban Teachers", options=teachers_for_subj, key=f"ban_{subj}")
                     remaining_t = [t for t in teachers_for_subj if t not in banned_t]
-                    required_t = st.multiselect(
-                        "Require Teacher", options=remaining_t, key=f"req_{subj}"
-                    )
+                    required_t = st.multiselect("Require Teacher", options=remaining_t, key=f"req_{subj}")
 
                     subject_rules[subj] = {"ban": banned_t, "require": required_t}
 
         for subj, rules in subject_rules.items():
             if rules["ban"]:
                 valid_blocks_df = valid_blocks_df[
-                    ~(
-                        (valid_blocks_df["CODE"].astype(str) == subj)
-                        & (valid_blocks_df["TEACHER"].isin(rules["ban"]))
-                    )
+                    ~((valid_blocks_df["CODE"].astype(str) == subj) & (valid_blocks_df["TEACHER"].isin(rules["ban"])))
                 ]
             if rules["require"]:
                 valid_blocks_df = valid_blocks_df[
-                    ~(
-                        (valid_blocks_df["CODE"].astype(str) == subj)
-                        & (~valid_blocks_df["TEACHER"].isin(rules["require"]))
-                    )
+                    ~((valid_blocks_df["CODE"].astype(str) == subj) & (~valid_blocks_df["TEACHER"].isin(rules["require"])))
                 ]
 
 
@@ -1049,13 +906,7 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
             })
 
     target_subjects = list(sections_by_subject.keys())
-    total_required_subjects = len(all_subjects)
-
-    if len(target_subjects) < total_required_subjects:
-        st.warning(
-            f"Only {len(target_subjects)} out of {total_required_subjects} valid"
-            " subjects remaining after filters. Check your filters or rules."
-        )
+    total_required_subjects = len(all_subjects) if 'all_subjects' in locals() else len(target_subjects)
 
     @st.cache_data
     def generate_schedules(subjects_dict, targets):
@@ -1086,11 +937,7 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
         return valid_schedules
 
 
-    schedules = (
-        generate_schedules(sections_by_subject, target_subjects)
-        if target_subjects
-        else []
-    )
+    schedules = generate_schedules(sections_by_subject, target_subjects) if target_subjects else []
 
     def calculate_schedule_score(schedule):
         day_slots = {}
@@ -1111,10 +958,6 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
         return total_gaps
 
     schedules = sorted(schedules, key=calculate_schedule_score)
-
-    # ==========================================
-    # 9. IMAGE GENERATOR & UI RENDERING
-    # ==========================================
 
     def fix_arabic(text):
         if not text.strip():
@@ -1155,11 +998,7 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
 
         for (row, col), cell in table.get_celld().items():
             cell.set_text_props(fontname="Segoe UI", size=12)
-            if row == 0:
-                cell.set_facecolor("#212121")
-                cell.get_text().set_color("white")
-                cell.get_text().set_weight("bold")
-            elif col == 5:
+            if row == 0 or col == 5:
                 cell.set_facecolor("#212121")
                 cell.get_text().set_color("white")
                 cell.get_text().set_weight("bold")
@@ -1180,9 +1019,7 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
     if not schedules:
         st.warning("No valid non-overlapping schedules found with these filters.")
     else:
-        st.info(
-            f"Found {len(schedules)} valid schedules (Ranked by least gaps)."
-        )
+        st.info(f"Found {len(schedules)} valid schedules (Ranked by least gaps).")
 
         if "sched_idx" not in st.session_state:
             st.session_state.sched_idx = 0
@@ -1238,15 +1075,11 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
 
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
-            if st.button(
-                "Visual View", use_container_width=True, key="btn_visual_toggle"
-            ):
+            if st.button("Visual View", use_container_width=True, key="btn_visual_toggle"):
                 st.session_state.active_view = "Visual View"
                 st.rerun()
         with col_btn2:
-            if st.button(
-                "Excel View", use_container_width=True, key="btn_excel_toggle"
-            ):
+            if st.button("Excel View", use_container_width=True, key="btn_excel_toggle"):
                 st.session_state.active_view = "Excel View"
                 st.rerun()
 
@@ -1330,15 +1163,7 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
                     use_container_width=True
                 )
             except ModuleNotFoundError:
-                st.error("Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
-                csv_data = df_excel.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📥 Download Current Schedule (CSV Backup)",
-                    data=csv_data,
-                    file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.csv",
-                    mime="text/csv",
-                    use_container_width=True
-                )
+                st.error("Please add 'openpyxl' to your requirements.txt")
 
         st.markdown("---")
         st.markdown('<div class="center-download">', unsafe_allow_html=True)
@@ -1364,7 +1189,6 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
                 
         with col_excel:
             try:
-                import openpyxl
                 all_excel_buffer = io.BytesIO()
                 with pd.ExcelWriter(all_excel_buffer, engine='openpyxl') as writer:
                     for i, sched in enumerate(schedules):
@@ -1387,6 +1211,6 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
                     use_container_width=True
                 )
             except ModuleNotFoundError:
-                st.error("⚠️ Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
+                st.error("⚠️ Please add 'openpyxl' to requirements.txt")
 
         st.markdown("</div>", unsafe_allow_html=True)
