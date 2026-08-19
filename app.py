@@ -530,7 +530,7 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Custom Side-by-Side Captcha Row (Guaranteed visible image badge next to text box)
+        # 3. Unified Single Box: Text input on left, image badge on right
         st.markdown(
             f"""
             <div style="
@@ -543,7 +543,7 @@ else:
                 padding: 0 4px 0 10px;
                 margin-bottom: 0px;
             ">
-                <input type="text" name="user_captcha_field" placeholder="Enter Captcha Code" maxlength="5" autocomplete="off" style="
+                <input type="text" name="user_captcha_val" placeholder="Enter Captcha Code" maxlength="5" autocomplete="off" style="
                     background: transparent;
                     border: none;
                     outline: none;
@@ -566,14 +566,13 @@ else:
             unsafe_allow_html=True
         )
         
-        # Hidden native input to capture the value safely into Python backend state on submit
+        # Hidden fallback field to capture input safely inside Streamlit's form submission cycle
         user_captcha = st.text_input("HiddenCaptcha", placeholder="", max_chars=5, label_visibility="collapsed")
         
         # 4. Form Submit Button
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
         
     if submit_form:
-        # Fallback to map the text value from form submission if needed
         if not portal_user or not portal_pass:
             st.sidebar.error("Please enter your Student ID and Password.")
         else:
@@ -582,8 +581,7 @@ else:
                     st.session_state.portal_user = portal_user
                     st.session_state.portal_pass = portal_pass
                     
-                    # Use text from input field or fallback
-                    captcha_val = user_captcha if user_captcha else "12345" 
+                    captcha_val = user_captcha if user_captcha else "12345"
                     
                     raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
                         st.session_state.portal_user, 
