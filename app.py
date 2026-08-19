@@ -841,7 +841,7 @@ if parsed_df.empty:
 # ==========================================
 # 9. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
-with st.sidebar.expander("⚙ Filter By Day & Time", expanded=False):
+with st.sidebar.expander("⚙️ Filter By Day & Time", expanded=False):
     days_config = {
         1: ("Sunday (Day 1)", True),
         2: ("Monday (Day 2)", True),
@@ -971,7 +971,7 @@ with st.sidebar.expander("⚙️ Filter By Availability", expanded=False):
 # ==========================================
 # 10. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
 # ==========================================
-with st.sidebar.expander("⚙ Filter By Hall & IDs", expanded=False):
+with st.sidebar.expander("⚙️ Filter By Hall & IDs", expanded=False):
     all_halls = sorted(
         [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
     )
@@ -1016,7 +1016,7 @@ if required_shubas:
 # ==========================================
 # 11. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
-with st.sidebar.expander("⚙ Filter By teachers", expanded=False):
+with st.sidebar.expander("⚙️ Filter By teachers", expanded=False):
     
     all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
     subject_rules = {}
