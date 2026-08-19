@@ -617,12 +617,12 @@ with st.sidebar:
                         else:
                             st.success("✅ Saved locally (GitHub secrets not configured).")
                         
-                        if os.path.exists("error_screenshot.png"):
+if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
                             
                         st.rerun() 
                             
-                        except Exception as e:
+                    except Exception as e:
                         import traceback
                         error_details = traceback.format_exc()
                         
@@ -637,12 +637,6 @@ with st.sidebar:
 
     # Subtle sidebar divider separating fetch and export sections
     st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
-
-
-    
-    # ========================================================================================================================================================================
-    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL) ===================================================================================================================================
-    # ========================================================================================================================================================================
 
     st.markdown("<h3 style='margin-bottom: 15px; color: white;'>📥 Export Raw Data</h3>", unsafe_allow_html=True)
     
