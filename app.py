@@ -459,6 +459,16 @@ st.sidebar.markdown(
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
         }
+
+        /* Completely delete the "Press Enter to submit form" text */
+        [data-testid="stSidebar"] [data-testid="InputInstructions"], 
+        [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            width: 0 !important;
+        }
         
         /* Form container border removal */
         [data-testid="stForm"] {
