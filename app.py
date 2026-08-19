@@ -788,7 +788,8 @@ with st.sidebar:
         invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
         valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
-        with st.expander("🛡️ Section Availability", expanded=False):
+# 2. Enrollment & Availability Overrides (3 Status Support)
+        with st.expander("🛡️ Section Availability (3 Statuses)", expanded=False):
             enrolled_ids_str = st.session_state.get("auto_enrolled", "")
             enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
 
@@ -802,19 +803,30 @@ with st.sidebar:
                             if sh.isdigit():
                                 enrolled_ids.append(sh)
 
-            if "STATUS" in raw_df.columns:
-                auto_remove = st.checkbox("Remove Closed Sections", value=True)
-                protect_enrolled = st.checkbox("Mark enrolled sections as opened", value=True)
+            # Categorize into the 3 precise statuses
+            def assign_three_status_category(row):
+                if str(row["ID"]) in enrolled_ids:
+                    return "musajjala"  # Already registered by you
+                elif "مغلقة" in str(row["STATUS"]):
+                    return "muglaqa"    # Closed section
+                else:
+                    return "maftooha"   # Open section
                 
-                if auto_remove:
-                    closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
-                    
-                    if protect_enrolled and enrolled_ids:
-                        is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
-                        valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
-                    else:
-                        valid_blocks_df = valid_blocks_df[~closed_mask]
+            valid_blocks_df["status_cat"] = valid_blocks_df.apply(assign_three_status_category, axis=1)
 
+            st.markdown("<p style='color: #888888; font-size: 13px; margin-bottom: 8px;'>Select allowed section categories:</p>", unsafe_allow_html=True)
+            
+            allow_maftooha = st.checkbox("🟢 Maftooha (Open)", value=True)
+            allow_musajjala = st.checkbox("🔵 Musajjala (Registered)", value=True)
+            allow_muglaqa = st.checkbox("🔴 Muglaqa (Closed)", value=False)
+
+            # Build inclusion mask based on the 3 toggles
+            allowed_cats = []
+            if allow_maftooha: allowed_cats.append("maftooha")
+            if allow_musajjala: allowed_cats.append("musajjala")
+            if allow_muglaqa: allowed_cats.append("muglaqa")
+
+            valid_blocks_df = valid_blocks_df[valid_blocks_df["status_cat"].isin(allowed_cats)]
         with st.expander("🌍 Global Hall & Shuba Rules", expanded=False):
             all_halls = sorted(
                 [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
