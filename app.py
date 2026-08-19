@@ -220,7 +220,7 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             
         # Generate our KSA timestamp once to inject into both files
         ksa_time = datetime.utcnow() + timedelta(hours=3)
-        time_str = ksa_time.strftime("%d/%m/%Y %I:%M %p")
+        time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
             
         # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
@@ -698,7 +698,7 @@ else:
 # Last Update On:
 st.sidebar.markdown(
     f"<p style='color: #a0a0a0; font-size: 16px; margin-top: -12px; margin-bottom: 20px;'>"
-    f"🕒  <b> Last Update:</b> {updated_str}"
+    f"<b>Last Update On:</b> {updated_str}"
     f"</p>",
     unsafe_allow_html=True,
 )
