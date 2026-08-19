@@ -991,7 +991,8 @@ with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
         subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
         subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
 
-    with st.container(border=True):
+        with st.container(border=True):
+            # Right-aligned, RTL text, NO subject code in parentheses!
             st.markdown(f"<div dir='rtl' style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff; text-align: right;'>📚 {subj_name}</div>", unsafe_allow_html=True)
             
             teachers_for_subj = sorted(
@@ -1007,22 +1008,6 @@ with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
             )
 
             subject_rules[subj] = {"ban": banned_t, "require": required_t}
-
-for subj, rules in subject_rules.items():
-    if rules["ban"]:
-        valid_blocks_df = valid_blocks_df[
-            ~(
-                (valid_blocks_df["CODE"].astype(str) == subj)
-                & (valid_blocks_df["TEACHER"].isin(rules["ban"]))
-            )
-        ]
-    if rules["require"]:
-        valid_blocks_df = valid_blocks_df[
-            ~(
-                (valid_blocks_df["CODE"].astype(str) == subj)
-                & (~valid_blocks_df["TEACHER"].isin(rules["require"]))
-            )
-        ]
 
 # ==========================================
 # 12. DATA GROUPING & SOLVER
