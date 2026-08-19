@@ -524,44 +524,53 @@ else:
     import io
     from PIL import Image, ImageOps
     
-    # 1. Dynamically invert and inject the CAPTCHA image into the background of the text box
+    # 1. Dynamically invert, remove background, and inject the CAPTCHA
     if st.session_state.get("captcha_img_bytes"):
         try:
             # Load the original image bytes into a Pillow Image
             image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
             
-            # Convert to standard RGB (required for the invert function to work safely)
+            # Convert to standard RGB (required for the invert function)
             img = Image.open(image_stream).convert("RGB") 
             
-            # Invert the image colors (White becomes black, black becomes white, etc.)
+            # Invert the image colors (White background becomes black)
             inverted_img = ImageOps.invert(img)
             
-            # Save the inverted image back to a bytes buffer
-            buffered = io.BytesIO()
-            inverted_img.save(buffered, format="PNG")
+            # Convert to RGBA so we can manipulate the Alpha (transparency) channel
+            rgba_img = inverted_img.convert("RGBA")
+            data = rgba_img.getdata()
             
-            # Encode the new, inverted image to Base64
+            # Loop through pixels to make the black background transparent
+            new_data = []
+            for item in data:
+                # Find very dark pixels (the new background) and make them transparent
+                if item[0] < 50 and item[1] < 50 and item[2] < 50:
+                    new_data.append((255, 255, 255, 0)) # 0 Alpha = Transparent
+                else:
+                    new_data.append(item) # Keep the text and noise lines visible
+                    
+            rgba_img.putdata(new_data)
+            
+            # Save the transparent image back to a bytes buffer
+            buffered = io.BytesIO()
+            rgba_img.save(buffered, format="PNG") # PNG is required to keep transparency
+            
+            # Encode the new image to Base64
             captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
             
         except Exception as e:
-            # Fallback to the original image just in case the inversion fails
+            # Fallback to the original image just in case processing fails
             captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
             
         st.markdown(
             f"""
             <style>
-            /* The aria-label^="CAPTCHA" targets our specific text input below */
+            /* Targets our specific CAPTCHA text input below */
             [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
-                /* Layer 1: The Inverted Captcha Image, Layer 2: A solid white background acting as a border */
-                background-image: 
-                    url("data:image/png;base64,{captcha_b64}"),
-                    linear-gradient(#000000, #000000) !important;
-                background-position: 
-                    right 6px center,
-                    right 4px center !important;
-                background-size: 
-                    106px 34px, 
-                    110px 38px !important;
+                /* Just the transparent CAPTCHA image now! */
+                background-image: url("data:image/png;base64,{captcha_b64}") !important;
+                background-position: right 6px center !important;
+                background-size: 106px 34px !important;
                 background-repeat: no-repeat !important;
                 
                 /* Push the typing cursor left so user text doesn't overlap the image */
@@ -571,6 +580,68 @@ else:
             """,
             unsafe_allow_html=True
         )
+
+    # 2. Build the Form using standard, natively perfectly aligned inputs
+    with st.sidebar.form(key="login_form", clear_on_submit=False):
+        
+        portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
+        
+        portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
+        
+        # This SINGLE native box now dynamically paints the transparent image inside its right edge!
+        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
+        
+        submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
+        
+    # 3. Handle Submit
+    if submit_form:
+        if not portal_user or not portal_pass:
+            st.sidebar.error("Please enter your Student ID and Password.")
+        elif not user_captcha or len(user_captcha) != 5:
+            st.sidebar.error("Please enter exactly 5 digits for the CAPTCHA.")
+        else:
+            with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
+                try:
+                    st.session_state.portal_user = portal_user
+                    st.session_state.portal_pass = portal_pass
+                    
+                    raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
+                        st.session_state.portal_user, 
+                        st.session_state.portal_pass, 
+                        user_captcha
+                    )
+                    st.session_state.live_html_data = raw_live_html
+                    st.session_state.auto_enrolled = auto_enrolled
+                    
+                    with open("data.html", "w", encoding="utf-8") as f:
+                        f.write(raw_live_html)
+                    with open("enrolled.html", "w", encoding="utf-8") as f:
+                        f.write(raw_enrolled_html)
+                        
+                    if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
+                        try:
+                            g = Github(st.secrets["GITHUB_TOKEN"])
+                            repo = g.get_repo(st.secrets["GITHUB_REPO"])
+                            push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
+                            push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
+                            st.sidebar.success("✅ Synced and pushed both files to GitHub!")
+                        except Exception as github_e:
+                            st.sidebar.warning(f"Saved locally, but GitHub push failed: {github_e}")
+                    else:
+                        st.sidebar.success("✅ Saved locally (GitHub secrets not configured).")
+                    
+                    if os.path.exists("error_screenshot.png"):
+                        os.remove("error_screenshot.png")
+                        
+                    st.rerun() 
+                        
+                except Exception as e:
+                    st.sidebar.error(f"Sync failed: {e}")
+                    if st.session_state.live_driver:
+                        st.session_state.live_driver.quit()
+                        st.session_state.live_driver = None
+                    st.session_state.waiting_for_captcha = False
+                    st.stop()
 
     # 2. Build the Form using standard, natively perfectly aligned inputs
     with st.sidebar.form(key="login_form", clear_on_submit=False):
