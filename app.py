@@ -393,6 +393,18 @@ def parse_html_to_dataframe(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     extracted_rows = []
 
+    # Load enrolled IDs on the fly so they are always recognized
+    enrolled_ids = []
+    if os.path.exists("enrolled.html"):
+        with open("enrolled.html", "r", encoding="utf-8") as f:
+            soup_enc = BeautifulSoup(f.read(), "html.parser")
+            for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                cols = tr.find_all("td")
+                if len(cols) >= 4:
+                    sh = cols[3].text.strip()
+                    if sh.isdigit():
+                        enrolled_ids.append(sh)
+
     rows = soup.find_all("tr")
     for row in rows:
         cols = row.find_all("td")
@@ -402,7 +414,12 @@ def parse_html_to_dataframe(html_content):
         code = cols[0].text.strip()
         name = cols[1].text.strip()
         course_id = cols[2].text.strip()
-        status = cols[5].text.strip()
+        
+        # --- FORCE STATUS TO REGISTERED IF MATCHES ENROLLED LIST ---
+        if course_id in enrolled_ids:
+            status = "Registered"
+        else:
+            status = cols[5].text.strip()
 
         instructor_input = cols[6].find(
             "input", id=lambda x: x and x.endswith(":instructor")
@@ -467,7 +484,7 @@ def parse_html_to_dataframe(html_content):
         })
 
     return pd.DataFrame(extracted_rows)
-
+    
 
 # GitHub Push Helper
 def push_to_github(repo, file_path, content, commit_message):
