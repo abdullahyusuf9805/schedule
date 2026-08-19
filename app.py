@@ -565,7 +565,7 @@ with st.sidebar:
                             user_captcha
                         )
 
-                        # Parse enrolled.html first, then update data.html status tags to مسجلة
+                        # 1. Parse enrolled.html first
                         enrolled_ids = []
                         if auto_enrolled:
                             enrolled_ids = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
@@ -579,20 +579,29 @@ with st.sidebar:
                                     if sh.isdigit():
                                         enrolled_ids.append(sh)
 
+                        # 2. Parse data.html, find matching Shuba ID, and force status replacement
                         soup_data = BeautifulSoup(raw_live_html, "html.parser")
                         for tr in soup_data.find_all("tr"):
                             cols = tr.find_all("td")
                             if len(cols) >= 6:
+                                # Column index 2 typically holds the Shuba/Course ID
                                 shuba_id = cols[2].text.strip()
                                 if shuba_id in enrolled_ids:
+                                    # Target the status cell (cols[5]) and inject your exact markup
                                     status_cell = cols[5]
-                                    status_cell['data-th'] = ""
                                     status_cell.clear()
-                                    new_span = soup_data.new_tag("span", style="color:red")
-                                    new_span.string = "مسجلة"
-                                    status_cell.append(new_span)
+                                    status_cell['data-th'] = ""
+                                    
+                                    # Append the exact span requested
+                                    new_content = BeautifulSoup('<span style="color:red">مسجلة</span>', "html.parser")
+                                    status_cell.append(new_content)
 
                         updated_live_html = f"<!-- SYNC_TIME: {time_match.group(1) if 'time_match' in locals() and time_match else datetime.now().strftime('%d/%m/%Y at %I:%M %p')} -->\n" + str(soup_data.find("tbody") or soup_data)
+
+
+
+                        
+
 
                         st.session_state.live_html_data = updated_live_html
                         st.session_state.auto_enrolled = ",".join(enrolled_ids)
