@@ -263,7 +263,6 @@ def init_browser_and_get_captcha():
         driver.quit()
         raise Exception(f"Failed to initialize login page. {str(e)}")
 
-
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.live_driver
     try:
@@ -295,13 +294,23 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
+        # Wait until the page URL matches and document state is ready
         WebDriverWait(driver, 35).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        time.sleep(2)
+        # Give extra time for JS/Frames to render in headless mode
+        time.sleep(3)
+
+        # Handle potential iframes if the menu is embedded inside a frame block
+        frames = driver.find_elements(By.TAG_NAME, "iframe")
+        if frames:
+            try:
+                driver.switch_to.frame(frames[0])
+            except:
+                pass
         
-        # --- ROBUST MENU FINDER ---
+        # --- ROBUST MENU FINDER WITH MULTIPLE FALLBACKS ---
         electronic_reg_menu = WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
         )
@@ -335,6 +344,9 @@ def submit_captcha_and_scrape(username, password, captcha_val):
                         
         enrolled_str = ", ".join(enrolled_ids)
         raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
+
+        # Switch back to default content just in case we shifted frames
+        driver.switch_to.default_content()
 
         # Open Menu Again
         electronic_reg_menu = WebDriverWait(driver, 15).until(
@@ -372,7 +384,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         driver.quit()
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
-
 
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
