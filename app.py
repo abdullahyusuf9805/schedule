@@ -85,13 +85,13 @@ st.markdown(
         }
 
         /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] {{
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] {
                 border: 1px solid #777777 !important; 
                 border-radius: 6px !important;
                 background-color: #1a1a1a !important;
                 overflow: hidden !important; 
-                margin-bottom: 12px !important; /* <--- THIS PUSHES THE BOXES APART */
-            }}
+                margin-bottom: 12px !important; 
+            }
         
         /* =========================================
            NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
@@ -421,7 +421,7 @@ st.markdown(
                 border-radius: 6px !important;
                 background-color: #1a1a1a !important;
                 overflow: hidden !important; 
-                margin-bottom: 12px !important; /* <--- Pushes the input boxes apart */
+                margin-bottom: 12px !important; 
             }}
             
             /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
@@ -544,6 +544,14 @@ with st.sidebar.expander("🌐 Fetch Data From University Portal", expanded=Fals
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error: {e}")
+                    
+        # Tucked nicely INSIDE the Phase 1 block
+        st.markdown(
+            f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 15px; margin-bottom: 0px; text-align: center;'>"
+            f"<b>Last Update:</b> {updated_str}"
+            f"</p>",
+            unsafe_allow_html=True,
+        )
 
     # --- PHASE 2: The UI Form ---
     else:
@@ -597,6 +605,14 @@ with st.sidebar.expander("🌐 Fetch Data From University Portal", expanded=Fals
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
             submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
             
+        # Tucked nicely INSIDE the Phase 2 block
+        st.markdown(
+            f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 5px; margin-bottom: 0px; text-align: center;'>"
+            f"<b>Last Update:</b> {updated_str}"
+            f"</p>",
+            unsafe_allow_html=True,
+        )
+            
         # 3. Handle Submit
         if submit_form:
             if not portal_user or not portal_pass:
@@ -645,15 +661,8 @@ with st.sidebar.expander("🌐 Fetch Data From University Portal", expanded=Fals
                             st.session_state.live_driver.quit()
                             st.session_state.live_driver = None
                         st.session_state.waiting_for_captcha = False
-# Last Update Label tucked neatly under the first expander
-st.sidebar.markdown(
-    f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 5px; margin-bottom: 20px; text-align: center;'>"
-    f"<b>Last Update:</b> {updated_str}"
-    f"</p>",
-    unsafe_allow_html=True,
-)
-                        
                         st.stop()
+
 
 # Read main data
 raw_df = pd.DataFrame() 
@@ -894,31 +903,38 @@ if required_shubas:
 # ==========================================
 # 7. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
-# Streamlit does not allow expanders inside expanders, so we just group these naturally!
-st.sidebar.markdown("<br><h4 style='color: white; margin-bottom: 10px;'>🛞 Specific Teachers Rules</h4>", unsafe_allow_html=True)
+# We wrap everything in one master expander to keep the UI clean!
+with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
+    
+    all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
+    subject_rules = {}
+    
+    if not all_subjects:
+        st.markdown("<p style='color: #888888; font-size: 14px;'>No subjects available to filter.</p>", unsafe_allow_html=True)
 
-all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
+    for subj in all_subjects:
+        subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
+        subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
 
-subject_rules = {}
-for subj in all_subjects:
-    subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
-    subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
+        # Use bordered containers instead of nested expanders to bypass Streamlit's restriction!
+        with st.container(border=True):
+            st.markdown(f"<div style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff;'>📚 {subj_name} <span style='color: #ff4b4b;'>({subj})</span></div>", unsafe_allow_html=True)
+            
+            teachers_for_subj = sorted(
+                raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
+            )
 
-    with st.sidebar.expander(f"📚 {subj_name} ({subj})", expanded=False):
-        teachers_for_subj = sorted(
-            raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
-        )
+            banned_t = st.multiselect(
+                "Ban Teachers", options=teachers_for_subj, key=f"ban_{subj}"
+            )
+            remaining_t = [t for t in teachers_for_subj if t not in banned_t]
+            required_t = st.multiselect(
+                "Require Teacher", options=remaining_t, key=f"req_{subj}"
+            )
 
-        banned_t = st.multiselect(
-            "Ban Teachers", options=teachers_for_subj, key=f"ban_{subj}"
-        )
-        remaining_t = [t for t in teachers_for_subj if t not in banned_t]
-        required_t = st.multiselect(
-            "Require Teacher", options=remaining_t, key=f"req_{subj}"
-        )
+            subject_rules[subj] = {"ban": banned_t, "require": required_t}
 
-        subject_rules[subj] = {"ban": banned_t, "require": required_t}
-
+# Process the rules silently outside the UI block
 for subj, rules in subject_rules.items():
     if rules["ban"]:
         valid_blocks_df = valid_blocks_df[
