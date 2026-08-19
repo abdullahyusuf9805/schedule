@@ -2,6 +2,9 @@ import io
 import os
 import zipfile
 import re
+import base64
+from datetime import datetime, timedelta
+
 import arabic_reshaper
 from bidi.algorithm import get_display
 import matplotlib.pyplot as plt
@@ -9,7 +12,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import streamlit as st
 import time
-from datetime import datetime, timedelta
+from PIL import Image, ImageOps
 
 # --- GitHub Integration ---
 from github import Github
@@ -22,7 +25,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from PIL import Image
 
 # ==========================================
 # 1. STREAMLIT CONFIGURATION & THEME STYLING
@@ -72,10 +74,7 @@ st.markdown(
             text-align: center;
         }
         
-        /* =========================================
-           UI TIGHTENING CSS (Squish Elements in Card) 
-           ========================================= */
-        
+        /* UI TIGHTENING CSS (Squish Elements in Card) */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 1rem 0.8rem 0.5rem 0.8rem !important;
             background-color: #1a1a1a !important;
@@ -84,19 +83,15 @@ st.markdown(
             margin-bottom: 12px !important;
         }
 
-        /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] {
-                border: 1px solid #777777 !important; 
-                border-radius: 6px !important;
-                background-color: #1a1a1a !important;
-                overflow: hidden !important; 
-                margin-bottom: 12px !important; 
-            }
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] {
+            border: 1px solid #777777 !important; 
+            border-radius: 6px !important;
+            background-color: #1a1a1a !important;
+            overflow: hidden !important; 
+            margin-bottom: 12px !important; 
+        }
         
-        /* =========================================
-           NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
-           ========================================= */
-        
+        /* NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS */
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
         [data-testid="stTickBarMax"] {
@@ -127,20 +122,28 @@ st.markdown(
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
-        
     </style>
 """,
     unsafe_allow_html=True,
 )
 
 st.title("Dynamic Timetable Generator")
-st.markdown(
-    f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 15px; margin-bottom: 0px; text-align: center;'>"
-    f"<b>Last Update:</b> {updated_str}"
-    f"</p>",
-    unsafe_allow_html=True,
-)
 
+# ==========================================
+# 2. INITIALIZE SESSION STATES
+# ==========================================
+if "live_html_data" not in st.session_state:
+    st.session_state.live_html_data = None
+if "waiting_for_captcha" not in st.session_state:
+    st.session_state.waiting_for_captcha = False
+if "live_driver" not in st.session_state:
+    st.session_state.live_driver = None
+if "captcha_img_bytes" not in st.session_state:
+    st.session_state.captcha_img_bytes = None
+
+# ==========================================
+# 3. GET SYNC TIME FOR UI
+# ==========================================
 html_content = ""
 if st.session_state.get("live_html_data"):
     html_content = st.session_state.live_html_data
@@ -151,10 +154,108 @@ elif os.path.exists("data.html"):
 time_match = re.search(r"<!-- SYNC_TIME: (.*?) -->", html_content)
 updated_str = time_match.group(1) if time_match else "No data file found"
 
-# ==========================================
-# 2. TWO-STEP INTERACTIVE SELENIUM LOGIC
-# ==========================================
+# CAPTCHA CSS INJECTION
+captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
+st.markdown(
+    f"""
+    <style>
+    [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
+        background-image: url("data:image/png;base64,{captcha_b64}") !important;
+        background-position: right 6px center !important;
+        background-size: 106px 34px !important;
+        background-repeat: no-repeat !important;
+        padding-right: 120px !important; 
+    }}
+    
+    [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {{
+        border: 1px solid #ff4b4b !important;
+        box-shadow: 0 0 0 1px #ff4b4b !important;
+    }}
 
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {{
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        border-radius: 0px !important; 
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
+        color: #ffffff !important;
+        background-color: transparent !important; 
+        height: 44px !important; 
+        padding: 10px 12px !important;
+        font-size: 15px !important;
+        border: none !important; 
+        outline: none !important;
+        box-shadow: none !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
+        color: #888888 !important; 
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
+        background-color: transparent !important;
+    }}
+    
+    [data-testid="stForm"] {{
+        border: none !important;
+        padding: 0 !important;
+        margin-top: 14px !important; 
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="InputInstructions"], 
+    [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {{
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+    }}
+    
+    [data-testid="stSidebar"] button[kind="primary"] {{
+        background-color: #ff4b4b !important; 
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+        border-radius: 6px !important;
+        padding: 12px !important;
+        margin-top: 4px !important;
+    }}
+    [data-testid="stSidebar"] button[kind="primary"]:hover {{
+        background-color: #ff3333 !important;
+    }}
+    [data-testid="stSidebarUserContent"] {{
+        padding-top: 0rem !important; 
+    }}
+    [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
+        gap: 0.8rem !important; 
+    }}
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        line-height: 1.3 !important;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ==========================================
+# 4. FUNCTIONS LOGIC
+# ==========================================
 def init_browser_and_get_captcha():
     options = Options()
     options.add_argument('--headless')
@@ -195,7 +296,6 @@ def init_browser_and_get_captcha():
     except Exception as e:
         driver.quit()
         raise Exception(f"Failed to initialize login page. {str(e)}")
-
 
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.live_driver
@@ -298,10 +398,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
 
-
-# ==========================================
-# 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
-# ==========================================
 def parse_html_to_dataframe(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     extracted_rows = []
@@ -381,8 +477,6 @@ def parse_html_to_dataframe(html_content):
 
     return pd.DataFrame(extracted_rows)
 
-
-# GitHub Push Helper
 def push_to_github(repo, file_path, content, commit_message):
     try:
         contents = repo.get_contents(file_path)
@@ -392,153 +486,10 @@ def push_to_github(repo, file_path, content, commit_message):
 
 
 # ==========================================
-# 4. INITIALIZE DATA & INTERACTIVE CAPTCHA
+# 5. SIDEBAR - FETCH PORTAL DATA (CONTAINER)
 # ==========================================
-
-if "live_html_data" not in st.session_state:
-    st.session_state.live_html_data = None
-if "waiting_for_captcha" not in st.session_state:
-    st.session_state.waiting_for_captcha = False
-if "live_driver" not in st.session_state:
-    st.session_state.live_driver = None
-if "captcha_img_bytes" not in st.session_state:
-    st.session_state.captcha_img_bytes = None
-
-import base64
-
-# Convert CAPTCHA bytes for CSS background injection
-captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
-
-st.markdown(
-            f"""
-            <style>
-            /* Targets our specific CAPTCHA text input */
-            [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
-                background-image: url("data:image/png;base64,{captcha_b64}") !important;
-                background-position: right 6px center !important;
-                background-size: 106px 34px !important;
-                background-repeat: no-repeat !important;
-                padding-right: 120px !important; 
-            }}
-            
-            /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] {{
-                border: 1px solid #777777 !important; 
-                border-radius: 6px !important;
-                background-color: #1a1a1a !important;
-                overflow: hidden !important; 
-                margin-bottom: 12px !important; 
-            }}
-            
-            /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {{
-                border: 1px solid #ff4b4b !important;
-                box-shadow: 0 0 0 1px #ff4b4b !important;
-            }}
-
-            /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {{
-                border: none !important;
-                background-color: transparent !important;
-                box-shadow: none !important;
-                outline: none !important;
-                border-radius: 0px !important; 
-            }}
-
-            /* 4. TEXT INPUT STYLING */
-            [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
-                color: #ffffff !important;
-                background-color: transparent !important; 
-                height: 44px !important; 
-                padding: 10px 12px !important;
-                font-size: 15px !important;
-                border: none !important; 
-                outline: none !important;
-                box-shadow: none !important;
-            }}
-
-            /* Placeholder text color */
-            [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
-                color: #888888 !important; 
-            }}
-
-            /* Keep the password eye icon background transparent */
-            [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
-                background-color: transparent !important;
-            }}
-            
-            /* 5. FORM LAYOUT & CLEANUP */
-            /* Form container border removal & Top Gap Equalizer */
-            [data-testid="stForm"] {{
-                border: none !important;
-                padding: 0 !important;
-                margin-top: 14px !important; 
-                background-color: transparent !important;
-            }}
-
-            /* Completely delete the "Press Enter to submit form" text */
-            [data-testid="stSidebar"] [data-testid="InputInstructions"], 
-            [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {{
-                display: none !important;
-                visibility: hidden !important;
-                opacity: 0 !important;
-                height: 0 !important;
-                width: 0 !important;
-            }}
-            
-            /* 6. PRIMARY BUTTON STYLING */
-            [data-testid="stSidebar"] button[kind="primary"] {{
-                background-color: #ff4b4b !important; 
-                border: none !important;
-                color: #ffffff !important;
-                font-weight: bold !important;
-                font-size: 16px !important;
-                border-radius: 6px !important;
-                padding: 12px !important;
-                margin-top: 4px !important;
-            }}
-            [data-testid="stSidebar"] button[kind="primary"]:hover {{
-                background-color: #ff3333 !important;
-            }}
-
-          /* =========================================
-               7. REFINED UX & SPACING (Clean & Modern)
-               ========================================= */
-               
-            /* Keep the top flush so the header aligns nicely */
-            [data-testid="stSidebarUserContent"] {{
-                padding-top: 0rem !important; 
-            }}
-
-            /* Relax the gaps slightly so elements aren't suffocating */
-            [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
-                gap: 0.8rem !important; 
-            }}
-
-            /* Clean typography spacing */
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
-                line-height: 1.3 !important;
-            }}
-
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
-
 st.sidebar.subheader("🌐 Fetch Data From University Portal")
 with st.sidebar.container():
-
     # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
         if st.button("Login And Scrap Data from Portal", use_container_width=True):
@@ -552,16 +503,16 @@ with st.sidebar.container():
                 except Exception as e:
                     st.error(f"Error: {e}")
                     
-        # Tucked nicely INSIDE the Phase 1 block
-
+        st.markdown(
+            f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 15px; margin-bottom: 0px; text-align: center;'>"
+            f"<b>Last Update:</b> {updated_str}"
+            f"</p>",
+            unsafe_allow_html=True,
+        )
 
     # --- PHASE 2: The UI Form ---
     else:
-        import base64
-        import io
-        from PIL import Image, ImageOps
-        
-        # 1. Dynamically invert, remove background, and inject the CAPTCHA
+        # Dynamically invert, remove background, and inject the CAPTCHA
         if st.session_state.get("captcha_img_bytes"):
             try:
                 image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
@@ -600,14 +551,12 @@ with st.sidebar.container():
                 unsafe_allow_html=True
             )
 
-        # 2. Build the Form inside the expander
         with st.form(key="login_form", clear_on_submit=False):
             portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
             portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
             submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
             
-        # Tucked nicely INSIDE the Phase 2 block
         st.markdown(
             f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 5px; margin-bottom: 0px; text-align: center;'>"
             f"<b>Last Update:</b> {updated_str}"
@@ -615,7 +564,6 @@ with st.sidebar.container():
             unsafe_allow_html=True,
         )
             
-        # 3. Handle Submit
         if submit_form:
             if not portal_user or not portal_pass:
                 st.error("Please enter your Student ID and Password.")
@@ -666,15 +614,17 @@ with st.sidebar.container():
                         st.stop()
 
 
-# Read main data
+# ==========================================
+# 6. READ SCRAPED DATA (CRITICAL)
+# ==========================================
 raw_df = pd.DataFrame() 
 if st.session_state.live_html_data:
     raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
 elif os.path.exists("data.html"):
     with open("data.html", "r", encoding="utf-8") as f:
-        html_content = f.read()
-        if html_content.strip():
-            raw_df = parse_html_to_dataframe(html_content)
+        file_html_content = f.read()
+        if file_html_content.strip():
+            raw_df = parse_html_to_dataframe(file_html_content)
 
 # Safety kill switch
 if raw_df is None or raw_df.empty:
@@ -688,7 +638,7 @@ if raw_df is None or raw_df.empty:
 
 
 # ==========================================
-# EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
+# 7. SIDEBAR - EXPORT DATA (CONTAINER)
 # ==========================================
 st.sidebar.subheader("📥 Export Raw Data")
 with st.sidebar.container():
@@ -711,6 +661,9 @@ with st.sidebar.container():
         st.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
 
 
+# ==========================================
+# 8. PARSE VALID SCHEDULE BLOCKS
+# ==========================================
 @st.cache_data
 def parse_schedule_blocks(df_input):
     parsed_rows = []
@@ -743,7 +696,7 @@ if parsed_df.empty:
 
 
 # ==========================================
-# 5. PURE NATIVE STREAMLIT FILTERS (Tight UI)
+# 9. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
 with st.sidebar.expander("⏳ Filter By Day & Time", expanded=False):
     days_config = {
@@ -824,10 +777,9 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
 
 # ==========================================
-# 5B. ENROLLMENT & AVAILABILITY OVERRIDES
+# 9B. ENROLLMENT & AVAILABILITY OVERRIDES
 # ==========================================
 with st.sidebar.expander("🛡️ Section Availability", expanded=False):
-    # 1. Silently read Enrolled HTML in the background
     enrolled_ids_str = st.session_state.get("auto_enrolled", "")
     enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
 
@@ -841,7 +793,6 @@ with st.sidebar.expander("🛡️ Section Availability", expanded=False):
                     if sh.isdigit():
                         enrolled_ids.append(sh)
 
-    # 2. Apply logic with the new Checkbox
     if "STATUS" in raw_df.columns:
         auto_remove = st.checkbox("Remove Closed Sections", value=True)
         protect_enrolled = st.checkbox("Mark enrolled sections as opened", value=True)
@@ -857,7 +808,7 @@ with st.sidebar.expander("🛡️ Section Availability", expanded=False):
 
 
 # ==========================================
-# 6. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
+# 10. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
 # ==========================================
 with st.sidebar.expander("🌍 Global Hall & Shuba Rules", expanded=False):
     all_halls = sorted(
@@ -883,7 +834,6 @@ with st.sidebar.expander("🌍 Global Hall & Shuba Rules", expanded=False):
         "Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas"
     )
 
-# Apply Hall filters
 if banned_halls:
     valid_blocks_df = valid_blocks_df[
         ~valid_blocks_df["HALL"].astype(str).isin(banned_halls)
@@ -893,7 +843,6 @@ if required_halls:
         valid_blocks_df["HALL"].astype(str).isin(required_halls)
     ]
 
-# Apply Shuba filters
 if banned_shubas:
     valid_blocks_df = valid_blocks_df[
         ~valid_blocks_df["ID"].astype(str).isin(banned_shubas)
@@ -904,9 +853,8 @@ if required_shubas:
     ]
 
 # ==========================================
-# 7. SUBJECT-SPECIFIC TEACHER RULES
+# 11. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
-# We wrap everything in one master expander to keep the UI clean!
 with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
     
     all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
@@ -919,7 +867,6 @@ with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
         subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
         subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
 
-        # Use bordered containers instead of nested expanders to bypass Streamlit's restriction!
         with st.container(border=True):
             st.markdown(f"<div style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff;'>📚 {subj_name} <span style='color: #ff4b4b;'>({subj})</span></div>", unsafe_allow_html=True)
             
@@ -937,7 +884,6 @@ with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
 
             subject_rules[subj] = {"ban": banned_t, "require": required_t}
 
-# Process the rules silently outside the UI block
 for subj, rules in subject_rules.items():
     if rules["ban"]:
         valid_blocks_df = valid_blocks_df[
@@ -955,7 +901,7 @@ for subj, rules in subject_rules.items():
         ]
 
 # ==========================================
-# 8. DATA GROUPING & SOLVER
+# 12. DATA GROUPING & SOLVER
 # ==========================================
 sections_by_subject = {}
 for code, group in valid_blocks_df.groupby("CODE"):
@@ -1043,7 +989,7 @@ def calculate_schedule_score(schedule):
 schedules = sorted(schedules, key=calculate_schedule_score)
 
 # ==========================================
-# 9. IMAGE GENERATOR & UI RENDERING
+# 13. IMAGE GENERATOR & UI RENDERING
 # ==========================================
 
 def fix_arabic(text):
@@ -1309,7 +1255,6 @@ else:
                         "TEACHER": s["teacher"],
                         "STATUS": s["status"],
                     } for s in sched])
-                    # Put each schedule on its own sheet in the Excel file
                     df_sched.to_excel(writer, index=False, sheet_name=f"Option_{i+1}")
             
             st.download_button(
