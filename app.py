@@ -1008,8 +1008,7 @@ if required_shubas:
 # 7. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
 st.sidebar.markdown("---")
-st.sidebar.header("Subject-Specific Teacher Rules")
-st.sidebar.caption("Expand each subject to ban or require specific teachers.")
+st.sidebar.header("🛞 Specific Teachers Rules")
 
 all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
 
