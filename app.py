@@ -154,6 +154,14 @@ elif os.path.exists("data.html"):
 time_match = re.search(r"<!-- SYNC_TIME: (.*?) -->", html_content)
 updated_str = time_match.group(1) if time_match else "No data file found"
 
+# Display Last Update on the Main Page
+st.markdown(
+    f"<p style='color: #a0a0a0; font-size: 15px; margin-top: -15px; margin-bottom: 25px;'>"
+    f"<b>Last Update:</b> {updated_str}"
+    f"</p>",
+    unsafe_allow_html=True,
+)
+
 # CAPTCHA CSS INJECTION
 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
 st.markdown(
@@ -503,13 +511,6 @@ with st.sidebar.container(border=True):
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error: {e}")
-                    
-        st.markdown(
-            f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 15px; margin-bottom: 0px; text-align: center;'>"
-            f"<b>Last Update:</b> {updated_str}"
-            f"</p>",
-            unsafe_allow_html=True,
-        )
 
     # --- PHASE 2: The UI Form ---
     else:
@@ -557,13 +558,6 @@ with st.sidebar.container(border=True):
             portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
             submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
-            
-        st.markdown(
-            f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 5px; margin-bottom: 0px; text-align: center;'>"
-            f"<b>Last Update:</b> {updated_str}"
-            f"</p>",
-            unsafe_allow_html=True,
-        )
             
         if submit_form:
             if not portal_user or not portal_pass:
