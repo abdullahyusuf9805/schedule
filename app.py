@@ -532,7 +532,7 @@ else:
                 /* Layer 1: The Inverted Captcha Image, Layer 2: A solid white background acting as a border */
                 background-image: 
                     url("data:image/png;base64,{captcha_b64}"),
-                    linear-gradient(#ffffff, #ffffff) !important;
+                    linear-gradient(#000000, #000000) !important;
                 background-position: 
                     right 6px center,
                     right 4px center !important;
