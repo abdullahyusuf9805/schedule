@@ -263,7 +263,6 @@ def init_browser_and_get_captcha():
         driver.quit()
         raise Exception(f"Failed to initialize login page. {str(e)}")
 
-
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.live_driver
     try:
@@ -295,12 +294,14 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
-        WebDriverWait(driver, 35).until(
+        # Extended wait for JS rendering
+        WebDriverWait(driver, 45).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        time.sleep(3)
+        time.sleep(4)
 
+        # Handle iframes if present
         frames = driver.find_elements(By.TAG_NAME, "iframe")
         if frames:
             try:
@@ -308,18 +309,20 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             except:
                 pass
         
-        # --- ROBUST MENU FINDER ---
-        electronic_reg_menu = WebDriverWait(driver, 30).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
+        # --- BULLETPROOF LINK SELECTOR ---
+        # Targets links containing registration keywords or matching the frame source href
+        electronic_reg_menu = WebDriverWait(driver, 40).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'eregister') or contains(@id, 'eregister') or contains(., 'التسجيل') or contains(., 'الارشاد')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(2.0) 
+        time.sleep(3.0) 
 
-        enrolled_menu = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المسجلة') or contains(text(), 'Enrolled')]"))
+        # Click "المقررات المسجلة" (Enrolled Courses)
+        enrolled_menu = WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'enrolled') or contains(@id, 'enrolled') or contains(., 'المقررات المسجلة') or contains(., 'المسجلة')]"))
         )
         driver.execute_script("arguments[0].click();", enrolled_menu)
-        time.sleep(4) 
+        time.sleep(5) 
         
         soup_enrolled = BeautifulSoup(driver.page_source, "html.parser")
         
@@ -344,18 +347,20 @@ def submit_captcha_and_scrape(username, password, captcha_val):
 
         driver.switch_to.default_content()
 
-        electronic_reg_menu = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
+        # Open Menu Again
+        electronic_reg_menu = WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'eregister') or contains(@id, 'eregister') or contains(., 'التسجيل') or contains(., 'الارشاد')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(2.0)
+        time.sleep(3.0)
 
-        course_plan_menu = WebDriverWait(driver, 25).until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المطروحة') or contains(text(), 'Course Plan') or contains(text(), 'Plan')]"))
+        # Click "المقررات المطروحة وفق الخطة" (Course Plan)
+        course_plan_menu = WebDriverWait(driver, 30).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'plan') or contains(@id, 'plan') or contains(., 'المطروحة') or contains(., 'الخطة')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        time.sleep(5)
+        time.sleep(6)
         
         soup = BeautifulSoup(driver.page_source, "html.parser")
         target_tbody = None
@@ -378,7 +383,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         driver.quit()
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
-
 
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
