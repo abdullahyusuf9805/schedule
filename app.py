@@ -614,6 +614,49 @@ with st.sidebar:
                         )
                         st.session_state.live_html_data = raw_live_html
                         st.session_state.auto_enrolled = auto_enrolled
+
+                        raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
+                            st.session_state.portal_user, 
+                            st.session_state.portal_pass, 
+                            user_captcha
+                        )
+                        st.session_state.live_html_data = raw_live_html
+                        st.session_state.auto_enrolled = auto_enrolled
+                        
+                        # --- INSERT SNIPPET HERE ---
+                        enrolled_ids = []
+                        if os.path.exists("enrolled.html") or 'raw_enrolled_html' in locals():
+                            enc_html = raw_enrolled_html if 'raw_enrolled_html' in locals() else open("enrolled.html", "r", encoding="utf-8").read()
+                            soup_enc = BeautifulSoup(enc_html, "html.parser")
+                            for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                                cols = tr.find_all("td")
+                                if len(cols) >= 4:
+                                    sh = cols[3].text.strip()
+                                    if sh.isdigit():
+                                        enrolled_ids.append(sh)
+
+                        soup_data = BeautifulSoup(raw_live_html, "html.parser")
+                        for tr in soup_data.find_all("tr"):
+                            cols = tr.find_all("td")
+                            if len(cols) >= 6:
+                                shuba_id = cols[2].text.strip()
+                                if shuba_id in enrolled_ids:
+                                    status_cell = cols[5]
+                                    status_cell['data-th'] = ""
+                                    status_cell.clear()
+                                    
+                                    new_span = soup_data.new_tag("span", style="color:red")
+                                    new_span.string = "مسجلة"
+                                    status_cell.append(new_span)
+
+                        updated_live_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(soup_data.find("tbody") or soup_data)
+                        st.session_state.live_html_data = updated_live_html
+                        # ---------------------------
+
+                        with open("data.html", "w", encoding="utf-8") as f:
+                            f.write(updated_live_html)
+                        with open("enrolled.html", "w", encoding="utf-8") as f:
+                            f.write(raw_enrolled_html)
                         
                         with open("data.html", "w", encoding="utf-8") as f:
                             f.write(raw_live_html)
