@@ -714,7 +714,7 @@ with st.sidebar:
                             
                         st.rerun() 
                             
-                        except Exception as e:
+                    except Exception as e:
                         # Smooth reset if the browser was already closed
                         if "SESSION_EXPIRED" in str(e) or "'NoneType'" in str(e):
                             st.session_state.live_driver = None
