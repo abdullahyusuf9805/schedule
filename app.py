@@ -440,6 +440,7 @@ st.markdown(
                 border-radius: 6px !important;
                 background-color: #1a1a1a !important;
                 overflow: hidden !important; 
+                margin-bottom: 12px !important; /* <--- Pushes the input boxes apart */
             }}
             
             /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
@@ -542,10 +543,15 @@ st.markdown(
                 line-height: 1.2 !important;
             }}
 
-            /* Shrink the huge empty space above and below the horizontal divider lines (---) */
+            /* Style the horizontal divider lines (---) to be bold and red */
             [data-testid="stSidebar"] hr {{
-                margin-top: 0.5rem !important;
-                margin-bottom: 0.5rem !important;
+                margin-top: 0.8rem !important;
+                margin-bottom: 0.8rem !important;
+                border-top: 3px solid #ff4b4b !important; /* <--- Thick red line */
+                border-bottom: none !important;
+                border-left: none !important;
+                border-right: none !important;
+                opacity: 1 !important; 
             }}
             </style>
             """,
