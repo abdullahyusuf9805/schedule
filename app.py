@@ -88,7 +88,7 @@ st.markdown(
             border-radius: 6px !important;
             background-color: #000000 !important;
             overflow: hidden !important; 
-            margin-bottom: 12px !important; 
+            margin-bottom: 0px !important; 
         }
         
         /* NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS */
@@ -245,7 +245,7 @@ st.markdown(
         padding-top: 0rem !important; 
     }}
     [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
-        gap: 0.8rem !important; 
+        gap: 0.4rem !important; 
     }}
 
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
