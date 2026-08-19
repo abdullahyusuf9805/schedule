@@ -162,8 +162,32 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# CAPTCHA CSS INJECTION
-captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
+# CAPTCHA CSS INJECTION (Inverted & Background Removed)
+captcha_b64 = ""
+if st.session_state.get("captcha_img_bytes"):
+    try:
+        image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
+        img = Image.open(image_stream).convert("RGB") 
+        # Invert colors (White background becomes black, dark text becomes bright)
+        inverted_img = ImageOps.invert(img)
+        rgba_img = inverted_img.convert("RGBA")
+        data = rgba_img.getdata()
+        
+        new_data = []
+        for item in data:
+            # Turn the new black background transparent
+            if item[0] < 60 and item[1] < 60 and item[2] < 60:
+                new_data.append((255, 255, 255, 0)) 
+            else:
+                new_data.append(item) 
+                
+        rgba_img.putdata(new_data)
+        buffered = io.BytesIO()
+        rgba_img.save(buffered, format="PNG") 
+        captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    except Exception:
+        captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
+
 st.markdown(
     f"""
     <style>
@@ -247,24 +271,16 @@ st.markdown(
     [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
         gap: 0.4rem !important; 
     }}
-
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2{{
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
         margin-top: 0 !important;
         margin-bottom: 0 !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
         line-height: 1.3 !important;
     }}
-
-        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 16px !important;
-    }}
-    
     </style>
     """,
     unsafe_allow_html=True
@@ -274,6 +290,7 @@ st.markdown(
 # ==========================================
 # 4. FUNCTIONS LOGIC
 # ==========================================
+
 def init_browser_and_get_captcha():
     options = Options()
     options.add_argument('--headless')
