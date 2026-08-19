@@ -215,7 +215,7 @@ st.markdown(
     [data-testid="stForm"] {{
         border: none !important;
         padding: 0 !important;
-        margin-top: 14px !important; 
+        margin-top: 0px !important; 
         background-color: transparent !important;
     }}
 
