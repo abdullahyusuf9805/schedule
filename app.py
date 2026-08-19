@@ -644,16 +644,6 @@ else:
                     st.stop()
 
     # 2. Build the Form using standard, natively perfectly aligned inputs
-    with st.sidebar.form(key="login_form", clear_on_submit=False):
-        
-        portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
-        
-        portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
-        
-        # This is now a SINGLE native box. The CSS above magically paints the inverted image inside its right edge!
-        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
-        
-        submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
         
     # 3. Handle Submit
     if submit_form:
