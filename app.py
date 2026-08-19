@@ -626,7 +626,7 @@ def push_to_github(repo, file_path, content, commit_message):
 # 5. SIDEBAR - FETCH PORTAL DATA (CONTAINER)
 # ==========================================
 with st.sidebar.container(border=True):
-    st.markdown("🌐 Sync Data From Portal")
+    st.markdown("### 🌐 Sync Data From Portal")
     
     # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
