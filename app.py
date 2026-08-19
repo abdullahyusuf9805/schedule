@@ -603,7 +603,7 @@ with st.sidebar:
                         with open("enrolled.html", "w", encoding="utf-8") as f:
                             f.write(raw_enrolled_html)
 
-                        # --- PARSE ENROLLED.HTML AND UPDATE DATA.HTML STATUS ---
+                        # --- ROBUST ENROLLED STATUS UPDATER ---
                         enrolled_list = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
                         
                         if not enrolled_list and os.path.exists("enrolled.html"):
@@ -623,7 +623,10 @@ with st.sidebar:
                                 if len(cols) >= 6:
                                     shuba_id = cols[2].text.strip()
                                     if shuba_id in enrolled_list:
-                                        cols[5].string = "Registered"
+                                        # Force clear inner tags and set text safely
+                                        status_cell = cols[5]
+                                        status_cell.clear()
+                                        status_cell.string = "Registered"
                                         
                             updated_live_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(soup_data.find("tbody") or soup_data)
                             st.session_state.live_html_data = updated_live_html
