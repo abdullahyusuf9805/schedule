@@ -140,12 +140,23 @@ st.markdown(
             background-color: transparent !important;
         }
         
-        /* 5. FORM LAYOUT & CLEANUP */
+        /* 5. FORM LAYOUT & CLEANUP - REMOVE GAPS */
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
-            margin-top: -12px !important; 
+            margin-top: -15px !important; 
             background-color: transparent !important;
+        }
+
+        /* Collapse empty spacing blocks inside the sidebar form */
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
+            margin-top: 0px !important;
+            margin-bottom: 0px !important;
+        }
+
+        /* Keep the green spacing intact for the main section divider */
+        hr {
+            margin: 15px 0 15px 0 !important;
         }
 
         /* Completely delete the "Press Enter to submit form" text */
