@@ -653,7 +653,7 @@ with st.sidebar.container(border=True):
             if os.path.exists("error_screenshot.png"):
                 os.remove("error_screenshot.png")
                 
-            with st.spinner("Connecting To https://sso.iu.edu.sa"):
+            with st.spinner("Connecting to sso.iu.edu.sa"):
                 try:
                     init_browser_and_get_captcha()
                     st.rerun()
