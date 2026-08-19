@@ -566,40 +566,40 @@ with st.sidebar:
                         )
 
                         # 1. Parse enrolled.html first
+                       # 1. Parse enrolled.html first to get registered Shuba IDs
                         enrolled_ids = []
                         if auto_enrolled:
                             enrolled_ids = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
                         
                         if not enrolled_ids and raw_enrolled_html:
                             soup_enc = BeautifulSoup(raw_enrolled_html, "html.parser")
-                            for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-                                cols = tr.find_all("td")
-                                if len(cols) >= 4:
-                                    sh = cols[3].text.strip()
-                                    if sh.isdigit():
-                                        enrolled_ids.append(sh)
+                            for tr in soup_enc.find_all("tr"):
+                                text_chunks = [td.text.strip() for td in tr.find_all("td")]
+                                for chunk in text_chunks:
+                                    if chunk.isdigit() and len(chunk) >= 4:
+                                        enrolled_ids.append(chunk)
 
-                        # 2. Parse data.html, find matching Shuba ID, and force status replacement
+                        # 2. Parse raw_live_html (data.html) and update rows containing enrolled Shuba IDs
                         soup_data = BeautifulSoup(raw_live_html, "html.parser")
                         for tr in soup_data.find_all("tr"):
-                            cols = tr.find_all("td")
-                            if len(cols) >= 6:
-                                # Column index 2 typically holds the Shuba/Course ID
-                                shuba_id = cols[2].text.strip()
-                                if shuba_id in enrolled_ids:
-                                    # Target the status cell (cols[5]) and inject your exact markup
-                                    status_cell = cols[5]
-                                    status_cell.clear()
-                                    status_cell['data-th'] = ""
-                                    
-                                    # Append the exact span requested
-                                    new_content = BeautifulSoup('<span style="color:red">مسجلة</span>', "html.parser")
-                                    status_cell.append(new_content)
+                            row_text = tr.get_text()
+                            # Check if any enrolled Shuba ID belongs to this row
+                            for sh_id in enrolled_ids:
+                                if sh_id in row_text:
+                                    cols = tr.find_all("td")
+                                    if len(cols) >= 6:
+                                        # Target the status cell directly
+                                        status_cell = cols[5]
+                                        status_cell['data-th'] = ""
+                                        status_cell.clear()
+                                        
+                                        # Inject the exact HTML structure you wanted
+                                        new_span = soup_data.new_tag("span", style="color:red")
+                                        new_span.string = "مسجلة"
+                                        status_cell.append(new_span)
+                                        break
 
                         updated_live_html = f"<!-- SYNC_TIME: {time_match.group(1) if 'time_match' in locals() and time_match else datetime.now().strftime('%d/%m/%Y at %I:%M %p')} -->\n" + str(soup_data.find("tbody") or soup_data)
-
-
-
                         
 
 
