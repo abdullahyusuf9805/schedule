@@ -475,24 +475,33 @@ st.sidebar.markdown(
             background-color: #1a6e47 !important;
         }
 
-        /* FORCE Streamlit columns to sit side-by-side on the exact same line */
+        /* --- THE FIX: PERFECT VERTICAL ALIGNMENT --- */
+        /* Force the row to center items exactly in the middle */
         [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
             display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
+            align-items: center !important; 
         }
-        
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-            width: unset !important;
-            flex: 1 1 auto !important;
-            min-width: 0 !important;
+
+        /* Remove sneaky top/bottom padding added by Streamlit columns */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Strip the default paragraph margin that pushes the image down */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] p {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex;
+            align-items: center;
         }
 
         /* Lock CAPTCHA image proportions */
         [data-testid="stSidebar"] img {
             height: 46px !important;
             width: 120px !important;
-            min-width: 120px !important;
             max-width: 120px !important;
             object-fit: fill !important;
             border-radius: 6px !important;
@@ -541,7 +550,7 @@ else:
         with col_img:
             if captcha_b64:
                 st.markdown(
-                    f'<div style="display: flex; align-items: center; justify-content: flex-end; height: 46px;">'
+                    f'<div style="display: flex; align-items: center; justify-content: flex-end; margin: 0; padding: 0;">'
                     f'<img src="data:image/png;base64,{captcha_b64}" />'
                     f'</div>',
                     unsafe_allow_html=True
@@ -600,7 +609,7 @@ else:
                         st.session_state.live_driver = None
                     st.session_state.waiting_for_captcha = False
                     st.stop()
-
+                    
 # Last Update On:
 st.sidebar.markdown(
     f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
