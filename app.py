@@ -277,12 +277,13 @@ def init_browser_and_get_captcha():
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.get("live_driver")
     if not driver:
-        raise Exception("Browser session expired or failed to initialize. Please click 'Login And Scrap Data from Portal' again.")
+        raise Exception("SESSION_EXPIRED")
 
     try:
         text_inputs = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
         )
+        
         user_field = text_inputs[0]
         captcha_input = text_inputs[-1] 
         pass_field = driver.find_element(By.XPATH, "//input[@type='password']")
@@ -713,14 +714,27 @@ with st.sidebar:
                             
                         st.rerun() 
                             
-                    except Exception as e:
+                        except Exception as e:
+                        # Smooth reset if the browser was already closed
+                        if "SESSION_EXPIRED" in str(e) or "'NoneType'" in str(e):
+                            st.session_state.live_driver = None
+                            st.session_state.waiting_for_captcha = False
+                            st.warning("⚠️ Session expired or previous attempt failed. Refreshing...")
+                            time.sleep(2)
+                            st.rerun()
+                            
+                        # Show normal errors if it's an actual scraping failure
                         import traceback
                         error_details = traceback.format_exc()
                         st.sidebar.error(f"Detailed Error:\n{error_details}")
                         
-                        if st.session_state.live_driver:
-                            st.session_state.live_driver.quit()
+                        if st.session_state.get("live_driver"):
+                            try:
+                                st.session_state.live_driver.quit()
+                            except:
+                                pass
                             st.session_state.live_driver = None
+                            
                         st.session_state.waiting_for_captcha = False
                         st.stop()
 
