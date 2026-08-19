@@ -415,27 +415,20 @@ captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8
 st.sidebar.markdown(
     """
     <style>
-        /* Default state (no cursor): Clear visible gray border */
+        /* Default state (no cursor): Force the gray border using box-shadow */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
-            border: 1px solid #888888 !important; 
-            border-top-color: #888888 !important;
-            border-bottom-color: #888888 !important;
-            border-left-color: #888888 !important;
-            border-right-color: #888888 !important;
+            border: none !important; /* Strip Streamlit's hidden zero-width borders */
+            box-shadow: 0 0 0 1px #888888 !important; /* The guaranteed gray border */
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             height: 46px !important; 
             min-height: 46px !important;
+            transition: box-shadow 0.2s ease-in-out; /* Smooth transition */
         }
         
         /* Active state (with cursor): Red focus border */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-            border: 1px solid #ff4b4b !important; 
-            border-top-color: #ff4b4b !important;
-            border-bottom-color: #ff4b4b !important;
-            border-left-color: #ff4b4b !important;
-            border-right-color: #ff4b4b !important;
-            box-shadow: 0 0 0 1px #ff4b4b !important;
+            box-shadow: 0 0 0 1px #ff4b4b !important; /* Switches to red */
         }
 
         /* Text inside inputs */
