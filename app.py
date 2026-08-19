@@ -411,13 +411,13 @@ import base64
 
 # Convert CAPTCHA bytes for CSS background injection
 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
+
 st.sidebar.markdown(
     """
     <style>
-        /* 1. THE BREAKTHROUGH: Apply the border to the OUTERMOST widget shell */
-        /* Streamlit's engine cannot block this because it is outside their BaseWeb styling */
+        /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
         [data-testid="stSidebar"] div[data-testid="stTextInput"] {
-            border: 1px solid #777777 !important; /* THE GUARANTEED GRAY BORDER */
+            border: 1px solid #777777 !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             overflow: hidden !important; 
@@ -429,9 +429,13 @@ st.sidebar.markdown(
             box-shadow: 0 0 0 1px #ff4b4b !important;
         }
 
-        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders */
+        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders, EVEN ON FOCUS */
         [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {
             border: none !important;
             background-color: transparent !important;
             box-shadow: none !important;
@@ -459,8 +463,17 @@ st.sidebar.markdown(
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
         }
+        
+        /* 5. FORM LAYOUT & CLEANUP */
+        /* Form container border removal & Top Gap Equalizer */
+        [data-testid="stForm"] {
+            border: none !important;
+            padding: 0 !important;
+            margin-top: 14px !important; /* Pushes the form down to match the gap above the button */
+            background-color: transparent !important;
+        }
 
-        /* Completely delete the "Press Enter to submit form" text */
+        /* Completely delete the "Press Enter to submit form" text and ghost spacing */
         [data-testid="stSidebar"] [data-testid="InputInstructions"], 
         [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {
             display: none !important;
@@ -470,15 +483,7 @@ st.sidebar.markdown(
             width: 0 !important;
         }
         
-        /* Form container border removal & Top Gap Equalizer */
-        [data-testid="stForm"] {
-            border: none !important;
-            padding: 0 !important;
-            margin-top: 14px !important; /* <--- This pushes the form down to match Gap 2 */
-            background-color: transparent !important;
-        }
-        
-        /* Primary Button */
+        /* 6. PRIMARY BUTTON STYLING */
         [data-testid="stSidebar"] button[kind="primary"] {
             background-color: #ff4b4b !important; 
             border: none !important;
