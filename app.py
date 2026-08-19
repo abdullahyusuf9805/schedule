@@ -519,35 +519,35 @@ st.markdown(
                 background-color: #ff3333 !important;
             }}
 
-            /* =========================================
-               7. CRUSH STREAMLIT'S DEFAULT GAPS 
+          /* =========================================
+               7. REFINED UX & SPACING (Clean & Modern)
                ========================================= */
                
-            /* Nuke the massive blank space at the very top of the sidebar */
+            /* Keep the top flush so the header aligns nicely */
             [data-testid="stSidebarUserContent"] {{
                 padding-top: 0rem !important; 
             }}
 
-            /* Shrink the invisible gap Streamlit forces between stacked elements */
+            /* Relax the gaps slightly so elements aren't suffocating */
             [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
-                gap: 0.3rem !important; 
+                gap: 0.8rem !important; 
             }}
 
-            /* Destroy the default margins around text, headers, and paragraphs */
+            /* Clean typography spacing */
             [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
             [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
             [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
             [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
                 margin-top: 0 !important;
                 margin-bottom: 0 !important;
-                line-height: 1.2 !important;
+                line-height: 1.3 !important;
             }}
 
-            /* Style the horizontal divider lines (---) to be bold and red */
+            /* Subtle, professional dividers with generous breathing room */
             [data-testid="stSidebar"] hr {{
-                margin-top: 0.8rem !important;
-                margin-bottom: 0.8rem !important;
-                border-top: 3px solid #ff4b4b !important; /* <--- Thick red line */
+                margin-top: 1.5rem !important;
+                margin-bottom: 1.5rem !important;
+                border-top: 1px solid #333333 !important; /* <--- Subtle dark gray line */
                 border-bottom: none !important;
                 border-left: none !important;
                 border-right: none !important;
