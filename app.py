@@ -511,7 +511,7 @@ if not st.session_state.waiting_for_captcha:
         if os.path.exists("error_screenshot.png"):
             os.remove("error_screenshot.png")
             
-        with st.spinner(""):
+        with st.sidebar.spinner("Connecting to University Portal"):
             try:
                 init_browser_and_get_captcha()
                 st.rerun()
