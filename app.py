@@ -77,6 +77,10 @@ st.markdown(
             text-align: center;
         }
         
+        /* =========================================
+           UI TIGHTENING CSS (Squish Elements in Card) 
+           ========================================= */
+        
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 1rem 0.8rem 0.5rem 0.8rem !important;
             background-color: #1a1a1a !important;
@@ -85,21 +89,28 @@ st.markdown(
             margin-bottom: 12px !important;
         }
 
+        /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
         [data-testid="stSidebar"] div[data-testid="stTextInput"] {
             border: 1px solid #777777 !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             overflow: hidden !important; 
-            margin-bottom: -10px !important; 
+            margin-bottom: 4px !important; 
         }
             
+        /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
         [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {
             border: 1px solid #ff4b4b !important;
             box-shadow: 0 0 0 1px #ff4b4b !important;
         }
 
+        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
         [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {
             border: none !important;
             background-color: transparent !important;
             box-shadow: none !important;
@@ -107,6 +118,7 @@ st.markdown(
             border-radius: 0px !important; 
         }
 
+        /* 4. TEXT INPUT STYLING */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             color: #ffffff !important;
             background-color: transparent !important; 
@@ -118,25 +130,25 @@ st.markdown(
             box-shadow: none !important;
         }
 
+        /* Placeholder text color */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
             color: #888888 !important; 
         }
 
+        /* Keep the password eye icon background transparent */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
         }
         
-        [data-testid="stSidebar"] [data-testid="stForm"] [data-testid="stVerticalBlock"] {
-            gap: 0rem !important;
-        }
-
+        /* 5. FORM LAYOUT & CLEANUP */
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
-            margin-top: -15px !important; 
+            margin-top: 0px !important; 
             background-color: transparent !important;
         }
 
+        /* Completely delete the "Press Enter to submit form" text */
         [data-testid="stSidebar"] [data-testid="InputInstructions"], 
         [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {
             display: none !important;
@@ -146,6 +158,7 @@ st.markdown(
             width: 0 !important;
         }
         
+        /* 6. PRIMARY BUTTON STYLING */
         [data-testid="stSidebar"] button[kind="primary"] {
             background-color: #ff4b4b !important; 
             border: none !important;
@@ -159,6 +172,10 @@ st.markdown(
         [data-testid="stSidebar"] button[kind="primary"]:hover {
             background-color: #ff3333 !important;
         }
+        
+        /* =========================================
+           NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
+           ========================================= */
         
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
@@ -176,9 +193,14 @@ st.markdown(
             visibility: hidden !important;
         }
 
+        div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
+            background-color: #555555 !important;
+        }
+
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
+        
     </style>
 """,
     unsafe_allow_html=True,
@@ -202,7 +224,7 @@ updated_str = time_match.group(1) if time_match else "No data file found"
 
 def init_browser_and_get_captcha():
     options = Options()
-    options.add_argument('--headless=new')
+    options.add_argument('--headless')
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
@@ -243,10 +265,7 @@ def init_browser_and_get_captcha():
 
 
 def submit_captcha_and_scrape(username, password, captcha_val):
-    driver = st.session_state.get("live_driver")
-    if not driver:
-        raise Exception("SESSION_EXPIRED")
-
+    driver = st.session_state.live_driver
     try:
         text_inputs = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
@@ -280,48 +299,53 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             EC.url_contains("homeIndex.faces")
         )
         
-        electronic_reg_menu = WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]"))
+        time.sleep(2)
+        
+        # --- ROBUST MENU FINDER ---
+        electronic_reg_menu = WebDriverWait(driver, 30).until(
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(1.5) 
+        time.sleep(2.0) 
 
-        # Scrape Already Enrolled Courses
-        try:
-            enrolled_menu = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
-            )
-            driver.execute_script("arguments[0].click();", enrolled_menu)
-            time.sleep(4) 
-            
-            soup_enrolled = BeautifulSoup(driver.page_source, "html.parser")
-            enrolled_tbody = None
-            for tbody in soup_enrolled.find_all("tbody"):
-                first_tr = tbody.find("tr")
-                if first_tr and first_tr.has_attr("class") and len(first_tr["class"]) > 0 and first_tr["class"][0] in ["ROW1", "ROW2"]:
-                    enrolled_tbody = tbody
-                    break
-                    
-            enrolled_ids = []
-            if enrolled_tbody:
-                for tr in enrolled_tbody.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-                    cols = tr.find_all("td")
-                    if len(cols) >= 4:
-                        shuba = cols[3].text.strip()
-                        if shuba.isdigit():
-                            enrolled_ids.append(shuba)
-                            
-            enrolled_str = ", ".join(enrolled_ids)
-            raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
+        # Click "المقررات المسجلة" (Enrolled Courses)
+        enrolled_menu = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المسجلة') or contains(text(), 'Enrolled')]"))
+        )
+        driver.execute_script("arguments[0].click();", enrolled_menu)
+        time.sleep(4) 
+        
+        soup_enrolled = BeautifulSoup(driver.page_source, "html.parser")
+        
+        enrolled_tbody = None
+        for tbody in soup_enrolled.find_all("tbody"):
+            first_tr = tbody.find("tr")
+            if first_tr and first_tr.has_attr("class") and len(first_tr["class"]) > 0 and first_tr["class"][0] in ["ROW1", "ROW2"]:
+                enrolled_tbody = tbody
+                break
+                
+        enrolled_ids = []
+        if enrolled_tbody:
+            for tr in enrolled_tbody.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                cols = tr.find_all("td")
+                if len(cols) >= 4:
+                    shuba = cols[3].text.strip()
+                    if shuba.isdigit():
+                        enrolled_ids.append(shuba)
+                        
+        enrolled_str = ", ".join(enrolled_ids)
+        raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-            driver.execute_script("arguments[0].click();", electronic_reg_menu)
-            time.sleep(1.5)
-        except Exception:
-            enrolled_str = ""
-            raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
+        # Open Menu Again
+        electronic_reg_menu = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
+        )
+        driver.execute_script("arguments[0].click();", electronic_reg_menu)
+        time.sleep(2.0)
 
+        # Click "المقررات المطروحة وفق الخطة" (Course Plan)
         course_plan_menu = WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المطروحة') or contains(text(), 'Course Plan') or contains(text(), 'Plan')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
@@ -345,11 +369,7 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         return final_html, raw_enrolled_html, enrolled_str
         
     finally:
-        if driver:
-            try:
-                driver.quit()
-            except:
-                pass
+        driver.quit()
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
 
@@ -361,19 +381,6 @@ def parse_html_to_dataframe(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     extracted_rows = []
 
-    # Get enrolled IDs from session state or enrolled.html
-    enrolled_ids = []
-    if st.session_state.get("auto_enrolled"):
-        enrolled_ids = [s.strip() for s in st.session_state.auto_enrolled.split(",") if s.strip()]
-    elif os.path.exists("enrolled.html"):
-        with open("enrolled.html", "r", encoding="utf-8") as f:
-            soup_enc = BeautifulSoup(f.read(), "html.parser")
-            for tr in soup_enc.find_all("tr"):
-                for td in tr.find_all("td"):
-                    t = td.text.strip()
-                    if t.isdigit() and len(t) >= 4:
-                        enrolled_ids.append(t)
-
     rows = soup.find_all("tr")
     for row in rows:
         cols = row.find_all("td")
@@ -383,13 +390,7 @@ def parse_html_to_dataframe(html_content):
         code = cols[0].text.strip()
         name = cols[1].text.strip()
         course_id = cols[2].text.strip()
-        
-        # Runtime assignment: If Shuba ID is enrolled, mark as Registered
-        if course_id in enrolled_ids:
-            status = "Registered"
-        else:
-            status_span = cols[5].find("span")
-            status = status_span.text.strip() if status_span else cols[5].text.strip()
+        status = cols[5].text.strip()
 
         instructor_input = cols[6].find(
             "input", id=lambda x: x and x.endswith(":instructor")
@@ -479,11 +480,12 @@ if "captcha_img_bytes" not in st.session_state:
     st.session_state.captcha_img_bytes = None
 
 # ==========================================
-# MASTER SIDEBAR LAYOUT
+# MASTER SIDEBAR LAYOUT (PHASE 1 & PHASE 2)
 # ==========================================
 with st.sidebar:
     st.markdown("<h3 style='margin-bottom: 0px; color: white;'>🌐 Fetch Data From University Portal</h3>", unsafe_allow_html=True)
     
+    # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
         if st.button("Login And Scrap Data from Portal", use_container_width=True):
             if os.path.exists("error_screenshot.png"):
@@ -503,11 +505,13 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
+    # --- PHASE 2: The UI Form & Transparent Inversion Handler ---
     else:
         import base64
         import io
         from PIL import Image
         
+        # Bulletproof Grayscale-Masking Inversion & Background Removal
         if st.session_state.get("captcha_img_bytes"):
             try:
                 image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
@@ -522,10 +526,10 @@ with st.sidebar:
                 gray_data = gray_img.getdata()
                 
                 for pixel in gray_data:
-                    if pixel < 180:
-                        new_data.append((255, 255, 255, 255))
+                    if pixel < 180:  # Dark text threshold
+                        new_data.append((255, 255, 255, 255))  # Crisp white text
                     else:
-                        new_data.append((255, 255, 255, 0))
+                        new_data.append((255, 255, 255, 0))   # Transparent background
                         
                 new_image.putdata(new_data)
                 
@@ -533,7 +537,7 @@ with st.sidebar:
                 new_image.save(buffered, format="PNG")
                 captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
                 
-            except Exception:
+            except Exception as e:
                 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
                 
             st.markdown(
@@ -551,6 +555,7 @@ with st.sidebar:
                 unsafe_allow_html=True
             )
 
+        # Build the Form
         with st.form(key="login_form", clear_on_submit=False):
             portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
             portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
@@ -564,6 +569,7 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
             
+        # Handle Form Submission
         if submit_form:
             if not portal_user or not portal_pass:
                 st.error("Please enter your Student ID and Password.")
@@ -580,7 +586,6 @@ with st.sidebar:
                             st.session_state.portal_pass, 
                             user_captcha
                         )
-
                         st.session_state.live_html_data = raw_live_html
                         st.session_state.auto_enrolled = auto_enrolled
                         
@@ -599,7 +604,7 @@ with st.sidebar:
                             except Exception as github_e:
                                 st.warning(f"Saved locally, but GitHub push failed: {github_e}")
                         else:
-                            st.success("✅ Saved locally.")
+                            st.success("✅ Saved locally (GitHub secrets not configured).")
                         
                         if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
@@ -607,27 +612,19 @@ with st.sidebar:
                         st.rerun() 
                             
                     except Exception as e:
-                        if "SESSION_EXPIRED" in str(e) or "'NoneType'" in str(e):
-                            st.session_state.live_driver = None
-                            st.session_state.waiting_for_captcha = False
-                            st.warning("⚠️ Session expired. Refreshing...")
-                            time.sleep(2)
-                            st.rerun()
-                            
-                        import traceback
-                        error_details = traceback.format_exc()
-                        st.sidebar.error(f"Detailed Error:\n{error_details}")
-                        
-                        if st.session_state.get("live_driver"):
-                            try:
-                                st.session_state.live_driver.quit()
-                            except:
-                                pass
+                        st.error(f"Sync failed: {e}")
+                        if st.session_state.live_driver:
+                            st.session_state.live_driver.quit()
                             st.session_state.live_driver = None
                         st.session_state.waiting_for_captcha = False
                         st.stop()
 
+    # Subtle sidebar divider separating fetch and export sections
     st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
+
+    # ==========================================
+    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
+    # ==========================================
 
     # ==========================================
     # EXPORT RAW DATA (EXCEL)
