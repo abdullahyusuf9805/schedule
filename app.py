@@ -492,6 +492,23 @@ st.sidebar.markdown(
         [data-testid="stSidebar"] button[kind="primary"]:hover {{
             background-color: #1a6e47 !important;
         }}
+
+        /* Force the column containing the image to align tightly */
+        [data-testid="stSidebar"] [data-testid="column"]:has(img) {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        /* Lock CAPTCHA image size to match the 46px input height perfectly */
+        [data-testid="stSidebar"] img {
+            height: 46px !important;
+            max-height: 46px !important;
+            object-fit: fill !important;
+            border-radius: 6px !important;
+            border: 1px solid #ffffff !important;
+            background-color: #ffffff !important;
+        }
         
         /* Hide regular image component since it's now embedded inside the input box */
         [data-testid="stSidebar"] [data-testid="stImage"] {{
