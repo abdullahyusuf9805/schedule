@@ -269,7 +269,7 @@ st.markdown(
         padding-top: 0rem !important; 
     }}
     [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
-        gap: 0.4rem !important; 
+        gap: 0.2rem !important; 
     }}
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
