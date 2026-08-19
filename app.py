@@ -95,7 +95,7 @@ st.markdown(
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             overflow: hidden !important; 
-            margin-bottom: -6px !important; /* <--- NEGATIVE MARGIN CLOSES THE GAP COMPLETELY */
+            margin-bottom: -6px !important; 
         }
             
         /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
@@ -144,7 +144,7 @@ st.markdown(
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
-            margin-top: -12px !important; /* <--- PULLS THE FORM UP TOWARDS THE HEADER */
+            margin-top: -12px !important; 
             background-color: transparent !important;
         }
 
@@ -224,7 +224,7 @@ updated_str = time_match.group(1) if time_match else "No data file found"
 
 def init_browser_and_get_captcha():
     options = Options()
-    options.add_argument('--headless')
+    options.add_argument('--headless=new')
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
@@ -263,6 +263,7 @@ def init_browser_and_get_captcha():
         driver.quit()
         raise Exception(f"Failed to initialize login page. {str(e)}")
 
+
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.live_driver
     try:
@@ -294,15 +295,12 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
-        # Wait until the page URL matches and document state is ready
         WebDriverWait(driver, 35).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        # Give extra time for JS/Frames to render in headless mode
         time.sleep(3)
 
-        # Handle potential iframes if the menu is embedded inside a frame block
         frames = driver.find_elements(By.TAG_NAME, "iframe")
         if frames:
             try:
@@ -310,14 +308,13 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             except:
                 pass
         
-        # --- ROBUST MENU FINDER WITH MULTIPLE FALLBACKS ---
+        # --- ROBUST MENU FINDER ---
         electronic_reg_menu = WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
         time.sleep(2.0) 
 
-        # Click "المقررات المسجلة" (Enrolled Courses)
         enrolled_menu = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المسجلة') or contains(text(), 'Enrolled')]"))
         )
@@ -345,17 +342,14 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         enrolled_str = ", ".join(enrolled_ids)
         raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-        # Switch back to default content just in case we shifted frames
         driver.switch_to.default_content()
 
-        # Open Menu Again
         electronic_reg_menu = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'التسجيل') or contains(text(), 'Electronic') or contains(@id, 'eregister') or contains(@href, 'eregister')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
         time.sleep(2.0)
 
-        # Click "المقررات المطروحة وفق الخطة" (Course Plan)
         course_plan_menu = WebDriverWait(driver, 25).until(
             EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'المقررات المطروحة') or contains(text(), 'Course Plan') or contains(text(), 'Plan')]"))
         )
@@ -384,6 +378,7 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         driver.quit()
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
+
 
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
@@ -522,7 +517,6 @@ with st.sidebar:
         import io
         from PIL import Image
         
-        # Bulletproof Grayscale-Masking Inversion & Background Removal
         if st.session_state.get("captcha_img_bytes"):
             try:
                 image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
@@ -537,10 +531,10 @@ with st.sidebar:
                 gray_data = gray_img.getdata()
                 
                 for pixel in gray_data:
-                    if pixel < 180:  # Dark text threshold
-                        new_data.append((255, 255, 255, 255))  # Crisp white text
+                    if pixel < 180:
+                        new_data.append((255, 255, 255, 255))
                     else:
-                        new_data.append((255, 255, 255, 0))   # Transparent background
+                        new_data.append((255, 255, 255, 0))
                         
                 new_image.putdata(new_data)
                 
@@ -566,7 +560,6 @@ with st.sidebar:
                 unsafe_allow_html=True
             )
 
-        # Build the Form
         with st.form(key="login_form", clear_on_submit=False):
             portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
             portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
@@ -580,7 +573,6 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
             
-        # Handle Form Submission
         if submit_form:
             if not portal_user or not portal_pass:
                 st.error("Please enter your Student ID and Password.")
@@ -617,7 +609,7 @@ with st.sidebar:
                         else:
                             st.success("✅ Saved locally (GitHub secrets not configured).")
                         
-if os.path.exists("error_screenshot.png"):
+                        if os.path.exists("error_screenshot.png"):
                             os.remove("error_screenshot.png")
                             
                         st.rerun() 
@@ -625,8 +617,6 @@ if os.path.exists("error_screenshot.png"):
                     except Exception as e:
                         import traceback
                         error_details = traceback.format_exc()
-                        
-                        # This will print the full, readable Python error directly on your sidebar!
                         st.sidebar.error(f"Detailed Error:\n{error_details}")
                         
                         if st.session_state.live_driver:
@@ -638,9 +628,11 @@ if os.path.exists("error_screenshot.png"):
     # Subtle sidebar divider separating fetch and export sections
     st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
 
+    # ==========================================
+    # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
+    # ==========================================
     st.markdown("<h3 style='margin-bottom: 15px; color: white;'>📥 Export Raw Data</h3>", unsafe_allow_html=True)
     
-    # Read main data for export and filters
     raw_df = pd.DataFrame() 
     if st.session_state.live_html_data:
         raw_df = parse_html_to_dataframe(st.session_state.live_html_data)
@@ -675,9 +667,7 @@ if os.path.exists("error_screenshot.png"):
         except ModuleNotFoundError:
             st.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
 
-    # Subtle divider
     st.markdown("<hr style='border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
-
 
     # ==========================================
     # MASTER FILTERS SECTION
@@ -715,8 +705,6 @@ if os.path.exists("error_screenshot.png"):
             st.error("⚠️ The scraped data contains no valid schedule blocks. The university portal might be empty.")
             st.stop()
 
-
-        # 1. Day & Time Filter
         with st.expander("⏳ Filter By Day & Time", expanded=False):
             days_config = {
                 1: ("Sunday (Day 1)", True),
@@ -794,8 +782,6 @@ if os.path.exists("error_screenshot.png"):
         invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
         valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
-
-        # 2. Enrollment & Availability Overrides
         with st.expander("🛡️ Section Availability", expanded=False):
             enrolled_ids_str = st.session_state.get("auto_enrolled", "")
             enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
@@ -823,8 +809,6 @@ if os.path.exists("error_screenshot.png"):
                     else:
                         valid_blocks_df = valid_blocks_df[~closed_mask]
 
-
-        # 3. Global Hall & Shuba Rules
         with st.expander("🌍 Global Hall & Shuba Rules", expanded=False):
             all_halls = sorted(
                 [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
@@ -849,7 +833,6 @@ if os.path.exists("error_screenshot.png"):
                 "Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas"
             )
 
-        # Apply Hall filters
         if banned_halls:
             valid_blocks_df = valid_blocks_df[
                 ~valid_blocks_df["HALL"].astype(str).isin(banned_halls)
@@ -859,7 +842,6 @@ if os.path.exists("error_screenshot.png"):
                 valid_blocks_df["HALL"].astype(str).isin(required_halls)
             ]
 
-        # Apply Shuba filters
         if banned_shubas:
             valid_blocks_df = valid_blocks_df[
                 ~valid_blocks_df["ID"].astype(str).isin(banned_shubas)
@@ -869,9 +851,7 @@ if os.path.exists("error_screenshot.png"):
                 valid_blocks_df["ID"].astype(str).isin(required_shubas)
             ]
 
-        # 4. Subject-Specific Teacher Rules
         with st.expander("🛞 Specific Teachers Rules", expanded=False):
-            
             all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
             subject_rules = {}
             
@@ -899,7 +879,6 @@ if os.path.exists("error_screenshot.png"):
 
                     subject_rules[subj] = {"ban": banned_t, "require": required_t}
 
-        # Process the rules silently 
         for subj, rules in subject_rules.items():
             if rules["ban"]:
                 valid_blocks_df = valid_blocks_df[
@@ -920,7 +899,6 @@ if os.path.exists("error_screenshot.png"):
 # ==========================================
 # MAIN APP BODY: DATA GROUPING & SOLVER
 # ==========================================
-# Safety check before proceeding
 if not raw_df.empty and 'valid_blocks_df' in locals():
     sections_by_subject = {}
     for code, group in valid_blocks_df.groupby("CODE"):
@@ -1240,7 +1218,6 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
         
         col_zip, col_excel = st.columns(2)
         
-        # --- 1. ZIP JPG DOWNLOAD ---
         with col_zip:
             if st.button("Render All as JPGs (ZIP)", key="download_zip_btn", use_container_width=True):
                 with st.spinner("Drawing high-res images..."):
@@ -1258,7 +1235,6 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
                         use_container_width=True
                     )
                 
-        # --- 2. ALL SCHEDULES EXCEL DOWNLOAD ---
         with col_excel:
             try:
                 import openpyxl
@@ -1274,7 +1250,6 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
                             "TEACHER": s["teacher"],
                             "STATUS": s["status"],
                         } for s in sched])
-                        # Put each schedule on its own sheet in the Excel file
                         df_sched.to_excel(writer, index=False, sheet_name=f"Option_{i+1}")
                 
                 st.download_button(
