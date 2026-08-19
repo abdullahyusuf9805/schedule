@@ -543,11 +543,11 @@ st.markdown(
                 line-height: 1.3 !important;
             }}
 
-            /* Bold, white dividers with generous breathing room */
+            /* Elegant, modern section dividers */
             [data-testid="stSidebar"] hr {{
                 margin-top: 1.5rem !important;
                 margin-bottom: 1.5rem !important;
-                border-top: 3px solid #ffffff !important; /* <--- Changed from 1px to 3px for a BOLDER line */
+                border-top: 1px solid rgba(255, 255, 255, 0.15) !important; /* <--- Subtle, semi-transparent line */
                 border-bottom: none !important;
                 border-left: none !important;
                 border-right: none !important;
