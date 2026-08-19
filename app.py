@@ -475,10 +475,20 @@ st.sidebar.markdown(
             background-color: #1a6e47 !important;
         }
 
-        /* Perfectly align and lock CAPTCHA image height to 46px */
+        /* FORCE side-by-side row layout and prevent vertical drop */
+        [data-testid="stSidebar"] [data-testid="horizontal-stack"], 
+        [data-testid="stSidebar"] div:has(> [data-testid="column"]) {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        /* Lock CAPTCHA image proportions so it never stretches */
         [data-testid="stSidebar"] img {
             height: 46px !important;
-            max-height: 46px !important;
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
             object-fit: fill !important;
             border-radius: 6px !important;
             border: 1px solid #ffffff !important;
@@ -520,15 +530,15 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Side-by-Side Captcha Input & Image Badge
-        col_input, col_img = st.columns([1.3, 1], gap="small")
+        # 3. Side-by-Side Row
+        col_input, col_img = st.columns([2, 1.1], gap="small")
         with col_input:
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         with col_img:
             if captcha_b64:
                 st.markdown(
-                    f'<div style="display: flex; align-items: center; height: 46px;">'
-                    f'<img src="data:image/png;base64,{captcha_b64}" style="width: 100%; height: 46px; object-fit: fill; border-radius: 6px; border: 1px solid #ffffff; background-color: #ffffff;" />'
+                    f'<div style="display: flex; align-items: center; justify-content: flex-end; height: 46px;">'
+                    f'<img src="data:image/png;base64,{captcha_b64}" />'
                     f'</div>',
                     unsafe_allow_html=True
                 )
@@ -586,7 +596,6 @@ else:
                         st.session_state.live_driver = None
                     st.session_state.waiting_for_captcha = False
                     st.stop()
-
 
 # Last Update On:
 st.sidebar.markdown(
