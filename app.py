@@ -519,6 +519,10 @@ if not st.session_state.waiting_for_captcha:
 
 # --- PHASE 2: The UI Form ---
 else:
+    import base64
+    
+    encoded_captcha = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
+    
     with st.sidebar.form(key="login_form", clear_on_submit=False):
         # 1. ID Input
         portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
@@ -526,8 +530,44 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Captcha Input (The image is automatically rendered inside the right side via CSS!)
-        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
+        # 3. Native-styled wrapper box holding both the input and the inline image badge
+        st.markdown(
+            f"""
+            <div style="
+                display: flex;
+                align-items: center;
+                background-color: #1a1a1a;
+                border: 1px solid #ffffff;
+                border-radius: 6px;
+                height: 46px;
+                padding: 0 8px;
+                margin-bottom: 0px;
+            ">
+                <input type="text" name="embedded_captcha" placeholder="Enter Captcha Code" maxlength="5" style="
+                    background: transparent;
+                    border: none;
+                    outline: none;
+                    color: #ffffff;
+                    font-size: 15px;
+                    width: 100%;
+                    padding: 0;
+                ">
+                <img src="data:image/png;base64,{encoded_captcha}" style="
+                    height: 32px;
+                    width: 95px;
+                    object-fit: fill;
+                    border-radius: 4px;
+                    background-color: #ffffff;
+                    margin-left: 8px;
+                    flex-shrink: 0;
+                ">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+        # Hidden dummy text input to keep Streamlit happy in the backend state
+        user_captcha = st.text_input("HiddenCaptcha", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         
         # 4. Form Submit Button
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
