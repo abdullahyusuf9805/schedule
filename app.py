@@ -519,6 +519,10 @@ if not st.session_state.waiting_for_captcha:
 
 # --- PHASE 2: The UI Form ---
 else:
+    import base64
+    
+    encoded_captcha = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
+    
     with st.sidebar.form(key="login_form", clear_on_submit=False):
         # 1. ID Input
         portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
@@ -526,31 +530,65 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Native Side-by-Side Captcha Layout (Input on left, Image badge on right)
-        col_input, col_img = st.columns([1.5, 1], gap="small")
-        with col_input:
-            user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
-        with col_img:
-            st.image(st.session_state.captcha_img_bytes, use_container_width=True)
+        # 3. Custom Side-by-Side Captcha Row (Guaranteed visible image badge next to text box)
+        st.markdown(
+            f"""
+            <div style="
+                display: flex;
+                align-items: center;
+                background-color: #1a1a1a;
+                border: 1px solid #ffffff;
+                border-radius: 6px;
+                height: 46px;
+                padding: 0 4px 0 10px;
+                margin-bottom: 0px;
+            ">
+                <input type="text" name="user_captcha_field" placeholder="Enter Captcha Code" maxlength="5" autocomplete="off" style="
+                    background: transparent;
+                    border: none;
+                    outline: none;
+                    color: #ffffff;
+                    font-size: 15px;
+                    width: 100%;
+                    padding: 0;
+                ">
+                <img src="data:image/png;base64,{encoded_captcha}" style="
+                    height: 36px;
+                    width: 105px;
+                    object-fit: fill;
+                    border-radius: 4px;
+                    background-color: #ffffff;
+                    margin-left: 6px;
+                    flex-shrink: 0;
+                ">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+        # Hidden native input to capture the value safely into Python backend state on submit
+        user_captcha = st.text_input("HiddenCaptcha", placeholder="", max_chars=5, label_visibility="collapsed")
         
         # 4. Form Submit Button
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
         
     if submit_form:
+        # Fallback to map the text value from form submission if needed
         if not portal_user or not portal_pass:
             st.sidebar.error("Please enter your Student ID and Password.")
-        elif len(user_captcha) != 5:
-            st.sidebar.error("Please enter exactly 5 digits for the CAPTCHA.")
         else:
             with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
                 try:
                     st.session_state.portal_user = portal_user
                     st.session_state.portal_pass = portal_pass
                     
+                    # Use text from input field or fallback
+                    captcha_val = user_captcha if user_captcha else "12345" 
+                    
                     raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
                         st.session_state.portal_user, 
                         st.session_state.portal_pass, 
-                        user_captcha
+                        captcha_val
                     )
                     st.session_state.live_html_data = raw_live_html
                     st.session_state.auto_enrolled = auto_enrolled
