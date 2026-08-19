@@ -470,10 +470,11 @@ st.sidebar.markdown(
             width: 0 !important;
         }
         
-        /* Form container border removal */
+        /* Form container border removal & Top Gap Equalizer */
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
+            margin-top: 14px !important; /* <--- This pushes the form down to match Gap 2 */
             background-color: transparent !important;
         }
         
