@@ -520,6 +520,13 @@ if not st.session_state.waiting_for_captcha:
 
 # --- PHASE 2: The UI Form ---
 else:
+    import base64
+    
+    # Safely encode the CAPTCHA image bytes into a Base64 string for direct HTML/Markdown rendering
+    captcha_b64 = ""
+    if st.session_state.get("captcha_img_bytes"):
+        captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
+
     with st.sidebar.form(key="login_form", clear_on_submit=False):
         # 1. ID Input
         portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
@@ -527,13 +534,21 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Stable Side-by-Side Captcha Layout using Native Streamlit Columns
+        # 3. Stable Side-by-Side Layout using Markdown & Native Text Input in Columns
         col_input, col_img = st.columns([1.3, 1], gap="small")
         with col_input:
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         with col_img:
-            st.image(st.session_state.captcha_img_bytes, use_container_width=True)
-        
+            if captcha_b64:
+                st.markdown(
+                    f'<div style="display: flex; align-items: center; height: 46px;">'
+                    f'<img src="data:image/png;base64,{captcha_b64}" style="width: 100%; height: 42px; object-fit: fill; border-radius: 6px; border: 1px solid #ffffff; background-color: #ffffff;" />'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+            else:
+                st.warning("Loading...")
+
         # 4. Form Submit Button
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
         
@@ -585,7 +600,9 @@ else:
                         st.session_state.live_driver = None
                     st.session_state.waiting_for_captcha = False
                     st.stop()
-                    
+
+
+# Last Update On:
 st.sidebar.markdown(
     f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
     f"🕒 <b>Last Update:</b> {updated_str}"
