@@ -77,7 +77,7 @@ st.markdown(
         /* UI TIGHTENING CSS (Squish Elements in Card) */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 0.2rem 0.8rem 0.5rem 0.8rem !important;
-            background-color: #1a1a1a !important;
+            background-color: #000000 !important;
             border-radius: 8px !important;
             border: 1px solid #2a2a2a !important;
             margin-bottom: 12px !important;
@@ -86,7 +86,7 @@ st.markdown(
         [data-testid="stSidebar"] div[data-testid="stTextInput"] {
             border: 1px solid #777777 !important; 
             border-radius: 6px !important;
-            background-color: #1a1a1a !important;
+            background-color: #000000 !important;
             overflow: hidden !important; 
             margin-bottom: 12px !important; 
         }
@@ -1161,7 +1161,7 @@ else:
 
         for row_idx in range(11):
             hour = 8 + row_idx
-            bg_color = "#121212" if row_idx % 2 == 0 else "#1a1a1a"
+            bg_color = "#121212" if row_idx % 2 == 0 else "#000000"
             html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
             html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
