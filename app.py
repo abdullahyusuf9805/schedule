@@ -411,52 +411,34 @@ import base64
 
 # Convert CAPTCHA bytes for CSS background injection
 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
-
 st.sidebar.markdown(
     """
     <style>
-        /* 1. Base Wrapper: Strip away Streamlit's rules entirely */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
-            position: relative !important; /* Crucial for the hack below */
+        /* 1. THE BREAKTHROUGH: Apply the border to the OUTERMOST widget shell */
+        /* Streamlit's engine cannot block this because it is outside their BaseWeb styling */
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] {
+            border: 1px solid #777777 !important; /* THE GUARANTEED GRAY BORDER */
+            border-radius: 6px !important;
             background-color: #1a1a1a !important;
-            border: none !important; 
-            box-shadow: none !important;
-            border-radius: 6px !important;
-            height: 46px !important; 
-            min-height: 46px !important;
-        }
-
-        /* 2. THE NUCLEAR OPTION: We draw our OWN border box that Streamlit can't touch */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]::before {
-            content: "" !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            
-            /* THIS IS THE GRAY BORDER */
-            border: 1px solid #999999 !important; 
-            
-            border-radius: 6px !important;
-            pointer-events: none !important; /* Lets you click completely through it */
-            z-index: 10 !important; /* Forces it to sit on top */
-            box-sizing: border-box !important;
-            transition: border 0.2s ease-in-out !important;
+            overflow: hidden !important; 
         }
         
-        /* 3. Active State: Turn our custom box border Red when clicked */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within::before {
-            border: 2px solid #ff4b4b !important; /* Slightly thicker so it pops! */
+        /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
+        [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {
+            border: 1px solid #ff4b4b !important;
+            box-shadow: 0 0 0 1px #ff4b4b !important;
         }
 
-        /* Strip background/borders from the hidden inner containers */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="base-input"] {
-            background-color: transparent !important;
+        /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders */
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
             border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            outline: none !important;
         }
 
-        /* 4. Text inside inputs */
+        /* 4. TEXT INPUT STYLING */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             color: #ffffff !important;
             background-color: transparent !important; 
@@ -473,14 +455,11 @@ st.sidebar.markdown(
             color: #888888 !important; 
         }
 
-        /* Hide Streamlit's default button backgrounds and counters */
+        /* Keep the password eye icon background transparent */
         [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
         }
-        [data-testid="stSidebar"] div[data-testid="InputInstructions"] {
-            display: none !important;
-        }
-
+        
         /* Form container border removal */
         [data-testid="stForm"] {
             border: none !important;
