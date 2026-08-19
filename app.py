@@ -565,7 +565,7 @@ else:
         # This is now a SINGLE native box. The CSS above magically paints the inverted image inside its right edge!
         user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         
-        submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
+        submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
         
     # 3. Handle Submit
     if submit_form:
