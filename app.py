@@ -713,7 +713,7 @@ with st.sidebar.container(border=True):
             elif not user_captcha or len(user_captcha) != 5:
                 st.error("Please enter exactly 5 digits for the CAPTCHA.")
             else:
-                with st.spinner("Fetching Data From Portal (takes ~25s)"):
+                with st.spinner("Fetching Data From Portal"):
                     try:
                         st.session_state.portal_user = portal_user
                         st.session_state.portal_pass = portal_pass
