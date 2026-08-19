@@ -278,15 +278,15 @@ st.markdown(
         margin-bottom: 0 !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
-        line-height: 1.3 !important;
+        line-height: 1 !important;
     }}
 ,
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
-        margin-top: 0 !important;
+        margin-top: -1px !important;
         margin-bottom: 0 !important;
         padding-top: 0 !important;
         padding-bottom: 16px !important;
-        line-height: 1 !important;
+        line-height: !important;
     }}
     </style>
     """,
