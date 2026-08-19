@@ -430,6 +430,7 @@ st.sidebar.markdown(
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             height: 46px !important;
+            width: 100% !important;
             background-image: url("data:image/png;base64,{captcha_b64}") !important;
             background-repeat: no-repeat !important;
             background-position: right 8px center !important; /* Positions image on the right inside the box */
