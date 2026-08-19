@@ -520,7 +520,6 @@ if not st.session_state.waiting_for_captcha:
 
 # --- PHASE 2: The UI Form ---
 else:
-    # Wrap everything in a Form so the button captures all inputs instantly!
     with st.sidebar.form(key="login_form", clear_on_submit=False):
         # 1. ID Input
         portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
@@ -528,19 +527,16 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Captcha Row (Image on Left, Input on Right)
-        col_img, col_input = st.columns([1, 1.6], gap="small")
-        
+        # 3. Native Side-by-Side Captcha Layout
+        col_img, col_input = st.columns([1, 1.2], gap="small")
         with col_img:
             st.image(st.session_state.captcha_img_bytes, use_container_width=True)
-            
         with col_input:
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         
         # 4. Form Submit Button
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
         
-    # The scraping logic triggers immediately when the form button is clicked
     if submit_form:
         if not portal_user or not portal_pass:
             st.sidebar.error("Please enter your Student ID and Password.")
@@ -549,7 +545,6 @@ else:
         else:
             with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
                 try:
-                    # Save credentials back to memory for the scraper function
                     st.session_state.portal_user = portal_user
                     st.session_state.portal_pass = portal_pass
                     
@@ -561,13 +556,11 @@ else:
                     st.session_state.live_html_data = raw_live_html
                     st.session_state.auto_enrolled = auto_enrolled
                     
-                    # 1. ALWAYS write locally 
                     with open("data.html", "w", encoding="utf-8") as f:
                         f.write(raw_live_html)
                     with open("enrolled.html", "w", encoding="utf-8") as f:
                         f.write(raw_enrolled_html)
                         
-                    # 2. Push BOTH to GitHub
                     if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
                         try:
                             g = Github(st.secrets["GITHUB_TOKEN"])
@@ -592,6 +585,7 @@ else:
                         st.session_state.live_driver = None
                     st.session_state.waiting_for_captcha = False
                     st.stop()
+                
                     
 st.sidebar.markdown(
     f"<p style='color: #a0a0a0; font-size: 0.9rem; margin-top: -12px; margin-bottom: 20px;'>"
