@@ -530,7 +530,8 @@ st.markdown(
         )
 
 
-with st.sidebar.expander("🌐 Fetch Data From University Portal", expanded=False):
+st.sidebar.subheader("🌐 Fetch Data From University Portal")
+with st.sidebar.container():
 
     # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
@@ -688,7 +689,8 @@ if raw_df is None or raw_df.empty:
 # ==========================================
 # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
 # ==========================================
-with st.sidebar.expander("📥 Export Raw Data", expanded=False):
+st.sidebar.subheader("📥 Export Raw Data")
+with st.sidebar.container():
     try:
         current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
         excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
