@@ -645,8 +645,6 @@ with st.sidebar.expander("🌐 Fetch Data From University Portal", expanded=Fals
                             st.session_state.live_driver.quit()
                             st.session_state.live_driver = None
                         st.session_state.waiting_for_captcha = False
-                        st.stop()
-
 # Last Update Label tucked neatly under the first expander
 st.sidebar.markdown(
     f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 5px; margin-bottom: 20px; text-align: center;'>"
@@ -654,6 +652,8 @@ st.sidebar.markdown(
     f"</p>",
     unsafe_allow_html=True,
 )
+                        
+                        st.stop()
 
 # Read main data
 raw_df = pd.DataFrame() 
