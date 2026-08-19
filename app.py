@@ -488,8 +488,9 @@ def push_to_github(repo, file_path, content, commit_message):
 # ==========================================
 # 5. SIDEBAR - FETCH PORTAL DATA (CONTAINER)
 # ==========================================
-st.sidebar.subheader("🌐 Fetch Data From University Portal")
-with st.sidebar.container():
+with st.sidebar.container(border=True):
+    st.markdown("### 🌐 Fetch Data From University Portal")
+    
     # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
         if st.button("Login And Scrap Data from Portal", use_container_width=True):
@@ -640,8 +641,8 @@ if raw_df is None or raw_df.empty:
 # ==========================================
 # 7. SIDEBAR - EXPORT DATA (CONTAINER)
 # ==========================================
-st.sidebar.subheader("📥 Export Raw Data")
-with st.sidebar.container():
+with st.sidebar.container(border=True):
+    st.markdown("### 📥 Export Raw Data")
     try:
         current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
         excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
