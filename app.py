@@ -843,11 +843,11 @@ if parsed_df.empty:
 # ==========================================
 with st.sidebar.expander("⚙️ Filter By Day & Time", expanded=False):
     days_config = {
-        1: ("Sunday (Day 1)", True),
-        2: ("Monday (Day 2)", True),
-        3: ("Tuesday (Day 3)", True),
-        4: ("Wednesday (Day 4)", True),
-        5: ("Thursday (Day 5)", True),
+        1: ("1 Sunday", True),
+        2: ("2 Monday", True),
+        3: ("3 Tuesday", True),
+        4: ("4 Wednesday", True),
+        5: ("5 Thursday", True),
     }
 
     day_filters = {}
@@ -885,7 +885,7 @@ with st.sidebar.expander("⚙️ Filter By Day & Time", expanded=False):
 
             else:
                 st.slider(
-                    "Hours", 8, 18, (8, 18), 
+                    "Hours", 8, 17, (8, 12), 
                     format="%02d",
                     disabled=True, 
                     key=f"slide_dis_{day_num}", 
@@ -917,7 +917,6 @@ def is_valid_time(row):
 parsed_df["is_valid"] = parsed_df.apply(is_valid_time, axis=1)
 invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
 valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
-
 
 # ==========================================
 # 9B. ENROLLMENT & AVAILABILITY OVERRIDES
