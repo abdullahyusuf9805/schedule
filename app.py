@@ -134,6 +134,12 @@ st.markdown(
 )
 
 st.title("Dynamic Timetable Generator")
+        st.markdown(
+            f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 15px; margin-bottom: 0px; text-align: center;'>"
+            f"<b>Last Update:</b> {updated_str}"
+            f"</p>",
+            unsafe_allow_html=True,
+        )
 
 html_content = ""
 if st.session_state.get("live_html_data"):
@@ -547,12 +553,7 @@ with st.sidebar.container():
                     st.error(f"Error: {e}")
                     
         # Tucked nicely INSIDE the Phase 1 block
-        st.markdown(
-            f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 15px; margin-bottom: 0px; text-align: center;'>"
-            f"<b>Last Update:</b> {updated_str}"
-            f"</p>",
-            unsafe_allow_html=True,
-        )
+
 
     # --- PHASE 2: The UI Form ---
     else:
