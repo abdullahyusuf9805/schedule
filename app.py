@@ -247,16 +247,18 @@ st.markdown(
     [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
         gap: 0.8rem !important; 
     }}
+
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
         margin-top: 0 !important;
         margin-bottom: 0 !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
         line-height: 1.3 !important;
-    }
+    }}
+    
     </style>
     """,
     unsafe_allow_html=True
