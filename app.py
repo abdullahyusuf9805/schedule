@@ -89,10 +89,14 @@ st.markdown(
             margin-bottom: 12px !important;
         }
 
-        [data-testid="stSidebar"] [data-testid="stTextInput"] {
-            margin-top: -10px !important;
-            margin-bottom: 0px !important;
-        }
+        /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
+            [data-testid="stSidebar"] div[data-testid="stTextInput"] {{
+                border: 1px solid #777777 !important; 
+                border-radius: 6px !important;
+                background-color: #1a1a1a !important;
+                overflow: hidden !important; 
+                margin-bottom: 12px !important; /* <--- THIS PUSHES THE BOXES APART */
+            }}
         
         /* =========================================
            NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
