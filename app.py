@@ -526,8 +526,8 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Native Side-by-Side Captcha Layout (Single Row Columns)
-        col_input, col_img = st.columns([1.5, 1], gap="small")
+        # 3. Stable Side-by-Side Captcha Layout using Native Streamlit Columns
+        col_input, col_img = st.columns([1.3, 1], gap="small")
         with col_input:
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         with col_img:
