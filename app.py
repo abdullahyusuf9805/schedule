@@ -78,7 +78,7 @@ st.markdown(
         
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 1rem 0.8rem 0.5rem 0.8rem !important;
-            background-color: #1a1a1a !important;
+            background-color: #000000 !important;
             border-radius: 8px !important;
             border: 1px solid #2a2a2a !important;
             margin-bottom: 12px !important;
