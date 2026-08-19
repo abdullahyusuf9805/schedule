@@ -413,38 +413,25 @@ import base64
 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
 
 st.sidebar.markdown(
-    f"""
+    """
     <style>
         /* 1. Target the WRAPPER for Student ID and Password */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {{
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
             border: 1px solid #ffffff !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             height: 46px !important; 
             min-height: 46px !important;
-        }}
+        }
         
-        /* 2. Special styling for the CAPTCHA input box to embed the image on the right */
-        [data-testid="stSidebar"] div[data-baseweb="input"]:has(input[aria-label="CAPTCHA"]) {{
-            border: 1px solid #ffffff !important;
-            border-radius: 6px !important;
-            background-color: #1a1a1a !important;
-            height: 46px !important;
-            width: 100% !important;
-            background-image: url("data:image/png;base64,{captcha_b64}") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 8px center !important; /* Positions image on the right inside the box */
-            background-size: 100px 32px !important; /* Exact size of the badge */
-        }}
-
         /* Green focus border */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {{
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
             border: 1px solid #1d8a59 !important; 
             box-shadow: 0 0 0 1px #1d8a59 !important;
-        }}
+        }
 
         /* Text inside inputs */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             color: #ffffff !important;
             background-color: transparent !important; 
             height: 44px !important; 
@@ -453,33 +440,28 @@ st.sidebar.markdown(
             border: none !important; 
             outline: none !important;
             box-shadow: none !important;
-        }}
+        }
 
-        /* Make CAPTCHA input text leave room on the right so it doesn't type under the image */
-        [data-testid="stSidebar"] input[aria-label="CAPTCHA"] {{
-            padding-right: 115px !important; 
-        }}
-
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
             color: #888888 !important; 
-        }}
+        }
 
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
             background-color: transparent !important;
-        }}
+        }
         
-        [data-testid="stSidebar"] div[data-testid="InputInstructions"] {{
+        [data-testid="stSidebar"] div[data-testid="InputInstructions"] {
             display: none !important;
-        }}
+        }
 
-        [data-testid="stForm"] {{
+        [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
             background-color: transparent !important;
-        }}
+        }
         
         /* Primary Button */
-        [data-testid="stSidebar"] button[kind="primary"] {{
+        [data-testid="stSidebar"] button[kind="primary"] {
             background-color: #1d8a59 !important;
             border: none !important;
             color: #ffffff !important;
@@ -488,19 +470,12 @@ st.sidebar.markdown(
             border-radius: 6px !important;
             padding: 12px !important;
             margin-top: 4px !important;
-        }}
-        [data-testid="stSidebar"] button[kind="primary"]:hover {{
+        }
+        [data-testid="stSidebar"] button[kind="primary"]:hover {
             background-color: #1a6e47 !important;
-        }}
-
-        /* Force the column containing the image to align tightly */
-        [data-testid="stSidebar"] [data-testid="column"]:has(img) {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
         }
 
-        /* Lock CAPTCHA image size to match the 46px input height perfectly */
+        /* Perfectly align and lock CAPTCHA image height to 46px */
         [data-testid="stSidebar"] img {
             height: 46px !important;
             max-height: 46px !important;
@@ -509,11 +484,6 @@ st.sidebar.markdown(
             border: 1px solid #ffffff !important;
             background-color: #ffffff !important;
         }
-        
-        /* Hide regular image component since it's now embedded inside the input box */
-        [data-testid="stSidebar"] [data-testid="stImage"] {{
-            display: none !important;
-        }}
     </style>
     """,
     unsafe_allow_html=True
@@ -539,7 +509,6 @@ if not st.session_state.waiting_for_captcha:
 else:
     import base64
     
-    # Safely encode the CAPTCHA image bytes into a Base64 string for direct HTML/Markdown rendering
     captcha_b64 = ""
     if st.session_state.get("captcha_img_bytes"):
         captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
@@ -551,7 +520,7 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Stable Side-by-Side Layout using Markdown & Native Text Input in Columns
+        # 3. Side-by-Side Captcha Input & Image Badge
         col_input, col_img = st.columns([1.3, 1], gap="small")
         with col_input:
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
@@ -559,7 +528,7 @@ else:
             if captcha_b64:
                 st.markdown(
                     f'<div style="display: flex; align-items: center; height: 46px;">'
-                    f'<img src="data:image/png;base64,{captcha_b64}" style="width: 100%; height: 42px; object-fit: fill; border-radius: 6px; border: 1px solid #ffffff; background-color: #ffffff;" />'
+                    f'<img src="data:image/png;base64,{captcha_b64}" style="width: 100%; height: 46px; object-fit: fill; border-radius: 6px; border: 1px solid #ffffff; background-color: #ffffff;" />'
                     f'</div>',
                     unsafe_allow_html=True
                 )
