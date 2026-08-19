@@ -269,7 +269,6 @@ st.markdown(
         padding-top: 0rem !important; 
     }}
     [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
-        gap: 0.2rem !important; 
     }}
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
@@ -282,7 +281,7 @@ st.markdown(
     }}
 ,
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
-        margin-top: -1px !important;
+        margin-top: 0px !important;
         margin-bottom: 0 !important;
         padding-top: 0 !important;
         padding-bottom: 16px !important;
@@ -531,7 +530,7 @@ def push_to_github(repo, file_path, content, commit_message):
 # 5. SIDEBAR - FETCH PORTAL DATA (CONTAINER)
 # ==========================================
 with st.sidebar.container(border=True):
-    st.markdown("### 🌐 Sync Data From Portal")
+    st.markdown("🌐 Sync Data From Portal")
     
     # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
