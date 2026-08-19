@@ -543,16 +543,17 @@ st.markdown(
                 line-height: 1.3 !important;
             }}
 
-            /* Subtle, professional dividers with generous breathing room */
+            /* Bold, white dividers with generous breathing room */
             [data-testid="stSidebar"] hr {{
                 margin-top: 1.5rem !important;
                 margin-bottom: 1.5rem !important;
-                border-top: 1px solid #ffffff !important; /* <--- Subtle dark gray line */
+                border-top: 3px solid #ffffff !important; /* <--- Changed from 1px to 3px for a BOLDER line */
                 border-bottom: none !important;
                 border-left: none !important;
                 border-right: none !important;
                 opacity: 1 !important; 
             }}
+            
             </style>
             """,
             unsafe_allow_html=True
