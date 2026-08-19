@@ -475,30 +475,48 @@ st.sidebar.markdown(
             background-color: #1a6e47 !important;
         }
 
-        /* --- THE FIX: PERFECT VERTICAL ALIGNMENT --- */
-        /* Force the row to center items exactly in the middle */
+        /* --- THE ULTIMATE ALIGNMENT & SIZING FIX --- */
+        
+        /* 1. Force the row to use Flexbox with a CONSTANT 10px gap */
         [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
             display: flex !important;
-            align-items: center !important; 
+            flex-direction: row !important;
+            align-items: center !important; /* Perfect vertical centering */
+            gap: 10px !important; /* Gap never changes */
         }
 
-        /* Remove sneaky top/bottom padding added by Streamlit columns */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div {
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            display: flex;
-            align-items: center;
+        /* 2. Left Column (Input Box): Expands to fill available space */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(1) {
+            width: auto !important;
+            flex: 1 1 auto !important;
         }
 
-        /* Strip the default paragraph margin that pushes the image down */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] p {
+        /* 3. Right Column (Image): Strictly locked width, never stretches */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) {
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+            flex: 0 0 120px !important;
+        }
+
+        /* 4. Strip invisible padding/margins from Streamlit's inner wrappers */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] > [data-testid="stVerticalBlock"] {
             margin: 0 !important;
             padding: 0 !important;
-            display: flex;
-            align-items: center;
+            gap: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
-        /* Lock CAPTCHA image proportions */
+        /* 5. Remove the hidden paragraph margin that pushes the image down */
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+        }
+
+        /* Lock the Captcha Image proportions perfectly */
         [data-testid="stSidebar"] img {
             height: 46px !important;
             width: 120px !important;
@@ -543,16 +561,15 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Side-by-Side Row
-        col_input, col_img = st.columns([2, 1.1], gap="small")
+        # 3. Side-by-Side Row (CSS perfectly controls the widths and gap now)
+        col_input, col_img = st.columns(2) 
         with col_input:
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         with col_img:
             if captcha_b64:
+                # Raw image tag, stripped of all containers to ensure it aligns perfectly
                 st.markdown(
-                    f'<div style="display: flex; align-items: center; justify-content: flex-end; margin: 0; padding: 0;">'
-                    f'<img src="data:image/png;base64,{captcha_b64}" />'
-                    f'</div>',
+                    f'<img src="data:image/png;base64,{captcha_b64}" />',
                     unsafe_allow_html=True
                 )
             else:
