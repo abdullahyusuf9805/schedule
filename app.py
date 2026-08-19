@@ -409,130 +409,130 @@ import base64
 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
 
 st.markdown(
-            f"""
-            <style>
-            /* Targets our specific CAPTCHA text input */
-            [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
-                background-image: url("data:image/png;base64,{captcha_b64}") !important;
-                background-position: right 6px center !important;
-                background-size: 106px 34px !important;
-                background-repeat: no-repeat !important;
-                padding-right: 120px !important; 
-            }}
-            
-            /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] {{
-                border: 1px solid #777777 !important; 
-                border-radius: 6px !important;
-                background-color: #1a1a1a !important;
-                overflow: hidden !important; 
-                margin-bottom: 12px !important; 
-            }}
-            
-            /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {{
-                border: 1px solid #ff4b4b !important;
-                box-shadow: 0 0 0 1px #ff4b4b !important;
-            }}
+                f"""
+                <style>
+                /* Targets our specific CAPTCHA text input */
+                [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
+                    background-image: url("data:image/png;base64,{captcha_b64}") !important;
+                    background-position: right 6px center !important;
+                    background-size: 106px 34px !important;
+                    background-repeat: no-repeat !important;
+                    padding-right: 120px !important; 
+                }}
+                
+                /* 1. THE BREAKTHROUGH: Apply the default gray border to the OUTERMOST widget shell */
+                [data-testid="stSidebar"] div[data-testid="stTextInput"] {{
+                    border: 1px solid #777777 !important; 
+                    border-radius: 6px !important;
+                    background-color: #1a1a1a !important;
+                    overflow: hidden !important; 
+                    margin-bottom: 4px !important; /* <--- SQUISHED GAP */
+                }}
+                
+                /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
+                [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {{
+                    border: 1px solid #ff4b4b !important;
+                    box-shadow: 0 0 0 1px #ff4b4b !important;
+                }}
 
-            /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
-            [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {{
-                border: none !important;
-                background-color: transparent !important;
-                box-shadow: none !important;
-                outline: none !important;
-                border-radius: 0px !important; 
-            }}
+                /* 3. STRIP THE INSIDE: Completely disarm Streamlit's hidden inner borders & radii */
+                [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
+                [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+                [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+                [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+                [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
+                [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {{
+                    border: none !important;
+                    background-color: transparent !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                    border-radius: 0px !important; 
+                }}
 
-            /* 4. TEXT INPUT STYLING */
-            [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
-                color: #ffffff !important;
-                background-color: transparent !important; 
-                height: 44px !important; 
-                padding: 10px 12px !important;
-                font-size: 15px !important;
-                border: none !important; 
-                outline: none !important;
-                box-shadow: none !important;
-            }}
+                /* 4. TEXT INPUT STYLING */
+                [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
+                    color: #ffffff !important;
+                    background-color: transparent !important; 
+                    height: 44px !important; 
+                    padding: 10px 12px !important;
+                    font-size: 15px !important;
+                    border: none !important; 
+                    outline: none !important;
+                    box-shadow: none !important;
+                }}
 
-            /* Placeholder text color */
-            [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
-                color: #888888 !important; 
-            }}
+                /* Placeholder text color */
+                [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
+                    color: #888888 !important; 
+                }}
 
-            /* Keep the password eye icon background transparent */
-            [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
-                background-color: transparent !important;
-            }}
-            
-            /* 5. FORM LAYOUT & CLEANUP */
-            /* Form container border removal & Top Gap Equalizer */
-            [data-testid="stForm"] {{
-                border: none !important;
-                padding: 0 !important;
-                margin-top: 14px !important; 
-                background-color: transparent !important;
-            }}
+                /* Keep the password eye icon background transparent */
+                [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
+                    background-color: transparent !important;
+                }}
+                
+                /* 5. FORM LAYOUT & CLEANUP */
+                /* Form container border removal & Top Gap Equalizer */
+                [data-testid="stForm"] {{
+                    border: none !important;
+                    padding: 0 !important;
+                    margin-top: 0px !important; /* <--- SQUISHED GAP */
+                    background-color: transparent !important;
+                }}
 
-            /* Completely delete the "Press Enter to submit form" text */
-            [data-testid="stSidebar"] [data-testid="InputInstructions"], 
-            [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {{
-                display: none !important;
-                visibility: hidden !important;
-                opacity: 0 !important;
-                height: 0 !important;
-                width: 0 !important;
-            }}
-            
-            /* 6. PRIMARY BUTTON STYLING */
-            [data-testid="stSidebar"] button[kind="primary"] {{
-                background-color: #ff4b4b !important; 
-                border: none !important;
-                color: #ffffff !important;
-                font-weight: bold !important;
-                font-size: 16px !important;
-                border-radius: 6px !important;
-                padding: 12px !important;
-                margin-top: 4px !important;
-            }}
-            [data-testid="stSidebar"] button[kind="primary"]:hover {{
-                background-color: #ff3333 !important;
-            }}
+                /* Completely delete the "Press Enter to submit form" text */
+                [data-testid="stSidebar"] [data-testid="InputInstructions"], 
+                [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {{
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    height: 0 !important;
+                    width: 0 !important;
+                }}
+                
+                /* 6. PRIMARY BUTTON STYLING */
+                [data-testid="stSidebar"] button[kind="primary"] {{
+                    background-color: #ff4b4b !important; 
+                    border: none !important;
+                    color: #ffffff !important;
+                    font-weight: bold !important;
+                    font-size: 16px !important;
+                    border-radius: 6px !important;
+                    padding: 12px !important;
+                    margin-top: 4px !important;
+                }}
+                [data-testid="stSidebar"] button[kind="primary"]:hover {{
+                    background-color: #ff3333 !important;
+                }}
 
-          /* =========================================
-               7. REFINED UX & SPACING (Clean & Modern)
-               ========================================= */
-               
-            /* Keep the top flush so the header aligns nicely */
-            [data-testid="stSidebarUserContent"] {{
-                padding-top: 0rem !important; 
-            }}
+              /* =========================================
+                   7. REFINED UX & SPACING (Clean & Modern)
+                   ========================================= */
+                   
+                /* Keep the top flush so the header aligns nicely */
+                [data-testid="stSidebarUserContent"] {{
+                    padding-top: 0rem !important; 
+                }}
 
-            /* Relax the gaps slightly so elements aren't suffocating */
-            [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
-                gap: 0.8rem !important; 
-            }}
+                /* Relax the gaps slightly so elements aren't suffocating */
+                [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
+                    gap: 0.3rem !important; /* <--- SQUISHED GAP */
+                }}
 
-            /* Clean typography spacing */
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
-            [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
-                line-height: 1.3 !important;
-            }}
+                /* Clean typography spacing */
+                [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+                [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+                [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+                [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
+                    margin-top: 0 !important;
+                    margin-bottom: 0 !important;
+                    line-height: 1.3 !important;
+                }}
 
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
 
 # ==========================================
 # MASTER SIDEBAR LAYOUT
