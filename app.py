@@ -415,24 +415,30 @@ captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8
 st.sidebar.markdown(
     """
     <style>
-        /* Default state: INSET box-shadow guarantees Streamlit can't clip or hide it */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
-            border: 1px solid #888888 !important;
-            box-shadow: inset 0 0 0 1px #888888 !important; /* Draws the border on the INSIDE */
+        /* 1. Default state (no cursor): MAXIMUM SPECIFICITY with Outline */
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:not(:focus-within) {
+            border: 1px solid #777777 !important;
+            outline: 1px solid #777777 !important; /* Outline cannot be blocked by Streamlit */
+            outline-offset: -1px !important; /* Pulls it inside so it doesn't get clipped */
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             height: 46px !important; 
             min-height: 46px !important;
-            transition: all 0.2s ease-in-out;
         }
         
-        /* Active state (with cursor): Switches both inner and outer borders to Red */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
+        /* 2. Active state (with cursor): Red focus */
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
             border: 1px solid #ff4b4b !important;
-            box-shadow: inset 0 0 0 1px #ff4b4b, 0 0 0 1px #ff4b4b !important; 
+            outline: 1px solid #ff4b4b !important;
+            outline-offset: -1px !important;
+            box-shadow: none !important; 
+            border-radius: 6px !important;
+            background-color: #1a1a1a !important;
+            height: 46px !important; 
+            min-height: 46px !important;
         }
 
-        /* Text inside inputs */
+        /* 3. Text inside inputs */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input {
             color: #ffffff !important;
             background-color: transparent !important; 
@@ -444,6 +450,7 @@ st.sidebar.markdown(
             box-shadow: none !important;
         }
 
+        /* Placeholder text color */
         [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
             color: #888888 !important; 
         }
