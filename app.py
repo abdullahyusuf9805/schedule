@@ -255,7 +255,7 @@ st.markdown(
         margin-top: 0 !important;
         margin-bottom: 0 !important;
         padding-top: 0 !important;
-        padding-bottom: 0 !important;
+        padding-bottom: 4px !important;
         line-height: 1.3 !important;
     }}
     
