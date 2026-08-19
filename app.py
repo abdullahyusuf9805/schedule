@@ -922,7 +922,7 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 # ==========================================
 # 9B. ENROLLMENT & AVAILABILITY OVERRIDES
 # ==========================================
-with st.sidebar.expander("⚙ Filter By Availability", expanded=False):
+with st.sidebar.expander("⚙️ Filter By Availability", expanded=False):
     enrolled_ids_str = st.session_state.get("auto_enrolled", "")
     enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
 
@@ -937,17 +937,35 @@ with st.sidebar.expander("⚙ Filter By Availability", expanded=False):
                         enrolled_ids.append(sh)
 
     if "STATUS" in raw_df.columns:
-        auto_remove = st.checkbox("Remove Closed Sections", value=True)
-        protect_enrolled = st.checkbox("Mark enrolled sections as opened", value=True)
+        show_opened = st.checkbox("Opened", value=True)
+        show_enrolled = st.checkbox("Enrolled", value=True)
+        show_closed = st.checkbox("Closed", value=False)
         
-        if auto_remove:
-            closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
+        # Filter logic based on the 3 checkboxes
+        closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
+        is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids) if enrolled_ids else pd.Series(False, index=valid_blocks_df.index)
+
+        allowed_masks = []
+        
+        if show_opened:
+            # Opened sections are those that are NOT closed and NOT enrolled (or just normal open sections)
+            allowed_masks.append(~closed_mask & ~is_enrolled_mask)
             
-            if protect_enrolled and enrolled_ids:
-                is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
-                valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
-            else:
-                valid_blocks_df = valid_blocks_df[~closed_mask]
+        if show_enrolled:
+            # Enrolled sections bypass closeness checks completely
+            allowed_masks.append(is_enrolled_mask)
+            
+        if show_closed:
+            # Closed sections that are not already handled under enrolled
+            allowed_masks.append(closed_mask & ~is_enrolled_mask)
+
+        if allowed_masks:
+            final_mask = allowed_masks[0]
+            for m in allowed_masks[1:]:
+                final_mask = final_mask | m
+            valid_blocks_df = valid_blocks_df[final_mask]
+        else:
+            valid_blocks_df = valid_blocks_df.iloc[0:0] # Clear all if everything is unchecked
 
 
 # ==========================================
