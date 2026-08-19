@@ -602,6 +602,34 @@ with st.sidebar:
                             f.write(raw_live_html)
                         with open("enrolled.html", "w", encoding="utf-8") as f:
                             f.write(raw_enrolled_html)
+
+                        # --- PARSE ENROLLED.HTML AND UPDATE DATA.HTML STATUS ---
+                        enrolled_list = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
+                        
+                        if not enrolled_list and os.path.exists("enrolled.html"):
+                            with open("enrolled.html", "r", encoding="utf-8") as f:
+                                soup_enc = BeautifulSoup(f.read(), "html.parser")
+                                for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                                    cols = tr.find_all("td")
+                                    if len(cols) >= 4:
+                                        sh = cols[3].text.strip()
+                                        if sh.isdigit():
+                                            enrolled_list.append(sh)
+
+                        if enrolled_list:
+                            soup_data = BeautifulSoup(raw_live_html, "html.parser")
+                            for tr in soup_data.find_all("tr"):
+                                cols = tr.find_all("td")
+                                if len(cols) >= 6:
+                                    shuba_id = cols[2].text.strip()
+                                    if shuba_id in enrolled_list:
+                                        cols[5].string = "Registered"
+                                        
+                            updated_live_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(soup_data.find("tbody") or soup_data)
+                            st.session_state.live_html_data = updated_live_html
+                            with open("data.html", "w", encoding="utf-8") as f:
+                                f.write(updated_live_html)
+                        
                             
                         if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
                             try:
@@ -788,11 +816,12 @@ with st.sidebar:
         invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
         valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
-# 2. Enrollment & Availability Overrides (3 Status Support)
+# 2. Section Availability (3 Statuses: Open, Registered, Closed)
         with st.expander("🛡️ Section Availability (3 Statuses)", expanded=False):
             enrolled_ids_str = st.session_state.get("auto_enrolled", "")
             enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
 
+            # Fallback to enrolled.html parser check
             if not enrolled_ids and os.path.exists("enrolled.html"):
                 with open("enrolled.html", "r", encoding="utf-8") as f:
                     soup_enc = BeautifulSoup(f.read(), "html.parser")
@@ -803,30 +832,31 @@ with st.sidebar:
                             if sh.isdigit():
                                 enrolled_ids.append(sh)
 
-            # Categorize into the 3 precise statuses
             def assign_three_status_category(row):
-                if str(row["ID"]) in enrolled_ids:
-                    return "musajjala"  # Already registered by you
-                elif "مغلقة" in str(row["STATUS"]):
-                    return "muglaqa"    # Closed section
+                status_text = str(row["STATUS"]).lower()
+                if str(row["ID"]) in enrolled_ids or "registered" in status_text or "مسجلة" in status_text:
+                    return "registered"
+                elif "closed" in status_text or "مغلقة" in status_text:
+                    return "closed"
                 else:
-                    return "maftooha"   # Open section
+                    return "open"
                 
             valid_blocks_df["status_cat"] = valid_blocks_df.apply(assign_three_status_category, axis=1)
 
             st.markdown("<p style='color: #888888; font-size: 13px; margin-bottom: 8px;'>Select allowed section categories:</p>", unsafe_allow_html=True)
             
-            allow_maftooha = st.checkbox("🟢 Maftooha (Open)", value=True)
-            allow_musajjala = st.checkbox("🔵 Musajjala (Registered)", value=True)
-            allow_muglaqa = st.checkbox("🔴 Muglaqa (Closed)", value=False)
+            allow_open = st.checkbox("🟢 Open", value=True)
+            allow_registered = st.checkbox("🔵 Registered", value=True)
+            allow_closed = st.checkbox("🔴 Closed", value=False)
 
-            # Build inclusion mask based on the 3 toggles
             allowed_cats = []
-            if allow_maftooha: allowed_cats.append("maftooha")
-            if allow_musajjala: allowed_cats.append("musajjala")
-            if allow_muglaqa: allowed_cats.append("muglaqa")
+            if allow_open: allowed_cats.append("open")
+            if allow_registered: allowed_cats.append("registered")
+            if allow_closed: allowed_cats.append("closed")
 
             valid_blocks_df = valid_blocks_df[valid_blocks_df["status_cat"].isin(allowed_cats)]
+
+        
         with st.expander("🌍 Global Hall & Shuba Rules", expanded=False):
             all_halls = sorted(
                 [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
