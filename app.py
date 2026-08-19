@@ -475,15 +475,20 @@ st.sidebar.markdown(
             background-color: #1a6e47 !important;
         }
 
-        /* FORCE side-by-side row layout and prevent vertical drop */
-        [data-testid="stSidebar"] [data-testid="horizontal-stack"], 
-        [data-testid="stSidebar"] div:has(> [data-testid="column"]) {
+        /* FORCE Streamlit columns to sit side-by-side on the exact same line */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
             display: flex !important;
             align-items: center !important;
-            gap: 8px !important;
+            gap: 10px !important;
+        }
+        
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+            width: unset !important;
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
         }
 
-        /* Lock CAPTCHA image proportions so it never stretches */
+        /* Lock CAPTCHA image proportions */
         [data-testid="stSidebar"] img {
             height: 46px !important;
             width: 120px !important;
@@ -498,7 +503,6 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 st.sidebar.markdown("<h3 style='text-align: left; color: white;'>🌐 Fetch Data From University Portal</h3>", unsafe_allow_html=True)
 
