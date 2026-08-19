@@ -475,56 +475,54 @@ st.sidebar.markdown(
             background-color: #1a6e47 !important;
         }
 
-        /* --- THE ULTIMATE ALIGNMENT & SIZING FIX --- */
+        /* --- THE ULTIMATE ALIGNMENT FIX --- */
         
-        /* 1. Force the row to use Flexbox with a CONSTANT 10px gap */
+        /* Kill the "Collapsed" Ghost Label footprint that pushes the text input out of alignment */
+        [data-testid="stSidebar"] label[data-testid="stWidgetLabel"] {
+            display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Force the row to use Flexbox with a CONSTANT gap and perfect vertical centering */
         [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
             display: flex !important;
             flex-direction: row !important;
-            align-items: center !important; /* Perfect vertical centering */
-            gap: 10px !important; /* Gap never changes */
+            align-items: center !important; 
+            gap: 12px !important; 
         }
 
-        /* 2. Left Column (Input Box): Expands to fill available space */
+        /* Strip inner spacing from the columns */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stVerticalBlock"] {
+            gap: 0 !important;
+        }
+
+        /* Left Column (Input Box): Expands to fill space */
         [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(1) {
             width: auto !important;
             flex: 1 1 auto !important;
+            padding: 0 !important;
         }
 
-        /* 3. Right Column (Image): Strictly locked width, never stretches */
+        /* Right Column (Image): Locked width */
         [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) {
             width: 120px !important;
             min-width: 120px !important;
             max-width: 120px !important;
             flex: 0 0 120px !important;
-        }
-
-        /* 4. Strip invisible padding/margins from Streamlit's inner wrappers */
-        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] > [data-testid="stVerticalBlock"] {
-            margin: 0 !important;
             padding: 0 !important;
-            gap: 0 !important;
             display: flex !important;
             align-items: center !important;
-            justify-content: center !important;
         }
 
-        /* 5. Remove the hidden paragraph margin that pushes the image down */
-        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+        /* Obliterate the hidden paragraph margin that physically pushes the image down */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) p {
             margin: 0 !important;
             padding: 0 !important;
+            line-height: 1 !important;
             display: flex !important;
-        }
-
-        /* Lock the Captcha Image proportions perfectly */
-        [data-testid="stSidebar"] img {
-            height: 46px !important;
-            width: 120px !important;
-            max-width: 120px !important;
-            object-fit: fill !important;
-            border-radius: 6px !important;
-            border: 1px solid #ffffff !important;
-            background-color: #ffffff !important;
+            align-items: center !important;
         }
     </style>
     """,
@@ -561,17 +559,14 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Side-by-Side Row (CSS perfectly controls the widths and gap now)
+        # 3. Side-by-Side Row
         col_input, col_img = st.columns(2) 
         with col_input:
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         with col_img:
             if captcha_b64:
-                # Raw image tag, stripped of all containers to ensure it aligns perfectly
-                st.markdown(
-                    f'<img src="data:image/png;base64,{captcha_b64}" />',
-                    unsafe_allow_html=True
-                )
+                # Render the image with strict inline styling to guarantee 46px height and 120px width
+                st.markdown(f'<img src="data:image/png;base64,{captcha_b64}" style="height: 46px; width: 120px; object-fit: fill; border-radius: 6px; border: 1px solid #ffffff; background-color: #ffffff; display: block;" />', unsafe_allow_html=True)
             else:
                 st.warning("Loading...")
 
