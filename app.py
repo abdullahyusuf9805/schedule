@@ -498,16 +498,38 @@ if not st.session_state.waiting_for_captcha:
 # --- PHASE 2: The UI Form ---
 else:
     import base64
+    import io
+    from PIL import Image, ImageOps
     
-    # 1. Dynamically inject the CAPTCHA image into the background of the text box
+    # 1. Dynamically invert and inject the CAPTCHA image into the background of the text box
     if st.session_state.get("captcha_img_bytes"):
-        captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
+        try:
+            # Load the original image bytes into a Pillow Image
+            image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
+            
+            # Convert to standard RGB (required for the invert function to work safely)
+            img = Image.open(image_stream).convert("RGB") 
+            
+            # Invert the image colors (White becomes black, black becomes white, etc.)
+            inverted_img = ImageOps.invert(img)
+            
+            # Save the inverted image back to a bytes buffer
+            buffered = io.BytesIO()
+            inverted_img.save(buffered, format="PNG")
+            
+            # Encode the new, inverted image to Base64
+            captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+            
+        except Exception as e:
+            # Fallback to the original image just in case the inversion fails
+            captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
+            
         st.markdown(
             f"""
             <style>
             /* The aria-label^="CAPTCHA" targets our specific text input below */
             [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
-                /* Layer 1: The Captcha Image, Layer 2: A solid white background acting as a border */
+                /* Layer 1: The Inverted Captcha Image, Layer 2: A solid white background acting as a border */
                 background-image: 
                     url("data:image/png;base64,{captcha_b64}"),
                     linear-gradient(#ffffff, #ffffff) !important;
@@ -534,7 +556,7 @@ else:
         
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # This is now a SINGLE native box. The CSS above magically paints the image inside its right edge!
+        # This is now a SINGLE native box. The CSS above magically paints the inverted image inside its right edge!
         user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
