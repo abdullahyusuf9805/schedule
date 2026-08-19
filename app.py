@@ -622,8 +622,13 @@ with st.sidebar:
                             
                         st.rerun() 
                             
-                    except Exception as e:
-                        st.error(f"Sync failed: {e}")
+                        except Exception as e:
+                        import traceback
+                        error_details = traceback.format_exc()
+                        
+                        # This will print the full, readable Python error directly on your sidebar!
+                        st.sidebar.error(f"Detailed Error:\n{error_details}")
+                        
                         if st.session_state.live_driver:
                             st.session_state.live_driver.quit()
                             st.session_state.live_driver = None
