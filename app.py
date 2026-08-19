@@ -265,6 +265,7 @@ def init_browser_and_get_captcha():
 
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.live_driver
+
     try:
         text_inputs = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
@@ -280,87 +281,77 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         captcha_input.clear()
         captcha_input.send_keys(captcha_val)
         
-        time.sleep(0.5) 
+        time.sleep(0.5) # Let React digest the text
+        
+        # Press ENTER to submit form
         captcha_input.send_keys(Keys.RETURN)
         
         try:
             WebDriverWait(driver, 15).until(EC.url_contains("Dashboard"))
         except:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA.")
+            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA. (Note: The CAPTCHA expires if you wait too long to submit).")
             
         ksa_time = datetime.utcnow() + timedelta(hours=3)
         time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
             
+        # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
-        # Extended wait for JS rendering
-        WebDriverWait(driver, 45).until(
+        WebDriverWait(driver, 35).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        time.sleep(4)
-
-        # Handle iframes if present
-        frames = driver.find_elements(By.TAG_NAME, "iframe")
-        if frames:
-            try:
-                driver.switch_to.frame(frames[0])
-            except:
-                pass
-        
-        # --- BULLETPROOF LINK SELECTOR ---
-        # Targets links containing registration keywords or matching the frame source href
-        electronic_reg_menu = WebDriverWait(driver, 40).until(
-            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'eregister') or contains(@id, 'eregister') or contains(., 'التسجيل') or contains(., 'الارشاد')]"))
+        electronic_reg_menu = WebDriverWait(driver, 25).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(3.0) 
+        time.sleep(1.5) 
 
-        # Click "المقررات المسجلة" (Enrolled Courses)
-        enrolled_menu = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'enrolled') or contains(@id, 'enrolled') or contains(., 'المقررات المسجلة') or contains(., 'المسجلة')]"))
-        )
-        driver.execute_script("arguments[0].click();", enrolled_menu)
-        time.sleep(5) 
-        
-        soup_enrolled = BeautifulSoup(driver.page_source, "html.parser")
-        
-        enrolled_tbody = None
-        for tbody in soup_enrolled.find_all("tbody"):
-            first_tr = tbody.find("tr")
-            if first_tr and first_tr.has_attr("class") and len(first_tr["class"]) > 0 and first_tr["class"][0] in ["ROW1", "ROW2"]:
-                enrolled_tbody = tbody
-                break
-                
-        enrolled_ids = []
-        if enrolled_tbody:
-            for tr in enrolled_tbody.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-                cols = tr.find_all("td")
-                if len(cols) >= 4:
-                    shuba = cols[3].text.strip()
-                    if shuba.isdigit():
-                        enrolled_ids.append(shuba)
-                        
-        enrolled_str = ", ".join(enrolled_ids)
-        raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
+        # --- NEW: SCRAPE ALREADY ENROLLED COURSES FIRST ---
+        try:
+            enrolled_menu = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
+            )
+            driver.execute_script("arguments[0].click();", enrolled_menu)
+            time.sleep(4) 
+            
+            soup_enrolled = BeautifulSoup(driver.page_source, "html.parser")
+            enrolled_tbody = None
+            for tbody in soup_enrolled.find_all("tbody"):
+                first_tr = tbody.find("tr")
+                if first_tr and first_tr.has_attr("class") and len(first_tr["class"]) > 0 and first_tr["class"][0] in ["ROW1", "ROW2"]:
+                    enrolled_tbody = tbody
+                    break
+                    
+            enrolled_ids = []
+            if enrolled_tbody:
+                for tr in enrolled_tbody.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                    cols = tr.find_all("td")
+                    if len(cols) >= 4:
+                        shuba = cols[3].text.strip()
+                        if shuba.isdigit():
+                            enrolled_ids.append(shuba)
+                            
+            enrolled_str = ", ".join(enrolled_ids)
+            raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-        driver.switch_to.default_content()
+            # Re-open Electronic Registration menu to navigate to course plan
+            driver.execute_script("arguments[0].click();", electronic_reg_menu)
+            time.sleep(1.5)
+        except Exception as e:
+            # Fallback if enrolled menu fails so it doesn't block the core timetable scraping
+            enrolled_str = ""
+            raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-        # Open Menu Again
-        electronic_reg_menu = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'eregister') or contains(@id, 'eregister') or contains(., 'التسجيل') or contains(., 'الارشاد')]"))
-        )
-        driver.execute_script("arguments[0].click();", electronic_reg_menu)
-        time.sleep(3.0)
-
-        # Click "المقررات المطروحة وفق الخطة" (Course Plan)
-        course_plan_menu = WebDriverWait(driver, 30).until(
-            EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'plan') or contains(@id, 'plan') or contains(., 'المطروحة') or contains(., 'الخطة')]"))
+        # --- SCRAPE COURSE PLAN TIMETABLE ---
+        course_plan_menu = WebDriverWait(driver, 25).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
-        time.sleep(6)
+        # Wait 5 seconds for the table to load
+        time.sleep(5)
         
         soup = BeautifulSoup(driver.page_source, "html.parser")
         target_tbody = None
@@ -373,12 +364,12 @@ def submit_captcha_and_scrape(username, password, captcha_val):
                 
         if target_tbody is None:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Could not find the main timetable <tbody>.")
+            raise Exception("Could not find the <tbody> containing <tr class=>. The table did not load properly.")
             
         final_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(target_tbody)
         
         return final_html, raw_enrolled_html, enrolled_str
-        
+
     finally:
         driver.quit()
         st.session_state.live_driver = None
