@@ -144,7 +144,7 @@ st.markdown(
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
-            margin-top: 0px !important; 
+            margin-top: -12px !important; /* <--- PULLS THE FORM UP TOWARDS THE HEADER */
             background-color: transparent !important;
         }
 
