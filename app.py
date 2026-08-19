@@ -39,17 +39,6 @@ st.markdown(
             background-color: #000000;
             color: #ffffff;
         }
-        
-        /* Style the horizontal divider lines (---) to be bold and red */
-            [data-testid="stSidebar"] hr {{
-                margin-top: 0.8rem !important;
-                margin-bottom: 0.8rem !important;
-                border-top: 3px solid #ff4b4b !important; /* Makes it 3px thick and Red */
-                border-bottom: none !important;
-                border-left: none !important;
-                border-right: none !important;
-                opacity: 1 !important; /* Removes Streamlit's default faded/transparent look */
-            }}
 
         h1 {
             font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
@@ -228,32 +217,27 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             driver.save_screenshot("error_screenshot.png")
             raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA.")
             
-        # Generate our KSA timestamp once to inject into both files
         ksa_time = datetime.utcnow() + timedelta(hours=3)
         time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
             
-        # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
         WebDriverWait(driver, 35).until(
             EC.url_contains("homeIndex.faces")
         )
         
-        # 1. Open Menu
         electronic_reg_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]"))
         )
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
         time.sleep(1.5) 
 
-        # 2. Click "المقررات المسجلة" (Enrolled Courses)
         enrolled_menu = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
         )
         driver.execute_script("arguments[0].click();", enrolled_menu)
         time.sleep(4) 
         
-        # 3. Extract the Shuba IDs & save the raw enrolled HTML
         soup_enrolled = BeautifulSoup(driver.page_source, "html.parser")
         
         enrolled_tbody = None
@@ -275,12 +259,10 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         enrolled_str = ", ".join(enrolled_ids)
         raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
-        # 4. Open Menu Again
         electronic_reg_menu = driver.find_element(By.XPATH, "//a[contains(., 'التسجيل الإلكتروني') or contains(., 'Electronic')]")
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
         time.sleep(1.5)
 
-        # 5. Click "المقررات المطروحة وفق الخطة" (Course Plan)
         course_plan_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
         )
@@ -303,7 +285,6 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             
         final_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(target_tbody)
         
-        # We now return 3 items: Main Data, Enrolled Data, and Enrolled String
         return final_html, raw_enrolled_html, enrolled_str
         
     finally:
@@ -543,217 +524,132 @@ st.markdown(
                 line-height: 1.3 !important;
             }}
 
-            /* Elegant, modern section dividers */
-            [data-testid="stSidebar"] hr {{
-                margin-top: 1.5rem !important;
-                margin-bottom: 1.5rem !important;
-                border-top: 1px solid rgba(255, 255, 255, 0.15) !important; /* <--- Subtle, semi-transparent line */
-                border-bottom: none !important;
-                border-left: none !important;
-                border-right: none !important;
-                opacity: 1 !important; 
-            }}
-            
             </style>
             """,
             unsafe_allow_html=True
         )
 
-st.sidebar.markdown("<h3 style='text-align: left; color: white;'>🌐 Fetch Data From University Portal</h3>", unsafe_allow_html=True)
 
-# --- PHASE 1: Fetch Captcha Session ---
-if not st.session_state.waiting_for_captcha:
-    if st.sidebar.button("Login And Scrap Data from Portal", use_container_width=True):
-        if os.path.exists("error_screenshot.png"):
-            os.remove("error_screenshot.png")
-            
-        with st.sidebar.spinner("Connecting to University Portal"):
-            try:
-                init_browser_and_get_captcha()
-                st.rerun()
-            except Exception as e:
-                st.sidebar.error(f"Error: {e}")
+with st.sidebar.expander("🌐 Fetch Data From University Portal", expanded=False):
 
-# --- PHASE 2: The UI Form ---
-else:
-    import base64
-    import io
-    from PIL import Image, ImageOps
-    
-    # 1. Dynamically invert, remove background, and inject the CAPTCHA
-    if st.session_state.get("captcha_img_bytes"):
-        try:
-            # Load the original image bytes into a Pillow Image
-            image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
-            
-            # Convert to standard RGB (required for the invert function)
-            img = Image.open(image_stream).convert("RGB") 
-            
-            # Invert the image colors (White background becomes black)
-            inverted_img = ImageOps.invert(img)
-            
-            # Convert to RGBA so we can manipulate the Alpha (transparency) channel
-            rgba_img = inverted_img.convert("RGBA")
-            data = rgba_img.getdata()
-            
-            # Loop through pixels to make the black background transparent
-            new_data = []
-            for item in data:
-                # Find very dark pixels (the new background) and make them transparent
-                if item[0] < 50 and item[1] < 50 and item[2] < 50:
-                    new_data.append((255, 255, 255, 0)) # 0 Alpha = Transparent
-                else:
-                    new_data.append(item) # Keep the text and noise lines visible
-                    
-            rgba_img.putdata(new_data)
-            
-            # Save the transparent image back to a bytes buffer
-            buffered = io.BytesIO()
-            rgba_img.save(buffered, format="PNG") # PNG is required to keep transparency
-            
-            # Encode the new image to Base64
-            captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-            
-        except Exception as e:
-            # Fallback to the original image just in case processing fails
-            captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
-            
-        st.markdown(
-            f"""
-            <style>
-            /* Targets our specific CAPTCHA text input below */
-            [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
-                /* Just the transparent CAPTCHA image now! */
-                background-image: url("data:image/png;base64,{captcha_b64}") !important;
-                background-position: right 6px center !important;
-                background-size: 106px 34px !important;
-                background-repeat: no-repeat !important;
+    # --- PHASE 1: Fetch Captcha Session ---
+    if not st.session_state.waiting_for_captcha:
+        if st.button("Login And Scrap Data from Portal", use_container_width=True):
+            if os.path.exists("error_screenshot.png"):
+                os.remove("error_screenshot.png")
                 
-                /* Push the typing cursor left so user text doesn't overlap the image */
-                padding-right: 120px !important; 
-            }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # 2. Build the Form using standard, natively perfectly aligned inputs
-    with st.sidebar.form(key="login_form", clear_on_submit=False):
-        
-        portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
-        
-        portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
-        
-        # This SINGLE native box now dynamically paints the transparent image inside its right edge!
-        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
-        
-        submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
-        
-    # 3. Handle Submit
-    if submit_form:
-        if not portal_user or not portal_pass:
-            st.sidebar.error("Please enter your Student ID and Password.")
-        elif not user_captcha or len(user_captcha) != 5:
-            st.sidebar.error("Please enter exactly 5 digits for the CAPTCHA.")
-        else:
-            with st.sidebar.spinner("Fetching Data From Portal"):
+            with st.spinner("Connecting to University Portal"):
                 try:
-                    st.session_state.portal_user = portal_user
-                    st.session_state.portal_pass = portal_pass
-                    
-                    raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
-                        st.session_state.portal_user, 
-                        st.session_state.portal_pass, 
-                        user_captcha
-                    )
-                    st.session_state.live_html_data = raw_live_html
-                    st.session_state.auto_enrolled = auto_enrolled
-                    
-                    with open("data.html", "w", encoding="utf-8") as f:
-                        f.write(raw_live_html)
-                    with open("enrolled.html", "w", encoding="utf-8") as f:
-                        f.write(raw_enrolled_html)
-                        
-                    if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
-                        try:
-                            g = Github(st.secrets["GITHUB_TOKEN"])
-                            repo = g.get_repo(st.secrets["GITHUB_REPO"])
-                            push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
-                            push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
-                            st.sidebar.success("✅ Synced and pushed both files to GitHub!")
-                        except Exception as github_e:
-                            st.sidebar.warning(f"Saved locally, but GitHub push failed: {github_e}")
-                    else:
-                        st.sidebar.success("✅ Saved locally (GitHub secrets not configured).")
-                    
-                    if os.path.exists("error_screenshot.png"):
-                        os.remove("error_screenshot.png")
-                        
-                    st.rerun() 
-                        
+                    init_browser_and_get_captcha()
+                    st.rerun()
                 except Exception as e:
-                    st.sidebar.error(f"Sync failed: {e}")
-                    if st.session_state.live_driver:
-                        st.session_state.live_driver.quit()
-                        st.session_state.live_driver = None
-                    st.session_state.waiting_for_captcha = False
-                    st.stop()
+                    st.error(f"Error: {e}")
 
-    # 2. Build the Form using standard, natively perfectly aligned inputs
+    # --- PHASE 2: The UI Form ---
+    else:
+        import base64
+        import io
+        from PIL import Image, ImageOps
         
-    # 3. Handle Submit
-    if submit_form:
-        if not portal_user or not portal_pass:
-            st.sidebar.error("Please enter your Student ID and Password.")
-        elif not user_captcha or len(user_captcha) != 5:
-            st.sidebar.error("Please enter exactly 5 digits for the CAPTCHA.")
-        else:
-            with st.spinner("Scraping table and extracting <tbody>... (takes ~25s)"):
-                try:
-                    st.session_state.portal_user = portal_user
-                    st.session_state.portal_pass = portal_pass
-                    
-                    raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
-                        st.session_state.portal_user, 
-                        st.session_state.portal_pass, 
-                        user_captcha
-                    )
-                    st.session_state.live_html_data = raw_live_html
-                    st.session_state.auto_enrolled = auto_enrolled
-                    
-                    with open("data.html", "w", encoding="utf-8") as f:
-                        f.write(raw_live_html)
-                    with open("enrolled.html", "w", encoding="utf-8") as f:
-                        f.write(raw_enrolled_html)
-                        
-                    if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
-                        try:
-                            g = Github(st.secrets["GITHUB_TOKEN"])
-                            repo = g.get_repo(st.secrets["GITHUB_REPO"])
-                            push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
-                            push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
-                            st.sidebar.success("✅ Synced and pushed both files to GitHub!")
-                        except Exception as github_e:
-                            st.sidebar.warning(f"Saved locally, but GitHub push failed: {github_e}")
+        # 1. Dynamically invert, remove background, and inject the CAPTCHA
+        if st.session_state.get("captcha_img_bytes"):
+            try:
+                image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
+                img = Image.open(image_stream).convert("RGB") 
+                inverted_img = ImageOps.invert(img)
+                rgba_img = inverted_img.convert("RGBA")
+                data = rgba_img.getdata()
+                
+                new_data = []
+                for item in data:
+                    if item[0] < 50 and item[1] < 50 and item[2] < 50:
+                        new_data.append((255, 255, 255, 0)) 
                     else:
-                        st.sidebar.success("✅ Saved locally (GitHub secrets not configured).")
-                    
-                    if os.path.exists("error_screenshot.png"):
-                        os.remove("error_screenshot.png")
+                        new_data.append(item) 
                         
-                    st.rerun() 
+                rgba_img.putdata(new_data)
+                buffered = io.BytesIO()
+                rgba_img.save(buffered, format="PNG") 
+                captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                
+            except Exception as e:
+                captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
+                
+            st.markdown(
+                f"""
+                <style>
+                [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
+                    background-image: url("data:image/png;base64,{captcha_b64}") !important;
+                    background-position: right 6px center !important;
+                    background-size: 106px 34px !important;
+                    background-repeat: no-repeat !important;
+                    padding-right: 120px !important; 
+                }}
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+
+        # 2. Build the Form inside the expander
+        with st.form(key="login_form", clear_on_submit=False):
+            portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
+            portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
+            user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
+            submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
+            
+        # 3. Handle Submit
+        if submit_form:
+            if not portal_user or not portal_pass:
+                st.error("Please enter your Student ID and Password.")
+            elif not user_captcha or len(user_captcha) != 5:
+                st.error("Please enter exactly 5 digits for the CAPTCHA.")
+            else:
+                with st.spinner("Fetching Data From Portal (takes ~25s)"):
+                    try:
+                        st.session_state.portal_user = portal_user
+                        st.session_state.portal_pass = portal_pass
                         
-                except Exception as e:
-                    st.sidebar.error(f"Sync failed: {e}")
-                    if st.session_state.live_driver:
-                        st.session_state.live_driver.quit()
-                        st.session_state.live_driver = None
-                    st.session_state.waiting_for_captcha = False
-                    st.stop()
-                    
-# Last Update On:
+                        raw_live_html, raw_enrolled_html, auto_enrolled = submit_captcha_and_scrape(
+                            st.session_state.portal_user, 
+                            st.session_state.portal_pass, 
+                            user_captcha
+                        )
+                        st.session_state.live_html_data = raw_live_html
+                        st.session_state.auto_enrolled = auto_enrolled
+                        
+                        with open("data.html", "w", encoding="utf-8") as f:
+                            f.write(raw_live_html)
+                        with open("enrolled.html", "w", encoding="utf-8") as f:
+                            f.write(raw_enrolled_html)
+                            
+                        if "GITHUB_TOKEN" in st.secrets and "GITHUB_REPO" in st.secrets:
+                            try:
+                                g = Github(st.secrets["GITHUB_TOKEN"])
+                                repo = g.get_repo(st.secrets["GITHUB_REPO"])
+                                push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
+                                push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
+                                st.success("✅ Synced and pushed both files to GitHub!")
+                            except Exception as github_e:
+                                st.warning(f"Saved locally, but GitHub push failed: {github_e}")
+                        else:
+                            st.success("✅ Saved locally (GitHub secrets not configured).")
+                        
+                        if os.path.exists("error_screenshot.png"):
+                            os.remove("error_screenshot.png")
+                            
+                        st.rerun() 
+                            
+                    except Exception as e:
+                        st.error(f"Sync failed: {e}")
+                        if st.session_state.live_driver:
+                            st.session_state.live_driver.quit()
+                            st.session_state.live_driver = None
+                        st.session_state.waiting_for_captcha = False
+                        st.stop()
+
+# Last Update Label tucked neatly under the first expander
 st.sidebar.markdown(
-    f"<p style='color: #a0a0a0; font-size: 16px; margin-top: -12px; margin-bottom: 20px;'>"
+    f"<p style='color: #a0a0a0; font-size: 14px; margin-top: 5px; margin-bottom: 20px; text-align: center;'>"
     f"<b>Last Update:</b> {updated_str}"
     f"</p>",
     unsafe_allow_html=True,
@@ -783,26 +679,24 @@ if raw_df is None or raw_df.empty:
 # ==========================================
 # EXPORT SCRAPED SHUBA/ID DATA (EXCEL)
 # ==========================================
-st.sidebar.markdown("---")
-st.sidebar.subheader("📥 Export Raw Data")
-
-try:
-    current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
-    excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
-    
-    raw_excel_buffer = io.BytesIO()
-    with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
-        raw_df.to_excel(writer, index=False, sheet_name="Scraped_Data")
-    
-    st.sidebar.download_button(
-        label="Download All Scraped Data (Excel)",
-        data=raw_excel_buffer.getvalue(),
-        file_name=excel_filename,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True
-    )
-except ModuleNotFoundError:
-    st.sidebar.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
+with st.sidebar.expander("📥 Export Raw Data", expanded=False):
+    try:
+        current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
+        excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
+        
+        raw_excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
+            raw_df.to_excel(writer, index=False, sheet_name="Scraped_Data")
+        
+        st.download_button(
+            label="Download All Scraped Data (Excel)",
+            data=raw_excel_buffer.getvalue(),
+            file_name=excel_filename,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+    except ModuleNotFoundError:
+        st.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
 
 
 @st.cache_data
@@ -839,70 +733,68 @@ if parsed_df.empty:
 # ==========================================
 # 5. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
-st.sidebar.markdown("---")
-st.sidebar.header("Filter By Day & Time")
+with st.sidebar.expander("⏳ Filter By Day & Time", expanded=False):
+    days_config = {
+        1: ("Sunday (Day 1)", True),
+        2: ("Monday (Day 2)", True),
+        3: ("Tuesday (Day 3)", True),
+        4: ("Wednesday (Day 4)", True),
+        5: ("Thursday (Day 5)", True),
+    }
 
-days_config = {
-    1: ("Sunday (Day 1)", True),
-    2: ("Monday (Day 2)", True),
-    3: ("Tuesday (Day 3)", True),
-    4: ("Wednesday (Day 4)", True),
-    5: ("Thursday (Day 5)", True),
-}
+    day_filters = {}
+    day_exceptions = {}
 
-day_filters = {}
-day_exceptions = {}
+    for day_num, (label, default_val) in days_config.items():
+        with st.container(border=True):
+            is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
 
-for day_num, (label, default_val) in days_config.items():
-    with st.sidebar.container(border=True):
-        is_on = st.checkbox(label, value=default_val, key=f"chk_{day_num}")
+            if is_on:
+                time_range = st.slider(
+                    "Hours", 8, 18, (8, 18), 
+                    format="%02d",
+                    key=f"slide_{day_num}", 
+                    label_visibility="collapsed"
+                )
+                
+                ex_list = []
+                exception_str = st.text_input(
+                    "Exceptions", 
+                    value="",
+                    placeholder="Enter Excepted Hours", 
+                    key=f"txt_{day_num}", 
+                    label_visibility="collapsed"
+                )
+                
+                if exception_str.strip():
+                    try:
+                        ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
+                    except ValueError:
+                        pass
 
-        if is_on:
-            time_range = st.slider(
-                "Hours", 8, 18, (8, 18), 
-                format="%02d",
-                key=f"slide_{day_num}", 
-                label_visibility="collapsed"
-            )
-            
-            ex_list = []
-            exception_str = st.text_input(
-                "Exceptions", 
-                value="",
-                placeholder="Enter Excepted Hours", 
-                key=f"txt_{day_num}", 
-                label_visibility="collapsed"
-            )
-            
-            if exception_str.strip():
-                try:
-                    ex_list = [int(x.strip()) for x in exception_str.split(",") if x.strip().isdigit()]
-                except ValueError:
-                    pass
+                day_filters[day_num] = {"range": time_range}
+                day_exceptions[day_num] = ex_list
 
-            day_filters[day_num] = {"range": time_range}
-            day_exceptions[day_num] = ex_list
-
-        else:
-            st.slider(
-                "Hours", 8, 18, (8, 18), 
-                format="%02d",
-                disabled=True, 
-                key=f"slide_dis_{day_num}", 
-                label_visibility="collapsed"
-            )
-            
-            st.text_input(
-                "Exceptions", 
-                value="",
-                placeholder="Enter Excepted Hours", 
-                key=f"txt_dis_{day_num}", 
-                label_visibility="collapsed",
-                disabled=True
-            )
-            
-            day_filters[day_num] = None
-            day_exceptions[day_num] = []
+            else:
+                st.slider(
+                    "Hours", 8, 18, (8, 18), 
+                    format="%02d",
+                    disabled=True, 
+                    key=f"slide_dis_{day_num}", 
+                    label_visibility="collapsed"
+                )
+                
+                st.text_input(
+                    "Exceptions", 
+                    value="",
+                    placeholder="Enter Excepted Hours", 
+                    key=f"txt_dis_{day_num}", 
+                    label_visibility="collapsed",
+                    disabled=True
+                )
+                
+                day_filters[day_num] = None
+                day_exceptions[day_num] = []
 
 def is_valid_time(row):
     day, start = row["day"], row["start_time"]
@@ -922,67 +814,62 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 # ==========================================
 # 5B. ENROLLMENT & AVAILABILITY OVERRIDES
 # ==========================================
-st.sidebar.markdown("---")
-st.sidebar.header("Section Availability")
+with st.sidebar.expander("🛡️ Section Availability", expanded=False):
+    # 1. Silently read Enrolled HTML in the background
+    enrolled_ids_str = st.session_state.get("auto_enrolled", "")
+    enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
 
-# 1. Silently read Enrolled HTML in the background (No UI Text Box)
-enrolled_ids_str = st.session_state.get("auto_enrolled", "")
-enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
+    if not enrolled_ids and os.path.exists("enrolled.html"):
+        with open("enrolled.html", "r", encoding="utf-8") as f:
+            soup_enc = BeautifulSoup(f.read(), "html.parser")
+            for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
+                cols = tr.find_all("td")
+                if len(cols) >= 4:
+                    sh = cols[3].text.strip()
+                    if sh.isdigit():
+                        enrolled_ids.append(sh)
 
-if not enrolled_ids and os.path.exists("enrolled.html"):
-    with open("enrolled.html", "r", encoding="utf-8") as f:
-        soup_enc = BeautifulSoup(f.read(), "html.parser")
-        for tr in soup_enc.find_all("tr", class_=lambda c: c in ["ROW1", "ROW2"]):
-            cols = tr.find_all("td")
-            if len(cols) >= 4:
-                sh = cols[3].text.strip()
-                if sh.isdigit():
-                    enrolled_ids.append(sh)
-
-# 2. Apply logic with the new Checkbox
-if "STATUS" in raw_df.columns:
-    auto_remove = st.sidebar.checkbox("Remove Closed Sections", value=True)
-    protect_enrolled = st.sidebar.checkbox("Mark enrolled sections as opened", value=True)
-    
-    if auto_remove:
-        closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
+    # 2. Apply logic with the new Checkbox
+    if "STATUS" in raw_df.columns:
+        auto_remove = st.checkbox("Remove Closed Sections", value=True)
+        protect_enrolled = st.checkbox("Mark enrolled sections as opened", value=True)
         
-        if protect_enrolled and enrolled_ids:
-            # Skip closed sections, BUT treat enrolled sections as opened!
-            is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
-            valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
-        else:
-            valid_blocks_df = valid_blocks_df[~closed_mask]
+        if auto_remove:
+            closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
+            
+            if protect_enrolled and enrolled_ids:
+                is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
+                valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
+            else:
+                valid_blocks_df = valid_blocks_df[~closed_mask]
 
 
 # ==========================================
 # 6. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
 # ==========================================
-st.sidebar.markdown("---")
-st.sidebar.header("Global Hall & Shuba Rules")
+with st.sidebar.expander("🌍 Global Hall & Shuba Rules", expanded=False):
+    all_halls = sorted(
+        [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
+    )
+    all_shubas = sorted(
+        [str(s) for s in raw_df["ID"].dropna().astype(str).unique() if s.strip()]
+    )
 
-all_halls = sorted(
-    [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
-)
-all_shubas = sorted(
-    [str(s) for s in raw_df["ID"].dropna().astype(str).unique() if s.strip()]
-)
+    banned_halls = st.multiselect(
+        "Ban Halls", options=all_halls, key="global_ban_halls"
+    )
+    remaining_halls = [h for h in all_halls if h not in banned_halls]
+    required_halls = st.multiselect(
+        "Require Halls", options=remaining_halls, key="global_req_halls"
+    )
 
-banned_halls = st.sidebar.multiselect(
-    "Ban Halls", options=all_halls, key="global_ban_halls"
-)
-remaining_halls = [h for h in all_halls if h not in banned_halls]
-required_halls = st.sidebar.multiselect(
-    "Require Halls", options=remaining_halls, key="global_req_halls"
-)
-
-banned_shubas = st.sidebar.multiselect(
-    "Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas"
-)
-remaining_shubas = [s for s in all_shubas if s not in banned_shubas]
-required_shubas = st.sidebar.multiselect(
-    "Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas"
-)
+    banned_shubas = st.multiselect(
+        "Ban Shubas (IDs)", options=all_shubas, key="global_ban_shubas"
+    )
+    remaining_shubas = [s for s in all_shubas if s not in banned_shubas]
+    required_shubas = st.multiselect(
+        "Require Shubas (IDs)", options=remaining_shubas, key="global_req_shubas"
+    )
 
 # Apply Hall filters
 if banned_halls:
@@ -1007,8 +894,8 @@ if required_shubas:
 # ==========================================
 # 7. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
-st.sidebar.markdown("---")
-st.sidebar.header("🛞 Specific Teachers Rules")
+# Streamlit does not allow expanders inside expanders, so we just group these naturally!
+st.sidebar.markdown("<br><h4 style='color: white; margin-bottom: 10px;'>🛞 Specific Teachers Rules</h4>", unsafe_allow_html=True)
 
 all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
 
@@ -1017,7 +904,7 @@ for subj in all_subjects:
     subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
     subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
 
-    with st.sidebar.expander(f"📚 {subj_name} ({subj})"):
+    with st.sidebar.expander(f"📚 {subj_name} ({subj})", expanded=False):
         teachers_for_subj = sorted(
             raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
         )
@@ -1378,7 +1265,7 @@ else:
                     for i, sched in enumerate(schedules):
                         img_bytes = draw_schedule_image(sched)
                         zip_file.writestr(f"Schedule_Option_{i+1}.jpg", img_bytes)
-      
+       
                 st.download_button(
                     label="📥 Click Here to Download ZIP",
                     data=zip_buffer.getvalue(),
