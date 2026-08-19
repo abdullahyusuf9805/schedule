@@ -361,6 +361,19 @@ def parse_html_to_dataframe(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     extracted_rows = []
 
+    # Get enrolled IDs from session state or enrolled.html
+    enrolled_ids = []
+    if st.session_state.get("auto_enrolled"):
+        enrolled_ids = [s.strip() for s in st.session_state.auto_enrolled.split(",") if s.strip()]
+    elif os.path.exists("enrolled.html"):
+        with open("enrolled.html", "r", encoding="utf-8") as f:
+            soup_enc = BeautifulSoup(f.read(), "html.parser")
+            for tr in soup_enc.find_all("tr"):
+                for td in tr.find_all("td"):
+                    t = td.text.strip()
+                    if t.isdigit() and len(t) >= 4:
+                        enrolled_ids.append(t)
+
     rows = soup.find_all("tr")
     for row in rows:
         cols = row.find_all("td")
@@ -371,9 +384,12 @@ def parse_html_to_dataframe(html_content):
         name = cols[1].text.strip()
         course_id = cols[2].text.strip()
         
-        # Parse status dynamically
-        status_span = cols[5].find("span")
-        status = status_span.text.strip() if status_span else cols[5].text.strip()
+        # Runtime assignment: If Shuba ID is enrolled, mark as Registered
+        if course_id in enrolled_ids:
+            status = "Registered"
+        else:
+            status_span = cols[5].find("span")
+            status = status_span.text.strip() if status_span else cols[5].text.strip()
 
         instructor_input = cols[6].find(
             "input", id=lambda x: x and x.endswith(":instructor")
@@ -565,49 +581,11 @@ with st.sidebar:
                             user_captcha
                         )
 
-                        # 1. Parse enrolled.html first
-                       # 1. Parse enrolled.html first to get registered Shuba IDs
-                        enrolled_ids = []
-                        if auto_enrolled:
-                            enrolled_ids = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
-                        
-                        if not enrolled_ids and raw_enrolled_html:
-                            soup_enc = BeautifulSoup(raw_enrolled_html, "html.parser")
-                            for tr in soup_enc.find_all("tr"):
-                                text_chunks = [td.text.strip() for td in tr.find_all("td")]
-                                for chunk in text_chunks:
-                                    if chunk.isdigit() and len(chunk) >= 4:
-                                        enrolled_ids.append(chunk)
-
-                        # 2. Parse raw_live_html (data.html) and update rows containing enrolled Shuba IDs
-                        soup_data = BeautifulSoup(raw_live_html, "html.parser")
-                        for tr in soup_data.find_all("tr"):
-                            row_text = tr.get_text()
-                            # Check if any enrolled Shuba ID belongs to this row
-                            for sh_id in enrolled_ids:
-                                if sh_id in row_text:
-                                    cols = tr.find_all("td")
-                                    if len(cols) >= 6:
-                                        # Target the status cell directly
-                                        status_cell = cols[5]
-                                        status_cell['data-th'] = ""
-                                        status_cell.clear()
-                                        
-                                        # Inject the exact HTML structure you wanted
-                                        new_span = soup_data.new_tag("span", style="color:red")
-                                        new_span.string = "مسجلة"
-                                        status_cell.append(new_span)
-                                        break
-
-                        updated_live_html = f"<!-- SYNC_TIME: {time_match.group(1) if 'time_match' in locals() and time_match else datetime.now().strftime('%d/%m/%Y at %I:%M %p')} -->\n" + str(soup_data.find("tbody") or soup_data)
-                        
-
-
-                        st.session_state.live_html_data = updated_live_html
-                        st.session_state.auto_enrolled = ",".join(enrolled_ids)
+                        st.session_state.live_html_data = raw_live_html
+                        st.session_state.auto_enrolled = auto_enrolled
                         
                         with open("data.html", "w", encoding="utf-8") as f:
-                            f.write(updated_live_html)
+                            f.write(raw_live_html)
                         with open("enrolled.html", "w", encoding="utf-8") as f:
                             f.write(raw_enrolled_html)
                             
@@ -615,7 +593,7 @@ with st.sidebar:
                             try:
                                 g = Github(st.secrets["GITHUB_TOKEN"])
                                 repo = g.get_repo(st.secrets["GITHUB_REPO"])
-                                push_to_github(repo, "data.html", updated_live_html, "Bot synced timetable <tbody>")
+                                push_to_github(repo, "data.html", raw_live_html, "Bot synced timetable <tbody>")
                                 push_to_github(repo, "enrolled.html", raw_enrolled_html, "Bot synced enrolled classes <tbody>")
                                 st.success("✅ Synced and pushed both files to GitHub!")
                             except Exception as github_e:
@@ -808,10 +786,10 @@ with st.sidebar:
         # 3-Status Filter Support: 🟢 Open, 🔵 Registered, 🔴 Closed
         with st.expander("🛡️ Section Availability (3 Statuses)", expanded=False):
             def assign_three_status_category(row):
-                st_text = str(row["STATUS"]).strip()
-                if "مسجلة" in st_text or "Registered" in st_text:
+                st_text = str(row["STATUS"]).strip().lower()
+                if "registered" in st_text or "مسجلة" in st_text:
                     return "registered"
-                elif "مغلقة" in st_text or "Closed" in st_text:
+                elif "closed" in st_text or "مغلقة" in st_text:
                     return "closed"
                 else:
                     return "open"
@@ -1220,6 +1198,6 @@ if not raw_df.empty and 'valid_blocks_df' in locals():
                     use_container_width=True
                 )
             except ModuleNotFoundError:
-                st.error("⚠️ Please add 'openpyxl' to requirements.txt")
+                st.error("⚠️ Please add 'openpyxl' to your requirements.txt")
 
         st.markdown("</div>", unsafe_allow_html=True)
