@@ -407,54 +407,43 @@ if "live_driver" not in st.session_state:
 if "captcha_img_bytes" not in st.session_state:
     st.session_state.captcha_img_bytes = None
 
+import base64
+
+# Convert CAPTCHA bytes for CSS background injection
+captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8") if st.session_state.captcha_img_bytes else ""
+
 st.sidebar.markdown(
-    """
+    f"""
     <style>
-        /* Unified Captcha Container Box (Matches ID & Password height/width) */
-        .captcha-container {
-            display: flex;
-            align-items: center;
-            background-color: #1a1a1a;
-            border: 1px solid #ffffff;
-            border-radius: 6px;
-            height: 46px;
-            padding: 0 4px;
-            margin-bottom: 0px;
-            transition: all 0.2s;
-        }
-        .captcha-container:focus-within {
-            border: 1px solid #1d8a59;
-            box-shadow: 0 0 0 1px #1d8a59;
-        }
-        
-        /* Captcha Image on the Left inside the box */
-        .captcha-container img {
-            height: 36px !important;
-            width: 110px !important;
-            object-fit: fill !important;
-            border-radius: 4px;
-            background-color: #ffffff;
-            margin-right: 8px;
-        }
-        
-        /* 1. Target the WRAPPER to fix white edges and keep the eye icon inside */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
+        /* 1. Target the WRAPPER for Student ID and Password */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {{
             border: 1px solid #ffffff !important; 
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             height: 46px !important; 
             min-height: 46px !important;
-            transition: all 0.2s;
-        }
+        }}
         
-        /* 2. Change focus border to Green */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
+        /* 2. Special styling for the CAPTCHA input box to embed the image on the right */
+        [data-testid="stSidebar"] div[data-baseweb="input"]:has(input[aria-label="CAPTCHA"]) {{
+            border: 1px solid #ffffff !important;
+            border-radius: 6px !important;
+            background-color: #1a1a1a !important;
+            height: 46px !important;
+            background-image: url("data:image/png;base64,{captcha_b64}") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 8px center !important; /* Positions image on the right inside the box */
+            background-size: 100px 32px !important; /* Exact size of the badge */
+        }}
+
+        /* Green focus border */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {{
             border: 1px solid #1d8a59 !important; 
             box-shadow: 0 0 0 1px #1d8a59 !important;
-        }
+        }}
 
-        /* 3. The actual text inside the input box */
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input {
+        /* Text inside inputs */
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
             color: #ffffff !important;
             background-color: transparent !important; 
             height: 44px !important; 
@@ -463,28 +452,33 @@ st.sidebar.markdown(
             border: none !important; 
             outline: none !important;
             box-shadow: none !important;
-        }
+        }}
 
-        [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {
+        /* Make CAPTCHA input text leave room on the right so it doesn't type under the image */
+        [data-testid="stSidebar"] input[aria-label="CAPTCHA"] {{
+            padding-right: 115px !important; 
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
             color: #888888 !important; 
-        }
+        }}
 
-        [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
             background-color: transparent !important;
-        }
+        }}
         
-        [data-testid="stSidebar"] div[data-testid="InputInstructions"] {
+        [data-testid="stSidebar"] div[data-testid="InputInstructions"] {{
             display: none !important;
-        }
+        }}
 
-        [data-testid="stForm"] {
+        [data-testid="stForm"] {{
             border: none !important;
             padding: 0 !important;
             background-color: transparent !important;
-        }
+        }}
         
-        /* Style the Primary Button */
-        [data-testid="stSidebar"] button[kind="primary"] {
+        /* Primary Button */
+        [data-testid="stSidebar"] button[kind="primary"] {{
             background-color: #1d8a59 !important;
             border: none !important;
             color: #ffffff !important;
@@ -493,10 +487,15 @@ st.sidebar.markdown(
             border-radius: 6px !important;
             padding: 12px !important;
             margin-top: 4px !important;
-        }
-        [data-testid="stSidebar"] button[kind="primary"]:hover {
+        }}
+        [data-testid="stSidebar"] button[kind="primary"]:hover {{
             background-color: #1a6e47 !important;
-        }
+        }}
+        
+        /* Hide regular image component since it's now embedded inside the input box */
+        [data-testid="stSidebar"] [data-testid="stImage"] {{
+            display: none !important;
+        }}
     </style>
     """,
     unsafe_allow_html=True
@@ -527,12 +526,8 @@ else:
         # 2. Password Input
         portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
         
-        # 3. Native Side-by-Side Captcha Layout
-        col_img, col_input = st.columns([1, 1.2], gap="small")
-        with col_img:
-            st.image(st.session_state.captcha_img_bytes, use_container_width=True)
-        with col_input:
-            user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
+        # 3. Captcha Input (The image is automatically rendered inside the right side via CSS!)
+        user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
         
         # 4. Form Submit Button
         submit_form = st.form_submit_button("Fetch Data From University Portal", type="primary", use_container_width=True)
