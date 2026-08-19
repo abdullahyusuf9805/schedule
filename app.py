@@ -188,110 +188,199 @@ if st.session_state.get("captcha_img_bytes"):
     except Exception:
         captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
 
+
 st.markdown(
     f"""
     <style>
-    [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
-        background-image: url("data:image/png;base64,{captcha_b64}") !important;
-        background-position: right 6px center !important;
-        background-size: 106px 34px !important;
-        background-repeat: no-repeat !important;
-        padding-right: 120px !important; 
-    }}
-    
-    [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {{
-        border: 1px solid #ff4b4b !important;
-        box-shadow: 0 0 0 1px #ff4b4b !important;
-    }}
+        .stCaption {{display: none;}}
+        
+        /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
+        .stApp {{
+            background-color: #000000;
+            color: #ffffff;
+        }}
 
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {{
-        border: none !important;
-        background-color: transparent !important;
-        box-shadow: none !important;
-        outline: none !important;
-        border-radius: 0px !important; 
-    }}
+        h1 {{
+            font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
+            white-space: nowrap !important;
+            color: #ffffff !important;
+        }}
 
-    [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
-        color: #ffffff !important;
-        background-color: transparent !important; 
-        height: 44px !important; 
-        padding: 10px 12px !important;
-        font-size: 15px !important;
-        border: none !important; 
-        outline: none !important;
-        box-shadow: none !important;
-    }}
+        .nav-row {{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            gap: 8px;
+            margin-bottom: 15px;
+        }}
+        .nav-row > div:nth-child(1),
+        .nav-row > div:nth-child(3) {{
+            flex: 0 0 50px !important;
+        }}
+        .nav-row > div:nth-child(2) {{
+            flex: 1 1 auto !important;
+        }}
 
-    [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
-        color: #888888 !important; 
-    }}
+        .center-download {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 20px;
+            text-align: center;
+        }}
+        
+        /* UI TIGHTENING CSS (Squish Elements in Card) */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {{
+            padding: 0.2rem 0.8rem 0.2rem 0.8rem !important; 
+            background-color: #1a1a1a !important;
+            border-radius: 8px !important;
+            border: 1px solid #2a2a2a !important;
+            margin-bottom: 12px !important;
+        }}
+        
+        /* Pull the button closer to the header text */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] {{
+            margin-bottom: -10px !important;
+        }}
 
-    [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
-        background-color: transparent !important;
-    }}
-    
-    [data-testid="stForm"] {{
-        border: none !important;
-        padding: 0 !important;
-        margin-top: 0px !important; 
-        background-color: transparent !important;
-    }}
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] {{
+            border: 1px solid #777777 !important; 
+            border-radius: 6px !important;
+            background-color: #1a1a1a !important;
+            overflow: hidden !important; 
+            margin-bottom: 0px !important; 
+        }}
+        
+        /* NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS */
+        [data-testid="stTickBar"], 
+        [data-testid="stTickBarMin"], 
+        [data-testid="stTickBarMax"] {{
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }}
 
-    [data-testid="stSidebar"] [data-testid="InputInstructions"], 
-    [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {{
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        height: 0 !important;
-        width: 0 !important;
-    }}
-    
-    [data-testid="stSidebar"] button[kind="primary"] {{
-        background-color: #ff4b4b !important; 
-        border: none !important;
-        color: #ffffff !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-        border-radius: 6px !important;
-        padding: 12px !important;
-        margin-top: 4px !important;
-    }}
-    [data-testid="stSidebar"] button[kind="primary"]:hover {{
-        background-color: #ff3333 !important;
-    }}
-    [data-testid="stSidebarUserContent"] {{
-        padding-top: 0rem !important; 
-    }}
-    [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
-    }}
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2 {{
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        line-height: 1 !important;
-    }}
-,
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
-        margin-top: 0px !important;
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 16px !important;
-        line-height: !important;
-    }}
+        div[data-baseweb="tooltip"], 
+        div[role="tooltip"],
+        div[data-testid="stThumbValue"] {{
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }}
+
+        div[data-baseweb="slider"] div[role="slider"] {{
+            background-color: #ff4d4d !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }}
+        
+        div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {{
+            background-color: #555555 !important;
+        }}
+
+        [data-testid="stHorizontalBlock"] {{
+            align-items: center !important;
+        }}
+
+        /* CAPTCHA INJECTION & FORM STYLING */
+        [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
+            background-image: url("data:image/png;base64,{captcha_b64}") !important;
+            background-position: right 6px center !important;
+            background-size: 106px 34px !important;
+            background-repeat: no-repeat !important;
+            padding-right: 120px !important; 
+        }}
+        
+        [data-testid="stSidebar"] div[data-testid="stTextInput"]:focus-within {{
+            border: 1px solid #ff4b4b !important;
+            box-shadow: 0 0 0 1px #ff4b4b !important;
+        }}
+
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"],
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
+        [data-testid="stSidebar"] div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus {{
+            border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            outline: none !important;
+            border-radius: 0px !important; 
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input {{
+            color: #ffffff !important;
+            background-color: transparent !important; 
+            height: 44px !important; 
+            padding: 10px 12px !important;
+            font-size: 15px !important;
+            border: none !important; 
+            outline: none !important;
+            box-shadow: none !important;
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder {{
+            color: #888888 !important; 
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stTextInput"] div[role="button"] {{
+            background-color: transparent !important;
+        }}
+        
+        [data-testid="stForm"] {{
+            border: none !important;
+            padding: 0 !important;
+            margin-top: 0px !important; 
+            background-color: transparent !important;
+        }}
+
+        [data-testid="stSidebar"] [data-testid="InputInstructions"], 
+        [data-testid="stSidebar"] div[data-testid="stFormSubmitInstructions"] {{
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            width: 0 !important;
+        }}
+        
+        [data-testid="stSidebar"] button[kind="primary"] {{
+            background-color: #ff4b4b !important; 
+            border: none !important;
+            color: #ffffff !important;
+            font-weight: bold !important;
+            font-size: 16px !important;
+            border-radius: 6px !important;
+            padding: 12px !important;
+            margin-top: 4px !important;
+        }}
+        [data-testid="stSidebar"] button[kind="primary"]:hover {{
+            background-color: #ff3333 !important;
+        }}
+        [data-testid="stSidebarUserContent"] {{
+            padding-top: 0rem !important; 
+        }}
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{
+            gap: 0.4rem !important; 
+        }}
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {{
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            line-height: 1.3 !important;
+        }}
     </style>
     """,
     unsafe_allow_html=True
 )
-
 
 # ==========================================
 # 4. FUNCTIONS LOGIC
