@@ -698,7 +698,7 @@ else:
 # Last Update On:
 st.sidebar.markdown(
     f"<p style='color: #a0a0a0; font-size: 16px; margin-top: -12px; margin-bottom: 20px;'>"
-    f"<b>Last Update On:</b> {updated_str}"
+    f"<b>Last Update:</b> {updated_str}"
     f"</p>",
     unsafe_allow_html=True,
 )
