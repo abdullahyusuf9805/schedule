@@ -384,6 +384,25 @@ st.markdown(
             padding-bottom: 16px !important;
             line-height: 1.3 !important;
         }}
+
+        /* FIX SPINNER ALIGNMENT */
+        [data-testid="stSpinner"] {{
+            align-items: center !important;
+            margin-top: 10px !important;
+        }}
+        
+        [data-testid="stSpinner"] div[data-testid="stMarkdownContainer"] {{
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+        }}
+        
+        [data-testid="stSpinner"] p {{
+            margin: 0 !important;
+            padding: 0 !important;
+        }}
+        
     </style>
     """,
     unsafe_allow_html=True
