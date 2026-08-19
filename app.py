@@ -991,8 +991,8 @@ with st.sidebar.expander("🛞 Specific Teachers Rules", expanded=False):
         subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
         subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
 
-        with st.container(border=True):
-            st.markdown(f"<div style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff;'>📚 {subj_name} <span style='color: #ff4b4b;'>({subj})</span></div>", unsafe_allow_html=True)
+    with st.container(border=True):
+            st.markdown(f"<div style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff;'>📚 {subj_name}</div>", unsafe_allow_html=True)
             
             teachers_for_subj = sorted(
                 raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
