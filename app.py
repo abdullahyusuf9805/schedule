@@ -547,7 +547,7 @@ st.markdown(
             [data-testid="stSidebar"] hr {{
                 margin-top: 1.5rem !important;
                 margin-bottom: 1.5rem !important;
-                border-top: 1px solid #333333 !important; /* <--- Subtle dark gray line */
+                border-top: 1px solid #ffffff !important; /* <--- Subtle dark gray line */
                 border-bottom: none !important;
                 border-left: none !important;
                 border-right: none !important;
