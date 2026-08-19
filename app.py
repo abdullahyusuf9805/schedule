@@ -95,7 +95,7 @@ st.markdown(
             border-radius: 6px !important;
             background-color: #1a1a1a !important;
             overflow: hidden !important; 
-            margin-bottom: -10px !important; 
+            margin-bottom: -6px !important; 
         }
             
         /* 2. FOCUS STATE: The outermost shell turns red when you click inside */
@@ -140,16 +140,23 @@ st.markdown(
             background-color: transparent !important;
         }
         
-        /* 5. FORM LAYOUT & CLEANUP */
-        [data-testid="stSidebar"] [data-testid="stForm"] [data-testid="stVerticalBlock"] {
-            gap: 0rem !important;
-        }
-
+        /* 5. FORM LAYOUT & CLEANUP - REMOVE GAPS */
         [data-testid="stForm"] {
             border: none !important;
             padding: 0 !important;
             margin-top: -15px !important; 
             background-color: transparent !important;
+        }
+
+        /* Collapse empty spacing blocks inside the sidebar form */
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
+            margin-top: 0px !important;
+            margin-bottom: 0px !important;
+        }
+
+        /* Keep the green spacing intact for the main section divider */
+        hr {
+            margin: 15px 0 15px 0 !important;
         }
 
         /* Completely delete the "Press Enter to submit form" text */
@@ -267,9 +274,9 @@ def init_browser_and_get_captcha():
         driver.quit()
         raise Exception(f"Failed to initialize login page. {str(e)}")
 
-
 def submit_captcha_and_scrape(username, password, captcha_val):
     driver = st.session_state.live_driver
+
     try:
         text_inputs = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//input[@type='text' and not(@type='hidden')]"))
@@ -285,18 +292,21 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         captcha_input.clear()
         captcha_input.send_keys(captcha_val)
         
-        time.sleep(0.5) 
+        time.sleep(0.5) # Let React digest the text
+        
+        # Press ENTER to submit form
         captcha_input.send_keys(Keys.RETURN)
         
         try:
             WebDriverWait(driver, 15).until(EC.url_contains("Dashboard"))
         except:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA.")
+            raise Exception("Login rejected! Please check your Student ID, Password, or CAPTCHA. (Note: The CAPTCHA expires if you wait too long to submit).")
             
         ksa_time = datetime.utcnow() + timedelta(hours=3)
         time_str = ksa_time.strftime("%d/%m/%Y at %I:%M %p")
             
+        # --- POST-LOGIN NAVIGATION ---
         driver.get("https://cas.iu.edu.sa/cas/eregister")
         
         WebDriverWait(driver, 35).until(
@@ -309,7 +319,7 @@ def submit_captcha_and_scrape(username, password, captcha_val):
         driver.execute_script("arguments[0].click();", electronic_reg_menu)
         time.sleep(1.5) 
 
-        # Scrape Already Enrolled Courses
+        # --- NEW: SCRAPE ALREADY ENROLLED COURSES FIRST ---
         try:
             enrolled_menu = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المسجلة')]"))
@@ -337,17 +347,21 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             enrolled_str = ", ".join(enrolled_ids)
             raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(enrolled_tbody) if enrolled_tbody else f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
+            # Re-open Electronic Registration menu to navigate to course plan
             driver.execute_script("arguments[0].click();", electronic_reg_menu)
             time.sleep(1.5)
-        except Exception:
+        except Exception as e:
+            # Fallback if enrolled menu fails so it doesn't block the core timetable scraping
             enrolled_str = ""
             raw_enrolled_html = f"<!-- SYNC_TIME: {time_str} -->\n<tbody></tbody>"
 
+        # --- SCRAPE COURSE PLAN TIMETABLE ---
         course_plan_menu = WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.XPATH, "//a[contains(., 'المقررات المطروحة وفق الخطة') or contains(., 'Course')]"))
         )
         driver.execute_script("arguments[0].click();", course_plan_menu)
         
+        # Wait 5 seconds for the table to load
         time.sleep(5)
         
         soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -361,17 +375,16 @@ def submit_captcha_and_scrape(username, password, captcha_val):
                 
         if target_tbody is None:
             driver.save_screenshot("error_screenshot.png")
-            raise Exception("Could not find the main timetable <tbody>.")
+            raise Exception("Could not find the <tbody> containing <tr class=>. The table did not load properly.")
             
         final_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(target_tbody)
         
         return final_html, raw_enrolled_html, enrolled_str
-        
+
     finally:
         driver.quit()
         st.session_state.live_driver = None
         st.session_state.waiting_for_captcha = False
-
 
 # ==========================================
 # 3. EMBEDDED HTML PARSER & DATA EXTRACTOR
@@ -535,7 +548,7 @@ with st.sidebar:
                 new_image.save(buffered, format="PNG")
                 captcha_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
                 
-            except Exception:
+            except Exception as e:
                 captcha_b64 = base64.b64encode(st.session_state.captcha_img_bytes).decode("utf-8")
                 
             st.markdown(
@@ -582,20 +595,6 @@ with st.sidebar:
                             st.session_state.portal_pass, 
                             user_captcha
                         )
-
-                        # Update status to 'مسجلة' for enrolled shubas in raw_live_html
-                        if auto_enrolled:
-                            enrolled_list = [s.strip() for s in auto_enrolled.split(",") if s.strip()]
-                            if enrolled_list:
-                                soup_data = BeautifulSoup(raw_live_html, "html.parser")
-                                for tr in soup_data.find_all("tr"):
-                                    cols = tr.find_all("td")
-                                    if len(cols) >= 6:
-                                        shuba_id = cols[2].text.strip()
-                                        if shuba_id in enrolled_list:
-                                            cols[5].string = "مسجلة"
-                                raw_live_html = f"<!-- SYNC_TIME: {time_match.group(1) if 'time_match' in locals() and time_match else datetime.now().strftime('%d/%m/%Y at %I:%M %p')} -->\n" + str(soup_data.find("tbody") or soup_data)
-
                         st.session_state.live_html_data = raw_live_html
                         st.session_state.auto_enrolled = auto_enrolled
                         
@@ -789,8 +788,7 @@ with st.sidebar:
         invalid_ids = parsed_df[parsed_df["is_valid"] == False]["ID"].unique()
         valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 
-        # 3-Status Filter Support (Maftooha, Musajjala, Muglaqa)
-        with st.expander("🛡️ Section Availability (3 Statuses)", expanded=False):
+        with st.expander("🛡️ Section Availability", expanded=False):
             enrolled_ids_str = st.session_state.get("auto_enrolled", "")
             enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
 
@@ -804,28 +802,18 @@ with st.sidebar:
                             if sh.isdigit():
                                 enrolled_ids.append(sh)
 
-            def assign_three_status_category(row):
-                if str(row["ID"]) in enrolled_ids or "مسجلة" in str(row["STATUS"]):
-                    return "musajjala"
-                elif "مغلقة" in str(row["STATUS"]):
-                    return "muglaqa"
-                else:
-                    return "maftooha"
+            if "STATUS" in raw_df.columns:
+                auto_remove = st.checkbox("Remove Closed Sections", value=True)
+                protect_enrolled = st.checkbox("Mark enrolled sections as opened", value=True)
                 
-            valid_blocks_df["status_cat"] = valid_blocks_df.apply(assign_three_status_category, axis=1)
-
-            st.markdown("<p style='color: #888888; font-size: 13px; margin-bottom: 8px;'>Select allowed section categories:</p>", unsafe_allow_html=True)
-            
-            allow_maftooha = st.checkbox("🟢 Maftooha (Open)", value=True)
-            allow_musajjala = st.checkbox("🔵 Musajjala (Registered)", value=True)
-            allow_muglaqa = st.checkbox("🔴 Muglaqa (Closed)", value=False)
-
-            allowed_cats = []
-            if allow_maftooha: allowed_cats.append("maftooha")
-            if allow_musajjala: allowed_cats.append("musajjala")
-            if allow_muglaqa: allowed_cats.append("muglaqa")
-
-            valid_blocks_df = valid_blocks_df[valid_blocks_df["status_cat"].isin(allowed_cats)]
+                if auto_remove:
+                    closed_mask = valid_blocks_df["STATUS"].astype(str).str.contains("مغلقة", na=False)
+                    
+                    if protect_enrolled and enrolled_ids:
+                        is_enrolled_mask = valid_blocks_df["ID"].astype(str).isin(enrolled_ids)
+                        valid_blocks_df = valid_blocks_df[~closed_mask | is_enrolled_mask]
+                    else:
+                        valid_blocks_df = valid_blocks_df[~closed_mask]
 
         with st.expander("🌍 Global Hall & Shuba Rules", expanded=False):
             all_halls = sorted(
