@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from bs4 import BeautifulSoup
 import streamlit as st
+import streamlit.components.v1 as components
 import time
 from PIL import Image, ImageOps
 
