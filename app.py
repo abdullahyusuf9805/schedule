@@ -146,7 +146,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("Dynamic Timetable Generator")
+st.title("DYNAMIC TIMETABLE GENERATOR")
 
 # ==========================================
 # 2. INITIALIZE SESSION STATES
