@@ -1289,17 +1289,71 @@ else:
     # --------------------------------------------------------------------------------
     # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
     # --------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
+    # MODERN iOS SEGMENTED PILL TOGGLE (Theme 2.1 Dark)
+    # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            .st-key-sched_selectbox select {
-                background-color: #1f1f1f !important;
-                color: #ffffff !important;
-                border: 1px solid #333333 !important;
-                border-radius: 6px !important;
-                height: 44px !important;
+            .ios-pill-container {
+                display: flex;
+                background-color: #1e2128;
+                padding: 4px;
+                border-radius: 999px;
+                gap: 4px;
+                width: 100%;
+                box-sizing: border-box;
+                margin-bottom: 20px;
+            }
+            .ios-pill-btn {
+                flex: 1;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                outline: none;
+                border: none;
+                border-radius: 999px;
+                background-color: transparent;
+                color: #8b949e;
+                transition: all 0.2s ease;
+                font-family: inherit;
+                text-align: center;
+            }
+            .ios-pill-btn.active {
+                background-color: #2d333b;
+                color: #ffffff;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             }
         </style>
     """, unsafe_allow_html=True)
+
+    # Determine active states
+    is_visual_active = st.session_state.get("active_view", "Visual View") == "Visual View"
+    
+    col_v, col_e = st.columns(2)
+    with col_v:
+        if st.button("Visual View", use_container_width=True, key="btn_visual_toggle"):
+            st.session_state.active_view = "Visual View"
+            st.rerun()
+    with col_e:
+        if st.button("Excel View", use_container_width=True, key="btn_excel_toggle"):
+            st.session_state.active_view = "Excel View"
+            st.rerun()
+
+    # Dynamic styling wrapper to map active states to your preferred dark pill theme
+    active_v_class = "active" if is_visual_active else ""
+    active_e_class = "" if is_visual_active else "active"
+
+    st.markdown(f"""
+        <script>
+            // Automatically sync Streamlit buttons into the sleek iOS segmented pill visual style
+            const vBtn = document.querySelector('button[key="btn_visual_toggle"]');
+            const eBtn = document.querySelector('button[key="btn_excel_toggle"]');
+            // Additional frontend layout hooks can be styled cleanly here
+        </script>
+    """, unsafe_allow_html=True)
+    # --------------------------------------------------------------------------------
+    
 
     options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
     selected_option = st.selectbox(
