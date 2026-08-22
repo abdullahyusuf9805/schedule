@@ -3,17 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  /* Base page styling - removes margins to fit cleanly in Streamlit */
   body {
     margin: 0;
     padding: 0;
     background-color: transparent;
     font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
   }
 
-  /* =========================================
-     YOUR EXACT PAGINATOR STYLES
-     ========================================= */
   .paginator-wrapper {
     display: flex;
     align-items: center;
@@ -49,6 +46,7 @@
     padding: 2px 0;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    width: 100%;
   }
   
   .options-container::-webkit-scrollbar { display: none; }
@@ -60,6 +58,8 @@
     border-radius: 6px;
     width: 44px;
     height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -68,6 +68,7 @@
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
     cursor: pointer;
+    user-select: none;
     transition: all 0.2s ease;
   }
 
@@ -93,9 +94,7 @@
     </button>
 
     <!-- Options Container -->
-    <div class="options-container" id="options-scroll">
-      <!-- Javascript will automatically generate the buttons here! -->
-    </div>
+    <div class="options-container" id="options-scroll"></div>
 
     <!-- Right Arrow -->
     <button class="nav-arrow" id="scroll-right">
@@ -104,21 +103,17 @@
   </div>
 
   <script>
-    // --- 1. Streamlit Bridge Functions ---
     function sendMessageToStreamlit(type, data) {
         window.parent.postMessage({ isStreamlitMessage: true, type: type, ...data }, "*");
     }
 
-    // Sends the clicked button's number back to your Python script!
     function setComponentValue(value) {
         sendMessageToStreamlit("setComponentValue", { value: value });
     }
 
-    // Tell Streamlit we are ready and exactly how tall we are (so nothing gets cut off)
     sendMessageToStreamlit("streamlit:componentReady", { apiVersion: 1 });
     sendMessageToStreamlit("streamlit:setFrameHeight", { height: 75 }); 
 
-    // --- 2. Listen for Data from Python ---
     window.addEventListener("message", function(event) {
         if (event.data.type === "streamlit:render") {
             const args = event.data.args;
@@ -126,22 +121,21 @@
             const activeIndex = args.active_index;
 
             const container = document.getElementById("options-scroll");
-            container.innerHTML = ""; // Clear out old buttons
+            container.innerHTML = ""; 
 
-            // Dynamically generate the correct number of perfectly styled buttons
             for(let i = 0; i < numOptions; i++) {
                 const btn = document.createElement("div");
                 btn.className = "option-btn" + (i === activeIndex ? " active" : "");
-                
-                // Format as "01", "02", etc.
                 btn.innerText = (i + 1).toString().padStart(2, '0');
                 
-                // When clicked, send the number 'i' back to Python
-                btn.addEventListener("click", function() {
-                    setComponentValue(i);
-                });
+                // Closure to ensure the correct index is bound to each individual element
+                (function(index) {
+                    btn.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        setComponentValue(index);
+                    });
+                })(i);
 
-                // Auto-scroll to center the active button on load
                 if (i === activeIndex) {
                     setTimeout(() => btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 100);
                 }
@@ -151,7 +145,6 @@
         }
     });
 
-    // --- 3. Arrow Scrolling Logic ---
     const scrollContainer = document.getElementById('options-scroll');
     const scrollAmount = 200; 
     
