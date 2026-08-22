@@ -134,72 +134,6 @@ st.markdown(
             padding-bottom: 1.5rem !important;
         }
 
-        /* --- PREMIUM NAVIGATION BAR UI --- */
-        
-        /* =========================================
-           OBSIDIAN BLACK NEUMORPHIC UI
-           ========================================= */
-        
-        /* 1. App background must perfectly match the buttons for the 3D effect */
-        .stApp {
-            background-color: #151515 !important;
-        }
-
-        /* 2. Style the Buttons and Selectbox container */
-        [data-testid="stMainBlockContainer"] button[kind="secondary"],
-        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] > div {
-            height: 44px !important;
-            min-height: 44px !important;
-            background-color: #151515 !important;
-            color: #e0e0e0 !important;
-            border: none !important;
-            border-radius: 8px !important;
-            box-shadow: 5px 5px 10px #080808, -5px -5px 10px #222222 !important;
-            transition: box-shadow 0.2s ease !important;
-        }
-
-        /* 3. The "Pressed" effect when clicking buttons */
-        [data-testid="stMainBlockContainer"] button[kind="secondary"]:active {
-            box-shadow: inset 4px 4px 8px #080808, inset -4px -4px 8px #222222 !important;
-            color: #ffffff !important;
-        }
-
-        /* 4. Center the text inside the Dropdown */
-        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] span {
-            color: #e0e0e0 !important;
-            font-size: 15px !important;
-            font-weight: 500 !important;
-            text-align: center !important;
-            width: 100% !important; /* Forces the text to center perfectly */
-            padding-right: 0px !important;
-        }
-
-        /* 5. Hide the dropdown arrow completely */
-        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] svg {
-            display: none !important;
-        }
-
-        /* 6. Remove the weird gap above the selectbox */
-        [data-testid="stMainBlockContainer"] div[data-testid="stSelectbox"] label {
-            display: none !important;
-            height: 0px !important;
-            margin: 0px !important;
-            padding: 0px !important;
-        }
-
-        /* Hover effects for a premium feel */
-        [data-testid="stMainBlockContainer"] button[kind="secondary"]:hover,
-        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] > div:hover {
-            border-color: #555555 !important;
-            background-color: #1a1a1a !important;
-        }
-        
-        /* Fix the dropdown text color */
-        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] span {
-            color: #ffffff !important;
-            font-size: 15px !important;
-            font-weight: 500 !important;
-        }
 
         /* Remove the weird gap above the selectbox caused by the hidden label */
         [data-testid="stMainBlockContainer"] div[data-testid="stSelectbox"] label {
@@ -216,6 +150,36 @@ st.markdown(
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
+
+
+        /* ===========================================================================================================================
+           ========================================== PERFECT 1:1 SQUARE NAVIGATION BUTTONS ==========================================
+           =========================================================================================================================== */
+        
+        /* Target ONLY the row that has exactly 3 columns (The Nav Row) */
+        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"] {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            max-width: 44px !important; /* Forces the exact 1:1 square */
+            padding: 0 !important;
+            margin: 0 auto !important; /* Centers the square inside the column */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
+        }
+
+        /* Perfectly center the ◀ and ▶ icons inside the square */
+        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"] p {
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            font-size: 16px !important; 
+        }
+
+
+        
     </style>
 """,
     unsafe_allow_html=True,
