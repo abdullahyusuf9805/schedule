@@ -87,18 +87,19 @@ st.markdown(
         display: block !important;
     }
 
-    /* 4. The Option Button Square (SET TO RELATIVE POSITIONING) */
+    /* 4. The Option Button Square (KILL STREAMLIT'S FLEXBOX) */
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button {
-        position: relative !important; /* <--- THIS IS CRITICAL FOR THE TEXT FIX */
         background-color: #1f1f1f !important;
         border: 1px solid #333333 !important;
         border-radius: 6px !important;
         width: 44px !important;
         height: 44px !important;
         min-width: 44px !important;
-        min-height: 44px !important;
+        max-width: 44px !important;
         padding: 0 !important;
         margin: 0 !important;
+        display: block !important; /* <--- REMOVES FLEXBOX SQUISH */
+        text-align: center !important;
         box-shadow: none !important;
         transition: all 0.2s ease !important;
     }
@@ -108,22 +109,22 @@ st.markdown(
         border-color: #555555 !important;
     }
 
-    /* 5. THE ULTIMATE TEXT FIX: ABSOLUTE POSITIONING */
+    /* 5. THE TEXT FIX: Old-School Block Centering */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button > div,
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button p {
-        position: absolute !important; /* <--- RIPS THE TEXT OUT OF STREAMLIT'S CONTROL */
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important; /* PERFECTLY CENTERS IT */
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 42px !important; /* Centers text vertically exactly inside the 44px box */
         color: #e0e0e0 !important;
         font-size: 14px !important;
         font-weight: 400 !important;
         font-variant-numeric: tabular-nums !important;
-        white-space: pre !important; 
+        white-space: nowrap !important; /* FORBIDS STACKING */
         word-break: keep-all !important;
         letter-spacing: 0px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1 !important;
     }
 
     /* 6. Active State (Vibrant Green) */
@@ -137,14 +138,17 @@ st.markdown(
         font-weight: 600 !important;
     }
 
-    /* 7. Navigation Arrows (Reset them to look like icons) */
+    /* 7. Navigation Arrows */
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) button,
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) button {
         background-color: transparent !important;
         border: none !important;
         color: #6b6b6b !important;
         box-shadow: none !important;
-        padding: 8px !important;
+        padding: 0 !important;
+        display: block !important;
+        line-height: 42px !important; /* Perfectly align arrows with the text */
+        text-align: center !important;
     }
     
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) button:hover,
