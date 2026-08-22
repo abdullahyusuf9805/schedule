@@ -43,8 +43,8 @@ st.markdown(
 
         /* Slim down the blue st.info box */
         div[data-testid="stAlert"] {
-            padding-top: 0.3rem !important;
-            padding-bottom: 0.3rem !important;
+            padding-top: 0.6rem !important;
+            padding-bottom: 0.6rem !important;
         }
         
         /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
