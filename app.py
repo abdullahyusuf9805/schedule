@@ -1372,13 +1372,14 @@ else:
         code_val = s.get('code', '')
 
         excel_rows_html += "<tr>"
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{code_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{name_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{id_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{hall_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{venue_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{teacher_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{status_val}</div></td>'
+        # Left-to-right order: الحالة (far left) -> المحاضر -> الوقت -> رقم القاعة -> رقم الشعبة -> المقرر -> رمز المقرر (far right)
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">{status_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">{teacher_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">{venue_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">{hall_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">{id_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">{name_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">{code_val}</td>'
         excel_rows_html += "</tr>"
 
     excel_table_html = f"""
@@ -1386,13 +1387,13 @@ else:
         <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; border-radius: 0px !important;">
             <thead>
                 <tr style="background-color: #212121; color: #ffffff;">
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">رمز المقرر</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">المقرر</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">رقم الشعبة</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">رقم القاعة</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">الوقت</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">المحاضر</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">الحالة</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">الحالة</th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">المحاضر</th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">الوقت</th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">رقم القاعة</th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">رقم الشعبة</th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">المقرر</th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">رمز المقرر</th>
                 </tr>
             </thead>
             <tbody>
@@ -1440,7 +1441,6 @@ else:
             mime="text/csv",
             use_container_width=True
         )
-    
     
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
