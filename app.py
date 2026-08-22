@@ -1288,39 +1288,52 @@ else:
 
 
 # --------------------------------------------------------------------------------
-    # NATIVE STREAMLIT PILL TOGGLE (THEME 2 iOS STYLE)
+    # LARGE iOS SEGMENTED PILL TOGGLE (LARGER PADDING & BORDERS)
     # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            /* Style the native pill container to match your exact dark iOS theme */
+            /* Make the outer pill container larger and more prominent */
             div[data-testid="stPills"] {
-                background-color: #1e2128 !important;
-                padding: 4px !important;
+                background-color: #121418 !important;
+                padding: 6px !important;
                 border-radius: 999px !important;
-                gap: 4px !important;
+                border: 2px solid #333333 !important;
+                gap: 6px !important;
                 display: flex !important;
                 width: 100% !important;
                 box-sizing: border-box !important;
-                margin-bottom: 20px !important;
+                margin-bottom: 24px !important;
             }
+            
+            /* Increase height, font size, and padding for each tab */
             div[data-testid="stPills"] button {
                 flex: 1 !important;
-                border: none !important;
+                height: 52px !important;
+                border: 2px solid transparent !important;
                 border-radius: 999px !important;
                 background-color: transparent !important;
                 color: #8b949e !important;
-                font-weight: 500 !important;
+                font-size: 16px !important;
+                font-weight: 600 !important;
                 transition: all 0.2s ease !important;
             }
-            div[data-testid="stPills"] button[aria-selected="true"] {
-                background-color: #2d333b !important;
+            
+            /* Unselected button hover effect */
+            div[data-testid="stPills"] button:hover {
                 color: #ffffff !important;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                border-color: #555555 !important;
+            }
+
+            /* Active button style matching your reference (bold border & clean background) */
+            div[data-testid="stPills"] button[aria-selected="true"] {
+                background-color: #1e2128 !important;
+                color: #ffffff !important;
+                border: 2px solid #22c55e !important; /* Clean vibrant border outline */
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2) !important;
             }
         </style>
     """, unsafe_allow_html=True)
 
-    # Use Streamlit's native pills component for instant, bug-free switching
     selected_view = st.pills(
         "View Mode",
         options=["Visual View", "Excel View"],
@@ -1332,6 +1345,7 @@ else:
     if selected_view and selected_view != st.session_state.active_view:
         st.session_state.active_view = selected_view
         st.rerun()
+    # --------------------------------------------------------------------------------
     # --------------------------------------------------------------------------------
     # --------------------------------------------------------------------------------
 
