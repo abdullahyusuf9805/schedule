@@ -151,8 +151,8 @@ st.markdown(
             align-items: center !important;
         }
 
-    /* =========================================
-           ULTIMATE RADIO CIRCLE REMOVAL
+   /* =========================================
+           ULTIMATE HORIZONTAL PAGINATOR STYLES
            ========================================= */
         
         /* 1. The Wrapper Container */
@@ -200,19 +200,12 @@ st.markdown(
             display: none !important;
         }
 
-        /* 4. ANNIHILATE THE NATIVE RADIO CIRCLES AND INPUTS */
-        div[role="radiogroup"] input[type="radio"],
-        div[role="radiogroup"] label div:has(> svg),
-        div[role="radiogroup"] label div[data-baseweb="radio"] {
+        /* 4. Turn off visibility on the native radio box completely */
+        div[role="radiogroup"] input[type="radio"] {
             display: none !important;
-            visibility: hidden !important;
-            width: 0 !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
         }
 
-        /* 5. Style the Option Buttons (Radio Labels) into 44x44 Squares */
+        /* 5. Force the label into a 44x44 square tile */
         div[role="radiogroup"] > label {
             background-color: #1f1f1f !important;
             border: 1px solid #333333 !important;
@@ -222,20 +215,35 @@ st.markdown(
             min-width: 44px !important;
             max-width: 44px !important;
             display: flex !important;
-            flex-direction: row !important;
             align-items: center !important;
             justify-content: center !important;
             padding: 0 !important;
             margin: 0 !important;
             cursor: pointer !important;
+            position: relative !important;
             transition: all 0.2s ease !important;
         }
+        
         div[role="radiogroup"] > label:hover {
             background-color: #2a2a2a !important;
             border-color: #555555 !important;
         }
 
-        /* Clean number text formatting */
+        /* HIDE THE NATIVE CIRCLE CONTAINER PERMANENTLY */
+        div[role="radiogroup"] > label > div:not(:last-child) {
+            display: none !important;
+        }
+
+        /* Center the final text node / span container inside the tile */
+        div[role="radiogroup"] > label > div:last-child {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
         div[role="radiogroup"] p,
         div[role="radiogroup"] span {
             color: #e0e0e0 !important;
@@ -251,6 +259,7 @@ st.markdown(
             border: 2px solid #75d466 !important;
             background-color: #1a2218 !important;
         }
+        
         div[role="radiogroup"] > label:has(input:checked) p,
         div[role="radiogroup"] > label:has(input:checked) span {
             color: #ffffff !important;
