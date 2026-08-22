@@ -151,11 +151,11 @@ st.markdown(
             align-items: center !important;
         }
 
-   /* =========================================
-           ULTIMATE HORIZONTAL PAGINATOR STYLES
+      /* =========================================
+           CUSTOM BUTTON-BASED HORIZONTAL PAGINATOR
            ========================================= */
         
-        /* 1. The Wrapper Container */
+        /* Wrapper Container */
         [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
             background-color: #000000 !important;
             padding: 12px 16px !important;
@@ -165,48 +165,20 @@ st.markdown(
             gap: 16px !important;
         }
 
-        /* 2. Left/Right Arrow Buttons */
-        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"] {
-            background-color: transparent !important;
-            border: none !important;
-            color: #6b6b6b !important;
-            box-shadow: none !important;
-            font-size: 20px !important;
-            padding: 8px !important;
+        /* Make the inner selection container scroll horizontally */
+        .options-scroll-container div[data-testid="stHorizontalBlock"] {
             display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            transition: opacity 0.2s !important;
-            min-height: 44px !important;
-        }
-        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"]:hover {
-            opacity: 0.7 !important;
-            background-color: transparent !important;
-            color: #ffffff !important;
-        }
-
-        /* 3. Single-line horizontal scroll container */
-        div[role="radiogroup"] {
-            display: flex !important;
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
             overflow-x: auto !important;
-            padding: 4px 0px !important;
+            flex-wrap: nowrap !important;
             gap: 8px !important;
-            -ms-overflow-style: none !important;
             scrollbar-width: none !important;
         }
-        div[role="radiogroup"]::-webkit-scrollbar {
+        .options-scroll-container div[data-testid="stHorizontalBlock"]::-webkit-scrollbar {
             display: none !important;
         }
 
-        /* 4. Turn off visibility on the native radio box completely */
-        div[role="radiogroup"] input[type="radio"] {
-            display: none !important;
-        }
-
-        /* 5. Force the label into a 44x44 square tile */
-        div[role="radiogroup"] > label {
+        /* Force all option buttons into clean 44x44 squares */
+        .options-scroll-container button {
             background-color: #1f1f1f !important;
             border: 1px solid #333333 !important;
             border-radius: 6px !important;
@@ -214,54 +186,26 @@ st.markdown(
             height: 44px !important;
             min-width: 44px !important;
             max-width: 44px !important;
+            min-height: 44px !important;
+            color: #e0e0e0 !important;
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            box-shadow: none !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             padding: 0 !important;
-            margin: 0 !important;
-            cursor: pointer !important;
-            position: relative !important;
-            transition: all 0.2s ease !important;
         }
         
-        div[role="radiogroup"] > label:hover {
+        .options-scroll-container button:hover {
             background-color: #2a2a2a !important;
             border-color: #555555 !important;
         }
 
-        /* HIDE THE NATIVE CIRCLE CONTAINER PERMANENTLY */
-        div[role="radiogroup"] > label > div:not(:last-child) {
-            display: none !important;
-        }
-
-        /* Center the final text node / span container inside the tile */
-        div[role="radiogroup"] > label > div:last-child {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        div[role="radiogroup"] p,
-        div[role="radiogroup"] span {
-            color: #e0e0e0 !important;
-            font-size: 14px !important;
-            font-weight: 400 !important;
-            font-variant-numeric: tabular-nums !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        /* 6. Active State (Vibrant Green Border + Dark Green BG) */
-        div[role="radiogroup"] > label:has(input:checked) {
+        /* Active State Style (Vibrant Green Border + Dark Green BG) */
+        .options-scroll-container button[kind="primary"] {
             border: 2px solid #75d466 !important;
             background-color: #1a2218 !important;
-        }
-        
-        div[role="radiogroup"] > label:has(input:checked) p,
-        div[role="radiogroup"] > label:has(input:checked) span {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
@@ -1396,7 +1340,7 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-    st.markdown('<div class="nav-row">', unsafe_allow_html=True)
+st.markdown('<div class="nav-row">', unsafe_allow_html=True)
     c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
@@ -1408,17 +1352,22 @@ else:
             st.rerun()
 
     with c_sel:
-        selected_idx = st.radio(
-            "Browse Schedule Options:",
-            options=range(len(schedules)),
-            index=st.session_state.sched_idx,
-            format_func=lambda x: f"{x + 1:02d}", 
-            horizontal=True,  # <-- Must be True!
-            label_visibility="collapsed",
-        )
-        if selected_idx != st.session_state.sched_idx:
-            st.session_state.sched_idx = selected_idx
-            st.rerun()
+        # Create a scrollable container for option buttons
+        st.markdown('<div class="options-scroll-container">', unsafe_allow_html=True)
+        cols = st.columns(len(schedules))
+        for idx, col in enumerate(cols):
+            with col:
+                is_active = (idx == st.session_state.sched_idx)
+                btn_label = f"{idx + 1:02d}"
+                # Highlight active button dynamically
+                if is_active:
+                    if st.button(btn_label, key=f"opt_active_{idx}", use_container_width=True, type="primary"):
+                        pass
+                else:
+                    if st.button(btn_label, key=f"opt_{idx}", use_container_width=True):
+                        st.session_state.sched_idx = idx
+                        st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with c_next:
         if st.button("▶", key="next_btn", use_container_width=True):
