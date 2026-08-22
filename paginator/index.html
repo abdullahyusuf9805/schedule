@@ -84,6 +84,8 @@
     font-weight: 500;
   }
 </style>
+<!-- Include Streamlit Component Library -->
+<script src="https://streamlit.com/components/streamlit-lib.v1.js"></script>
 </head>
 <body>
 
@@ -103,48 +105,42 @@
   </div>
 
   <script>
-    function sendMessageToStreamlit(type, data) {
-        window.parent.postMessage({ isStreamlitMessage: true, type: type, ...data }, "*");
-    }
-
-    function setComponentValue(value) {
-        sendMessageToStreamlit("setComponentValue", { value: value });
-    }
-
-    sendMessageToStreamlit("streamlit:componentReady", { apiVersion: 1 });
-    sendMessageToStreamlit("streamlit:setFrameHeight", { height: 75 }); 
-
-    window.addEventListener("message", function(event) {
-        if (event.data.type === "streamlit:render") {
-            const args = event.data.args;
-            const numOptions = args.num_options;
-            const activeIndex = args.active_index;
-
-            const container = document.getElementById("options-scroll");
-            container.innerHTML = ""; 
-
-            for(let i = 0; i < numOptions; i++) {
-                const btn = document.createElement("div");
-                btn.className = "option-btn" + (i === activeIndex ? " active" : "");
-                btn.innerText = (i + 1).toString().padStart(2, '0');
-                
-                // Closure to ensure the correct index is bound to each individual element
-                (function(index) {
-                    btn.addEventListener("click", function(e) {
-                        e.preventDefault();
-                        setComponentValue(index);
-                    });
-                })(i);
-
-                if (i === activeIndex) {
-                    setTimeout(() => btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 100);
-                }
-
-                container.appendChild(btn);
-            }
+    // Initialize Streamlit communication
+    function onRender(event) {
+        if (!window.rendered) {
+            window.rendered = true;
+            Streamlit.setFrameHeight(75);
         }
-    });
 
+        const args = event.detail.args;
+        const numOptions = args.num_options;
+        const activeIndex = args.active_index;
+
+        const container = document.getElementById("options-scroll");
+        container.innerHTML = ""; 
+
+        for(let i = 0; i < numOptions; i++) {
+            const btn = document.createElement("div");
+            btn.className = "option-btn" + (i === activeIndex ? " active" : "");
+            btn.innerText = (i + 1).toString().padStart(2, '0');
+            
+            // Send selected index back to Python using official library
+            btn.addEventListener("click", function() {
+                Streamlit.setComponentValue(i);
+            });
+
+            if (i === activeIndex) {
+                setTimeout(() => btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 100);
+            }
+
+            container.appendChild(btn);
+        }
+    }
+
+    Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
+    Streamlit.setComponentReady();
+
+    // Arrow Scrolling Logic
     const scrollContainer = document.getElementById('options-scroll');
     const scrollAmount = 200; 
     
