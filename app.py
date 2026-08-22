@@ -1325,7 +1325,7 @@ else:
     # --------------------------------------------------------------------------------
             
             
-            st.download_button(
+        st.download_button(
                 label="📥 Download Current Schedule (Excel)",
                 data=excel_buffer.getvalue(),
                 file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.xlsx",
