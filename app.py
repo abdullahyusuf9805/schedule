@@ -1287,29 +1287,25 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-
-# --------------------------------------------------------------------------------
-
-# Load our completely untouchable custom HTML paginator!
+    # --------------------------------------------------------------------------------
+    # CUSTOM HTML PAGINATOR COMPONENT
+    # --------------------------------------------------------------------------------
     html_paginator = components.declare_component("html_paginator", path="paginator")
 
-    # Display the component, passing it the total schedules and currently selected index
     clicked_idx = html_paginator(
         num_options=len(schedules), 
         active_index=st.session_state.sched_idx, 
         key="my_custom_paginator"
     )
 
-    # When the Javascript sends a clicked number back, update the session and reload!
     if clicked_idx is not None and clicked_idx != st.session_state.sched_idx:
         st.session_state.sched_idx = clicked_idx
         st.rerun()
-            
-# --------------------------------------------------------------------------------
-
- 
+    # --------------------------------------------------------------------------------
 
     active_sched = schedules[st.session_state.sched_idx]
+
+    
 
     is_visual = st.session_state.active_view == "Visual View"
     v_bg = "#000000" if is_visual else "#212121"
