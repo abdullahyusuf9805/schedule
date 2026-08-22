@@ -1287,15 +1287,10 @@ else:
         st.session_state.sched_idx = 0
 
 
-
-  # --------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
     # THEME 2: iOS SEGMENTED PILL (PURE HTML/CSS/JS TOGGLE)
     # --------------------------------------------------------------------------------
     current_view = st.session_state.get("active_view", "Visual View")
-    
-    # We use a clean radio-like visual toggle via HTML
-    v_active_class = "active" if current_view == "Visual View" else ""
-    e_active_class = "active" if current_view == "Excel View" else ""
 
     toggle_html = f"""
     <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 20px;">
@@ -1305,17 +1300,15 @@ else:
         </div>
     </div>
     <script>
-        function setStreamlitView(viewName) {{
-            // Streamlit query param bridge to trigger a seamless rerun
+        function setStreamlitView(viewName) {
             const url = new URL(window.parent.location.href);
             url.searchParams.set('view', viewName);
             window.parent.location.href = url.href;
-        }}
+        }
     </script>
     """
     st.markdown(toggle_html, unsafe_allow_html=True)
 
-    # Catch the view change from the URL parameters
     params = st.query_params
     if "view" in params:
         chosen_view = params["view"]
@@ -1323,8 +1316,54 @@ else:
             st.session_state.active_view = chosen_view
             st.rerun()
     # --------------------------------------------------------------------------------
-            
-st.dataframe(df_excel, use_container_width=True)
+
+    active_sched = schedules[st.session_state.sched_idx]
+
+    if st.session_state.active_view == "Visual View":
+        html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
+        html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
+        html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
+
+        col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+
+        for row_idx in range(11):
+            hour = 8 + row_idx
+            bg_color = "#121212" if row_idx % 2 == 0 else "#000000"
+            html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
+            html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
+
+            row_cells = [""] * 5
+            for section in active_sched:
+                for b in section["blocks"]:
+                    if b["start_time"] == hour:
+                        c_idx = col_map_html.get(b["day"])
+                        if c_idx:
+                            row_cells[c_idx - 1] = (
+                                f"<b>{section['code']}</b><br><small>(ش"
+                                f" {section['id']})</small>"
+                            )
+
+            for c in row_cells:
+                cell_bg = "#ffffff" if c else "#212121"
+                cell_fg = "#000000" if c else "#888888"
+                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
+            html_grid += "</tr>"
+        html_grid += "</table>"
+
+        st.markdown(html_grid, unsafe_allow_html=True)
+
+    else:
+        df_excel = pd.DataFrame([{
+            "CODE": s["code"],
+            "NAME": s["name"],
+            "ID (ش)": s["id"],
+            "HALL": s["hall"],
+            "VENUE": s["venue"],
+            "TEACHER": s["teacher"],
+            "STATUS": s["status"],
+        } for s in active_sched])
+
+        st.dataframe(df_excel, use_container_width=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         try:
@@ -1349,7 +1388,6 @@ st.dataframe(df_excel, use_container_width=True)
                 mime="text/csv",
                 use_container_width=True
             )
-            
 
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
