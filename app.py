@@ -1281,7 +1281,7 @@ else:
 
 # --------------------------------------------------------------------------------
 
-st.markdown('<span class="paginator-row-marker" style="display:none;"></span>', unsafe_allow_html=True)
+    st.markdown('<span class="paginator-row-marker" style="display:none;"></span>', unsafe_allow_html=True)
     c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
