@@ -1405,16 +1405,7 @@ else:
             
 # --------------------------------------------------------------------------------
 
-    with c_next:
-        if st.button("▶", key="next_btn", use_container_width=True):
-            if st.session_state.sched_idx < len(schedules) - 1:
-                st.session_state.sched_idx += 1
-            else:
-                st.session_state.sched_idx = 0
-            st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    
+ 
 
     active_sched = schedules[st.session_state.sched_idx]
 
