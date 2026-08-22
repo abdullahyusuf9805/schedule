@@ -32,6 +32,23 @@ from selenium.webdriver.chrome.service import Service
 # ==========================================
 st.set_page_config(page_title="Dynamic Timetable Solver", layout="wide")
 
+st.markdown("""
+    <style>
+        /* Import Tajawal from Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+
+        /* Apply Tajawal cleanly to main text elements and tables without breaking UI elements */
+        html, body, p, span, div, table, th, td, .stMarkdown {
+            font-family: 'Tajawal', sans-serif !important;
+        }
+
+        /* Ensure smooth rendering for Arabic text */
+        body {
+            direction: rtl;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.markdown(
 """
 <style>
@@ -52,14 +69,6 @@ st.markdown(
        ========================================= */
 
     #my-paginator { display: none !important; }
-
-    /* Import Tajawal from Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-
-    /* Apply Tajawal globally to Streamlit and all elements */
-    html, body, [class*="css"], table, th, td, div, span, p {
-            font-family: 'Tajawal', sans-serif !important;
-    }
 
     /* 1. Main Black Wrapper Container */
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] {
