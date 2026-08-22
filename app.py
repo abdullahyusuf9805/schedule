@@ -128,7 +128,7 @@ st.markdown(
 
         /* DESTROY MASSIVE MAIN CONTAINER PADDING */
         div.block-container {
-            padding-top: 1.5rem !important;
+            padding-top: 3.5rem !important; /* Increased to stop the title from hiding under the top bar */
             padding-right: 1.5rem !important;
             padding-left: 1.5rem !important;
             padding-bottom: 1.5rem !important;
