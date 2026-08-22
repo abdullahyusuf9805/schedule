@@ -44,107 +44,116 @@ st.markdown(
     /* Base theme */
     .stApp { background-color: #000000; color: #ffffff; }
     div.block-container { padding: 3.5rem 1.5rem 1.5rem 1.5rem !important; }
+    [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
 
     /* =========================================
-       1,000,000,000% EXACT HTML PAGINATOR
+       1:1 HTML MATCH - NO SQUISHING, NO STACKING
        ========================================= */
 
-    /* 1. The Black Wrapper */
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] {
+    /* 1. Main Row (Black Container) */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) {
         background-color: #000000 !important;
         padding: 12px 16px !important;
         border-top: 1px solid #1a1a1a !important;
         border-bottom: 1px solid #1a1a1a !important;
         align-items: center !important;
+        gap: 16px !important;
     }
 
-    /* 2. Turn the Middle Column into a Scrollable Row */
-    .element-container:has(.paginator-scroll-marker) {
-        display: none !important; /* Hide the marker */
-    }
-    
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stVerticalBlock"] {
+    /* 2. Target the INNER row (the 50 columns) and make it scroll! */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] {
         display: flex !important;
-        flex-direction: row !important; /* Flips the buttons horizontally! */
-        gap: 8px !important;
-        overflow-x: auto !important;
-        scroll-behavior: smooth !important;
-        padding: 2px 0 !important;
         flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        padding-bottom: 4px !important;
         -ms-overflow-style: none !important;
         scrollbar-width: none !important;
     }
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stVerticalBlock"]::-webkit-scrollbar {
+    
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"]::-webkit-scrollbar {
         display: none !important;
     }
 
-    /* 3. Strip width constraints from the button wrappers */
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stVerticalBlock"] > .element-container {
-        width: 44px !important;
+    /* 3. THE MAGIC BULLET: Override Streamlit's inline 2% width and lock columns to 44px */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"] {
         flex: 0 0 44px !important;
+        width: 44px !important;
+        min-width: 44px !important;
+        max-width: 44px !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    /* 4. Exact Option Buttons */
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button {
+    /* 4. Base Button Styles (44x44 Squares) */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button {
         background-color: #1f1f1f !important;
-        color: #e0e0e0 !important;
         border: 1px solid #333333 !important;
         border-radius: 6px !important;
-        width: 44px !important;
+        width: 44px !important; 
         height: 44px !important;
         min-width: 44px !important;
         min-height: 44px !important;
+        padding: 0 !important;
+        margin: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        padding: 0 !important;
-        margin: 0 !important;
         box-shadow: none !important;
         transition: all 0.2s ease !important;
     }
 
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button:hover {
+    /* 5. FIX THE STACKING: Force inner divs to center and 'pre' format text */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
+        color: #e0e0e0 !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        font-variant-numeric: tabular-nums !important;
+        white-space: pre !important; /* PREVENTS '0' and '1' FROM STACKING VERTICALLY */
+        word-break: keep-all !important;
+        display: inline-block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* 6. Hover & Active States */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button:hover {
         background-color: #2a2a2a !important;
         border-color: #555555 !important;
     }
 
-    /* 5. Center Number Text and Prevent Stacking */
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button p {
-        font-size: 14px !important;
-        font-weight: 400 !important;
-        font-variant-numeric: tabular-nums !important;
-        color: inherit !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        white-space: nowrap !important;
-    }
-
-    /* 6. Active State */
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button[kind="primary"] {
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] {
         border: 2px solid #75d466 !important;
         background-color: #1a2218 !important;
-        color: #ffffff !important;
     }
     
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button[kind="primary"] p {
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] p {
+        color: #ffffff !important;
         font-weight: 500 !important;
     }
 
     /* 7. Nav Arrows Reset */
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(1) button,
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(3) button {
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1) button,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) button {
         background-color: transparent !important;
         border: none !important;
         color: #6b6b6b !important;
         box-shadow: none !important;
         padding: 8px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
     }
     
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(1) button:hover,
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(3) button:hover {
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1) button:hover,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) button:hover {
         opacity: 0.7 !important;
         background-color: transparent !important;
     }
@@ -1281,7 +1290,7 @@ else:
 
 # --------------------------------------------------------------------------------
 
-    st.markdown('<span class="paginator-row-marker" style="display:none;"></span>', unsafe_allow_html=True)
+    # 1. The Main Outer Columns
     c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
@@ -1293,19 +1302,19 @@ else:
             st.rerun()
 
     with c_sel:
-        # NO MORE st.columns() HERE! Just generate the buttons vertically. 
-        # Our CSS will flip them horizontally and add the exact scroll mechanics.
-        st.markdown('<span class="paginator-scroll-marker" style="display:none;"></span>', unsafe_allow_html=True)
-        for idx in range(len(schedules)):
-            is_active = (idx == st.session_state.sched_idx)
-            btn_label = f"{idx + 1:02d}"
-            
-            if is_active:
-                st.button(btn_label, key=f"opt_active_{idx}", type="primary")
-            else:
-                if st.button(btn_label, key=f"opt_{idx}"):
-                    st.session_state.sched_idx = idx
-                    st.rerun()
+        # 2. Put the 50 Columns back! Our CSS will prevent them from squishing.
+        cols = st.columns(len(schedules))
+        for idx, col in enumerate(cols):
+            with col:
+                is_active = (idx == st.session_state.sched_idx)
+                btn_label = f"{idx + 1:02d}"
+                
+                if is_active:
+                    st.button(btn_label, key=f"opt_active_{idx}", use_container_width=True, type="primary")
+                else:
+                    if st.button(btn_label, key=f"opt_{idx}", use_container_width=True):
+                        st.session_state.sched_idx = idx
+                        st.rerun()
 
     with c_next:
         if st.button("▶", key="next_btn", use_container_width=True):
