@@ -813,7 +813,7 @@ with st.sidebar.container(border=True):
                     extracted_id = match_id.group(1).strip()
         
         # 2. Build the exact filename requested
-        excel_filename = f"MATROOHAT({extracted_id}) {formatted_time}.xlsx"
+        excel_filename = f"MATROOHAT ({extracted_id}) {formatted_time}.xlsx"
         
         raw_excel_buffer = io.BytesIO()
         with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
