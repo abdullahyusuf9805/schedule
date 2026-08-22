@@ -1275,9 +1275,8 @@ def draw_schedule_image(schedule):
 if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
-    st.info(
-        f"Found {len(schedules)} Valid Schedules."
-    )
+    total_count_label = "100+" if len(schedules) > 100 else f"{len(schedules)}"
+    st.info(f"Found {total_count_label} Valid Schedules.")
 
     if "sched_idx" not in st.session_state:
         st.session_state.sched_idx = 0
@@ -1288,19 +1287,48 @@ else:
         st.session_state.sched_idx = 0
 
     # --------------------------------------------------------------------------------
-    # CUSTOM HTML PAGINATOR COMPONENT
+    # ROBUST NATIVE PAGINATOR BAR
     # --------------------------------------------------------------------------------
-    html_paginator = components.declare_component("html_paginator", path="paginator")
+    st.markdown("""
+        <style>
+            .st-key-sched_selectbox select {
+                background-color: #1f1f1f !important;
+                color: #ffffff !important;
+                border: 1px solid #333333 !important;
+                border-radius: 6px !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
-    clicked_idx = html_paginator(
-        num_options=len(schedules), 
-        active_index=st.session_state.sched_idx, 
-        key="my_custom_paginator"
-    )
+    c_prev, c_select, c_next = st.columns([1, 6, 1], vertical_alignment="center")
+    
+    with c_prev:
+        if st.button("◀", use_container_width=True, key="native_prev"):
+            if st.session_state.sched_idx > 0:
+                st.session_state.sched_idx -= 1
+                st.rerun()
 
-    if clicked_idx is not None and clicked_idx != st.session_state.sched_idx:
-        st.session_state.sched_idx = clicked_idx
-        st.rerun()
+    with c_select:
+        # Create a clean dropdown selector to instantly jump to any of the 100+ schedules seamlessly
+        options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
+        selected_option = st.selectbox(
+            "Select Schedule",
+            options=options_list,
+            index=st.session_state.sched_idx,
+            label_visibility="collapsed",
+            key="sched_selectbox"
+        )
+        # Extract index from selection
+        new_idx = options_list.index(selected_option)
+        if new_idx != st.session_state.sched_idx:
+            st.session_state.sched_idx = new_idx
+            st.rerun()
+
+    with c_next:
+        if st.button("▶", use_container_width=True, key="native_next"):
+            if st.session_state.sched_idx < len(schedules) - 1:
+                st.session_state.sched_idx += 1
+                st.rerun()
     # --------------------------------------------------------------------------------
 
     active_sched = schedules[st.session_state.sched_idx]
