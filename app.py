@@ -34,113 +34,23 @@ st.set_page_config(page_title="Dynamic Timetable Solver", layout="wide")
 st.markdown(
     """
 <style>
+    /* Hide Streamlit elements */
     .stCaption {display: none;}
-    
-    /* =========================================
-       GENERAL THEME & SPACING
-       ========================================= */
-    .stApp {
-        background-color: #000000;
-        color: #ffffff;
+    [data-testid="stTickBar"], [data-testid="stTickBarMin"], [data-testid="stTickBarMax"], 
+    div[data-baseweb="tooltip"], div[role="tooltip"], div[data-testid="stThumbValue"] {
+        display: none !important; opacity: 0 !important; visibility: hidden !important;
     }
 
-    /* Destroy massive main container padding */
-    div.block-container {
-        padding-top: 3.5rem !important;
-        padding-right: 1.5rem !important;
-        padding-left: 1.5rem !important;
-        padding-bottom: 1.5rem !important;
-    }
-
-    /* Squash all main page gaps */
-    [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] {
-        gap: 0.3rem !important;
-    }
-
-    /* Slim down the blue st.info box */
-    div[data-testid="stAlert"] {
-        padding-top: 0.3rem !important;
-        padding-bottom: 0.3rem !important;
-    }
-
-    h1 {
-        font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
-        white-space: nowrap !important;
-        color: #ffffff !important;
-    }
-
-    .center-download {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        margin-top: 20px;
-        text-align: center;
-    }
-    
-    /* =========================================
-       SIDEBAR & UI TIGHTENING
-       ========================================= */
-    [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
-        padding: 0.2rem 0.8rem 0.2rem 0.8rem !important; 
-        background-color: #1a1a1a !important;
-        border-radius: 8px !important;
-        border: 1px solid #2a2a2a !important;
-        margin-bottom: 12px !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] {
-        margin-bottom: -10px !important;
-    }
-
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] {
-        border: 1px solid #777777 !important; 
-        border-radius: 6px !important;
-        background-color: #1a1a1a !important;
-        overflow: hidden !important; 
-        margin-bottom: 0px !important; 
-    }
-    
-    /* =========================================
-       NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
-       ========================================= */
-    [data-testid="stTickBar"], 
-    [data-testid="stTickBarMin"], 
-    [data-testid="stTickBarMax"] {
-        display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-    }
-
-    div[data-baseweb="tooltip"], 
-    div[role="tooltip"],
-    div[data-testid="stThumbValue"] {
-        display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-    }
-
-    div[data-baseweb="slider"] div[role="slider"] {
-        background-color: #ff4d4d !important;
-        border: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
-    
-    div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
-        background-color: #555555 !important;
-    }
-
-    [data-testid="stHorizontalBlock"] {
-        align-items: center !important;
-    }
+    /* Base theme */
+    .stApp { background-color: #000000; color: #ffffff; }
+    div.block-container { padding: 3.5rem 1.5rem 1.5rem 1.5rem !important; }
+    [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
 
     /* =========================================
-       NATIVE STREAMLIT HORIZONTAL PAGINATOR
+       1:1 EXACT HTML PAGINATOR MATCH
        ========================================= */
 
-    /* 1. Target the Main Nav Row (The one with exactly 3 columns) */
+    /* 1. paginator-wrapper (The Black Container) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) {
         background-color: #000000 !important;
         padding: 12px 16px !important;
@@ -150,13 +60,14 @@ st.markdown(
         gap: 16px !important;
     }
 
-    /* 2. Target the Middle Column (c_sel) and force it to scroll horizontally */
+    /* 2. options-container (The Scrollable Row) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] {
         display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
         gap: 8px !important;
-        padding-bottom: 4px !important;
+        overflow-x: auto !important;
+        scroll-behavior: smooth !important;
+        padding: 2px 0 !important;
+        flex-wrap: nowrap !important;
         -ms-overflow-style: none !important;
         scrollbar-width: none !important;
     }
@@ -164,69 +75,73 @@ st.markdown(
         display: none !important;
     }
 
-    /* 3. Lock the 50 columns inside the middle block to EXACTLY 44px so they don't squish */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 0 0 44px !important;
-        width: 44px !important;
-        min-width: 44px !important;
-        max-width: 44px !important;
-        padding: 0 !important;
+    /* 3. THE MAGIC FIX: Dissolve Streamlit's hidden column wrappers completely! */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"],
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"] > div,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div {
+        display: contents !important; 
     }
 
-/* 4. Base Button Styles (44x44 Squares) */
+    /* 4. option-btn (The 44x44 Square) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button {
         background-color: #1f1f1f !important;
+        color: #e0e0e0 !important;
         border: 1px solid #333333 !important;
         border-radius: 6px !important;
-        width: 44px !important; 
+        width: 44px !important;
         height: 44px !important;
         min-width: 44px !important;
-        min-height: 44px !important;
+        max-width: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important; /* Never crush the square */
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
         padding: 0 !important;
         margin: 0 !important;
         box-shadow: none !important;
     }
-
-    /* 5. THE FIX: Force the inner text wrappers to ignore column widths */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div,
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div > div {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
     
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
-        color: #e0e0e0 !important;
-        font-size: 15px !important;
-        font-weight: 500 !important;
-        width: max-content !important; /* <-- THIS STOPS THE STACKING */
-        min-width: max-content !important; /* <-- THIS STOPS THE STACKING */
-        white-space: nowrap !important;
-        word-break: normal !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: block !important;
-    }
-
-    /* 6. Hover & Active States */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button:hover {
         background-color: #2a2a2a !important;
         border-color: #555555 !important;
     }
 
+    /* 5. Clean, tabular text inside the button */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        font-variant-numeric: tabular-nums !important;
+        color: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* 6. option-btn.active (Green Active State) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] {
         border: 2px solid #75d466 !important;
         background-color: #1a2218 !important;
+        color: #ffffff !important;
     }
     
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] p {
+        font-weight: 500 !important;
         color: #ffffff !important;
-        font-weight: 600 !important;
     }
-</style>        
+
+    /* 7. nav-arrow (Side Arrow Reset) */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1) button,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) button {
+        background-color: transparent !important;
+        border: none !important;
+        color: #6b6b6b !important;
+        box-shadow: none !important;
+    }
+</style>
 """,
     unsafe_allow_html=True,
 )
