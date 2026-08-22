@@ -52,54 +52,76 @@ st.markdown(
 
     /* 1. paginator-wrapper (The Black Container) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) {
+        display: flex !important;
+        flex-direction: row !important;
         background-color: #000000 !important;
         padding: 12px 16px !important;
         border-top: 1px solid #1a1a1a !important;
         border-bottom: 1px solid #1a1a1a !important;
         align-items: center !important;
         gap: 16px !important;
+        width: 100% !important;
+    }
+
+    /* Force the left/right arrows to hug the edges */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1),
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) {
+        flex: 0 0 auto !important; 
+        width: auto !important;
+        min-width: 0 !important;
     }
 
     /* 2. options-container (The Scrollable Row) */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] {
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        overflow: hidden !important; 
+    }
+
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stHorizontalBlock"] {
         display: flex !important;
+        flex-direction: row !important;
         gap: 8px !important;
         overflow-x: auto !important;
         scroll-behavior: smooth !important;
         padding: 2px 0 !important;
         flex-wrap: nowrap !important;
+        width: 100% !important;
         -ms-overflow-style: none !important;
         scrollbar-width: none !important;
     }
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"]::-webkit-scrollbar {
+    
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stHorizontalBlock"]::-webkit-scrollbar {
         display: none !important;
     }
 
-    /* 3. THE MAGIC FIX: Dissolve Streamlit's hidden column wrappers completely! */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"],
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"] > div,
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div {
-        display: contents !important; 
+    /* 3. Force Streamlit's internal columns into 44px wrappers */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 0 0 44px !important;
+        width: 44px !important;
+        min-width: 44px !important;
+        max-width: 44px !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     /* 4. option-btn (The 44x44 Square) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button {
         background-color: #1f1f1f !important;
-        color: #e0e0e0 !important;
         border: 1px solid #333333 !important;
         border-radius: 6px !important;
         width: 44px !important;
         height: 44px !important;
         min-width: 44px !important;
-        max-width: 44px !important;
+        min-height: 44px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        flex-shrink: 0 !important; /* Never crush the square */
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
         padding: 0 !important;
         margin: 0 !important;
+        box-sizing: border-box !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
         box-shadow: none !important;
     }
     
@@ -108,38 +130,57 @@ st.markdown(
         border-color: #555555 !important;
     }
 
-    /* 5. Clean, tabular text inside the button */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
-        font-size: 14px !important;
-        font-weight: 400 !important;
-        font-variant-numeric: tabular-nums !important;
-        color: inherit !important;
-        margin: 0 !important;
-        padding: 0 !important;
+    /* 5. Force the inner button text to perfectly center and NEVER stack */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div > div {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
+        color: #e0e0e0 !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        font-variant-numeric: tabular-nums !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important; /* Forces 01 to stay on one line */
     }
 
     /* 6. option-btn.active (Green Active State) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] {
         border: 2px solid #75d466 !important;
         background-color: #1a2218 !important;
-        color: #ffffff !important;
     }
     
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] p {
-        font-weight: 500 !important;
         color: #ffffff !important;
+        font-weight: 500 !important;
     }
 
     /* 7. nav-arrow (Side Arrow Reset) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1) button,
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) button {
-        background-color: transparent !important;
+        background: none !important;
         border: none !important;
         color: #6b6b6b !important;
         box-shadow: none !important;
+        padding: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1) button:hover,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) button:hover {
+        background: none !important;
+        opacity: 0.7 !important;
     }
 </style>
 """,
