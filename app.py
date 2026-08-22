@@ -1275,8 +1275,13 @@ def draw_schedule_image(schedule):
 if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
-    total_count_label = "100+" if len(schedules) > 100 else f"{len(schedules)}"
-    st.info(f"Found {total_count_label} Valid Schedules.")
+    # --------------------------------------------------------------------------------
+    # DYNAMIC SCHEDULE COUNTER (e.g., Schedule 001 of 100)
+    # --------------------------------------------------------------------------------
+    current_num = st.session_state.get("sched_idx", 0) + 1
+    total_count = len(schedules)
+    st.info(f"Schedule {current_num:03d} of {total_count}")
+    # --------------------------------------------------------------------------------
 
     if "sched_idx" not in st.session_state:
         st.session_state.sched_idx = 0
@@ -1285,17 +1290,18 @@ else:
 
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
-    
+
+    # --------------------------------------------------------------------------------
+    # UNIFORM HEIGHT & SPACING CSS NORMALIZATION
+    # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            /* 1. Let info box size naturally without stretching */
             div[data-testid="stInfo"] {
                 min-height: auto !important;
                 height: auto !important;
                 margin-bottom: 12px !important;
             }
 
-            /* 2. Normalize the Selectbox and Pills containers to equal heights */
             .stSelectbox > div > div,
             div[data-testid="stPills"] {
                 min-height: 48px !important;
@@ -1307,27 +1313,11 @@ else:
                 margin-bottom: 12px !important;
             }
 
-            /* 3. Ensure selectbox internal text alignment matches */
             .stSelectbox div[data-baseweb="select"] > div {
                 min-height: 48px !important;
                 height: 48px !important;
                 display: flex !important;
                 align-items: center !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    # --------------------------------------------------------------------------------
-    # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
-    # --------------------------------------------------------------------------------
-    st.markdown("""
-        <style>
-            .st-key-sched_selectbox select {
-                background-color: #1f1f1f !important;
-                color: #ffffff !important;
-                border: 1px solid #333333 !important;
-                border-radius: 6px !important;
-                height: 44px !important;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -1345,52 +1335,8 @@ else:
     if new_idx != st.session_state.sched_idx:
         st.session_state.sched_idx = new_idx
         st.rerun()
-    # --------------------------------------------------------------------------------
 
     active_sched = schedules[st.session_state.sched_idx]
-    
-
-    is_visual = st.session_state.active_view == "Visual View"
-    v_bg = "#000000" if is_visual else "#212121"
-    v_border = "#ffffff" if is_visual else "#424242"
-
-    is_excel = st.session_state.active_view == "Excel View"
-    e_bg = "#000000" if is_excel else "#212121"
-    e_border = "#ffffff" if is_excel else "#424242"
-
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button(
-            "Visual View", use_container_width=True, key="btn_visual_toggle"
-        ):
-            st.session_state.active_view = "Visual View"
-            st.rerun()
-    with col_btn2:
-        if st.button(
-            "Excel View", use_container_width=True, key="btn_excel_toggle"
-        ):
-            st.session_state.active_view = "Excel View"
-            st.rerun()
-
-    st.markdown(
-        f"""
-        <style>
-            div[data-testid="column"] button[key="btn_visual_toggle"] {{
-                background-color: {v_bg} !important;
-                color: #ffffff !important;
-                border: 2px solid {v_border} !important;
-                font-weight: bold;
-            }}
-            div[data-testid="column"] button[key="btn_excel_toggle"] {{
-                background-color: {e_bg} !important;
-                color: #ffffff !important;
-                border: 2px solid {e_border} !important;
-                font-weight: bold;
-            }}
-        </style>
-    """,
-        unsafe_allow_html=True,
-    )
 
     if st.session_state.active_view == "Visual View":
         html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
@@ -1411,9 +1357,11 @@ else:
                     if b["start_time"] == hour:
                         c_idx = col_map_html.get(b["day"])
                         if c_idx:
+                            raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+                            hall_display = f"<br><small>({raw_hall})</small>" if raw_hall else ""
+                            
                             row_cells[c_idx - 1] = (
-                                f"<b>{section['code']}</b><br><small>(ش"
-                                f" {section['id']})</small>"
+                                f"<b>{section['code']}</b>{hall_display}"
                             )
 
             for c in row_cells:
