@@ -1285,7 +1285,37 @@ else:
 
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
+    
+    st.markdown("""
+        <style>
+            /* 1. Normalize all primary UI blocks to a uniform height (44px) */
+            div[data-testid="stInfo"],
+            .stSelectbox > div > div,
+            div[data-testid="stPills"] {
+                min-height: 44px !important;
+                max-height: 44px !important;
+                height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
+                box-sizing: border-box !important;
+            }
 
+            /* 2. Enforce an even, consistent vertical gap between all elements */
+            div.element-container, 
+            div[data-testid="stVerticalBlock"] > div {
+                margin-bottom: 12px !important;
+            }
+
+            /* 3. Standardize selectbox internal text alignment */
+            .stSelectbox div[data-baseweb="select"] > div {
+                min-height: 44px !important;
+                height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+    
     # --------------------------------------------------------------------------------
     # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
     # --------------------------------------------------------------------------------
