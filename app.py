@@ -702,7 +702,7 @@ with st.sidebar.container(border=True):
             )
 
         with st.form(key="login_form", clear_on_submit=False):
-            portal_user = st.text_input("ID", placeholder="Enter Student ID", label_visibility="collapsed")
+            portal_user = st.text_input("ID", type="username", placeholder="Enter Student ID", label_visibility="collapsed")
             portal_pass = st.text_input("Pass", type="password", placeholder="Enter Password", label_visibility="collapsed")
             user_captcha = st.text_input("CAPTCHA", placeholder="Enter Captcha Code", max_chars=5, label_visibility="collapsed")
             submit_form = st.form_submit_button("Continue", type="primary", use_container_width=True)
