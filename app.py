@@ -800,10 +800,10 @@ with st.sidebar.container(border=True):
                     raw_time_str = match.group(1)
                     # Convert to datetime and format perfectly to DDMMYY HHMM
                     parsed_time = pd.to_datetime(raw_time_str) 
-                    formatted_time = parsed_time.strftime("%d%m%y %H%M")
+                    formatted_time = parsed_time.strftime("%d%m%y%H%M")
         
         # 2. Build the exact filename requested
-        excel_filename = f"MATROOHAAt {formatted_time}.xlsx"
+        excel_filename = f"MATROOHAAT {formatted_time}.xlsx"
         
         raw_excel_buffer = io.BytesIO()
         with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
