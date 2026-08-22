@@ -37,14 +37,9 @@ st.markdown("""
         /* Import Tajawal from Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
-        /* Apply Tajawal cleanly to main text elements and tables without breaking UI elements */
-        html, body, p, span, div, table, th, td, .stMarkdown {
+        /* Apply Tajawal safely to text elements, avoiding Streamlit icon classes */
+        h1, h2, h3, h4, h5, h6, p, span, label, div, table, th, td {
             font-family: 'Tajawal', sans-serif !important;
-        }
-
-        /* Ensure smooth rendering for Arabic text */
-        body {
-            direction: ltr;
         }
     </style>
 """, unsafe_allow_html=True)
