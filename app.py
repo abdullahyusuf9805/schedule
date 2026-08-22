@@ -1286,7 +1286,59 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-# --------------------------------------------------------------------------------
+
+
+    # --------------------------------------------------------------------------------
+    # THEME 2: iOS SEGMENTED PILL STYLING INJECTION
+    # --------------------------------------------------------------------------------
+    st.markdown("""
+        <style>
+            /* Target the button container holding Visual View / Excel View */
+            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) {
+                background-color: #1e2128 !important;
+                padding: 4px !important;
+                border-radius: 999px !important;
+                gap: 4px !important;
+                display: flex !important;
+                box-sizing: border-box !important;
+                margin-bottom: 20px !important;
+            }
+
+            /* Turn individual columns and buttons into smooth pill segments */
+            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) > div[data-testid="column"] {
+                flex: 1 !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button {
+                width: 100% !important;
+                border: none !important;
+                border-radius: 999px !important;
+                padding: 12px 24px !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                font-family: inherit !important;
+                transition: all 0.2s ease !important;
+                box-shadow: none !important;
+            }
+
+            /* Inactive pill style */
+            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button {
+                background-color: transparent !important;
+                color: #8b949e !important;
+            }
+
+            /* Active pill style */
+            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button[kind="primary"],
+            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button:active {
+                background-color: #2d333b !important;
+                color: #ffffff !important;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    
+    # --------------------------------------------------------------------------------
     # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
     # --------------------------------------------------------------------------------
     options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
