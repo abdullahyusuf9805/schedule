@@ -1370,7 +1370,7 @@ else:
 
 # --------------------------------------------------------------------------------
 
-c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
+    c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
         if st.button("◀", key="prev_btn", use_container_width=True):
