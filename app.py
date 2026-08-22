@@ -156,29 +156,98 @@ st.markdown(
            ========================================== PERFECT 1:1 SQUARE NAVIGATION BUTTONS ==========================================
            =========================================================================================================================== */
         
-        /* Target ONLY the row that has exactly 3 columns (The Nav Row) */
+        /* =========================================
+           HORIZONTAL PAGINATOR STYLES
+           ========================================= */
+        
+        /* 1. The Wrapper Container (Black background, top/bottom borders) */
+        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
+            background-color: #000000 !important;
+            padding: 12px 16px !important;
+            border-top: 1px solid #1a1a1a !important;
+            border-bottom: 1px solid #1a1a1a !important;
+            align-items: center !important;
+            gap: 16px !important;
+        }
+
+        /* 2. Left/Right Arrow Buttons (Transparent with grey icon) */
         [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"] {
-            width: 44px !important;
-            height: 44px !important;
-            min-width: 44px !important;
-            max-width: 44px !important; /* Forces the exact 1:1 square */
-            padding: 0 !important;
-            margin: 0 auto !important; /* Centers the square inside the column */
+            background-color: transparent !important;
+            border: none !important;
+            color: #6b6b6b !important;
+            box-shadow: none !important;
+            font-size: 20px !important;
+            padding: 8px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            border-radius: 8px !important;
+            transition: opacity 0.2s !important;
+            min-height: 44px !important;
+        }
+        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"]:hover {
+            opacity: 0.7 !important;
+            background-color: transparent !important;
+            color: #ffffff !important;
         }
 
-        /* Perfectly center the ◀ and ▶ icons inside the square */
-        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"] p {
-            margin: 0 !important;
+        /* 3. Scrollable Radio Group Container */
+        div[role="radiogroup"] {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            padding: 4px 0px !important;
+            gap: 8px !important;
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+        div[role="radiogroup"]::-webkit-scrollbar {
+            display: none !important;
+        }
+
+        /* 4. Option Buttons (Radio Labels) */
+        div[role="radiogroup"] > label {
+            background-color: #1f1f1f !important;
+            border: 1px solid #333333 !important;
+            border-radius: 6px !important;
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            max-width: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
             padding: 0 !important;
-            line-height: 1 !important;
-            font-size: 16px !important; 
+            margin: 0 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }
+        div[role="radiogroup"] > label:hover {
+            background-color: #2a2a2a !important;
+            border-color: #555555 !important;
         }
 
+        /* Hide the native radio circles */
+        div[role="radiogroup"] > label > div:first-child {
+            display: none !important;
+        }
 
+        /* Number text inside options */
+        div[role="radiogroup"] > label div {
+            color: #e0e0e0 !important;
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            font-variant-numeric: tabular-nums !important;
+            margin: 0 !important;
+        }
+
+        /* 5. Active State (Vibrant Green Border + Dark Green BG) */
+        div[role="radiogroup"] > label:has(input:checked) {
+            border: 2px solid #75d466 !important;
+            background-color: #1a2218 !important;
+        }
+        div[role="radiogroup"] > label:has(input:checked) div {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
         
     </style>
 """,
@@ -1320,14 +1389,14 @@ else:
                 st.session_state.sched_idx = len(schedules) - 1
             st.rerun()
 
-    with c_sel:
-        selected_idx = st.selectbox(
+with c_sel:
+        selected_idx = st.radio(
             "Browse Schedule Options:",
-            range(len(schedules)),
+            options=range(len(schedules)),
             index=st.session_state.sched_idx,
-            format_func=lambda x: (
-                f"Option #{x + 1} (Best Fit)" if x == 0 else f"Option #{x + 1}"
-            ),
+            # This formats the numbers to look exactly like your image: "01", "02", "03"
+            format_func=lambda x: f"{x + 1:02d}", 
+            horizontal=True,
             label_visibility="collapsed",
         )
         if selected_idx != st.session_state.sched_idx:
