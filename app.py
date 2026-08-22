@@ -1363,22 +1363,21 @@ else:
 # --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
     excel_rows_html = ""
     for s in active_sched:
-        # Clean the hall and time blocks text if needed
         excel_rows_html += f"""
         <tr>
-            <td>{s.get('status', 'مفتوحة')}</td>
-            <td>{s.get('teacher', '')}</td>
-            <td>{s.get('venue', '')}</td>
-            <td>{s.get('hall', '').replace('ش', '').replace('SHR', '').strip()}</td>
-            <td>{s.get('id', '')}</td>
-            <td>{s.get('name', '')}</td>
-            <td>{s.get('code', '')}</td>
+            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('status', 'مفتوحة')}</td>
+            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('teacher', '')}</td>
+            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('venue', '')}</td>
+            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{str(s.get('hall', '')).replace('ش', '').replace('SHR', '').strip()}</td>
+            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('id', '')}</td>
+            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('name', '')}</td>
+            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('code', '')}</td>
         </tr>
         """
 
     excel_table_html = f"""
     <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
-        <table dir="rtl" style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; text-align: right;">
+        <table dir="rtl" style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; text-align: right; border-radius: 0px !important;">
             <thead>
                 <tr style="background-color: #212121; color: #ffffff;">
                     <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">الحالة</th>
@@ -1395,12 +1394,6 @@ else:
             </tbody>
         </table>
     </div>
-    <style>
-        /* Force square corners on table cells */
-        table, th, td {{
-            border-radius: 0px !important;
-        }}
-    </style>
     """
 
     st.markdown(excel_table_html, unsafe_allow_html=True)
