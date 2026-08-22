@@ -1286,75 +1286,9 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-    # --------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
     # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
     # --------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------
-    # MODERN iOS SEGMENTED PILL TOGGLE (Theme 2.1 Dark)
-    # --------------------------------------------------------------------------------
-    st.markdown("""
-        <style>
-            .ios-pill-container {
-                display: flex;
-                background-color: #1e2128;
-                padding: 4px;
-                border-radius: 999px;
-                gap: 4px;
-                width: 100%;
-                box-sizing: border-box;
-                margin-bottom: 20px;
-            }
-            .ios-pill-btn {
-                flex: 1;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                outline: none;
-                border: none;
-                border-radius: 999px;
-                background-color: transparent;
-                color: #8b949e;
-                transition: all 0.2s ease;
-                font-family: inherit;
-                text-align: center;
-            }
-            .ios-pill-btn.active {
-                background-color: #2d333b;
-                color: #ffffff;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # Determine active states
-    is_visual_active = st.session_state.get("active_view", "Visual View") == "Visual View"
-    
-    col_v, col_e = st.columns(2)
-    with col_v:
-        if st.button("Visual View", use_container_width=True, key="btn_visual_toggle"):
-            st.session_state.active_view = "Visual View"
-            st.rerun()
-    with col_e:
-        if st.button("Excel View", use_container_width=True, key="btn_excel_toggle"):
-            st.session_state.active_view = "Excel View"
-            st.rerun()
-
-    # Dynamic styling wrapper to map active states to your preferred dark pill theme
-    active_v_class = "active" if is_visual_active else ""
-    active_e_class = "" if is_visual_active else "active"
-
-    st.markdown(f"""
-        <script>
-            // Automatically sync Streamlit buttons into the sleek iOS segmented pill visual style
-            const vBtn = document.querySelector('button[key="btn_visual_toggle"]');
-            const eBtn = document.querySelector('button[key="btn_excel_toggle"]');
-            // Additional frontend layout hooks can be styled cleanly here
-        </script>
-    """, unsafe_allow_html=True)
-    # --------------------------------------------------------------------------------
-    
-
     options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
     selected_option = st.selectbox(
         "Select Schedule",
@@ -1371,7 +1305,6 @@ else:
     # --------------------------------------------------------------------------------
 
     active_sched = schedules[st.session_state.sched_idx]
-    
 
     is_visual = st.session_state.active_view == "Visual View"
     v_bg = "#000000" if is_visual else "#212121"
@@ -1384,13 +1317,13 @@ else:
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
         if st.button(
-            "Visual View", use_container_width=True, key="btn_visual_toggle"
+            "Visual View", use_container_width=True, key="btn_visual_view_main"
         ):
             st.session_state.active_view = "Visual View"
             st.rerun()
     with col_btn2:
         if st.button(
-            "Excel View", use_container_width=True, key="btn_excel_toggle"
+            "Excel View", use_container_width=True, key="btn_excel_view_main"
         ):
             st.session_state.active_view = "Excel View"
             st.rerun()
@@ -1398,13 +1331,13 @@ else:
     st.markdown(
         f"""
         <style>
-            div[data-testid="column"] button[key="btn_visual_toggle"] {{
+            div[data-testid="column"] button[key="btn_visual_view_main"] {{
                 background-color: {v_bg} !important;
                 color: #ffffff !important;
                 border: 2px solid {v_border} !important;
                 font-weight: bold;
             }}
-            div[data-testid="column"] button[key="btn_excel_toggle"] {{
+            div[data-testid="column"] button[key="btn_excel_view_main"] {{
                 background-color: {e_bg} !important;
                 color: #ffffff !important;
                 border: 2px solid {e_border} !important;
