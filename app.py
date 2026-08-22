@@ -236,6 +236,7 @@ st.markdown(
             font-weight: 600 !important;
         }
         
+        
     </style>
 """,
     unsafe_allow_html=True,
