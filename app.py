@@ -1324,8 +1324,15 @@ else:
             st.rerun()
     # --------------------------------------------------------------------------------
             
+st.dataframe(df_excel, use_container_width=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        try:
+            excel_buffer = io.BytesIO()
+            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                df_excel.to_excel(writer, index=False, sheet_name="Schedule")
             
-        st.download_button(
+            st.download_button(
                 label="📥 Download Current Schedule (Excel)",
                 data=excel_buffer.getvalue(),
                 file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.xlsx",
@@ -1342,6 +1349,7 @@ else:
                 mime="text/csv",
                 use_container_width=True
             )
+            
 
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
