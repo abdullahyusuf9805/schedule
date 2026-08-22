@@ -1367,8 +1367,10 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-    st.markdown('<div class="nav-row">', unsafe_allow_html=True)
-    c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
+
+# --------------------------------------------------------------------------------
+
+c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
         if st.button("◀", key="prev_btn", use_container_width=True):
@@ -1379,22 +1381,29 @@ else:
             st.rerun()
 
     with c_sel:
-        # Create a scrollable container for option buttons
-        st.markdown('<div class="options-scroll-container">', unsafe_allow_html=True)
+        # Generate the 50 columns natively
         cols = st.columns(len(schedules))
         for idx, col in enumerate(cols):
             with col:
                 is_active = (idx == st.session_state.sched_idx)
                 btn_label = f"{idx + 1:02d}"
-                # Highlight active button dynamically
+                
                 if is_active:
-                    if st.button(btn_label, key=f"opt_active_{idx}", use_container_width=True, type="primary"):
-                        pass
+                    st.button(btn_label, key=f"opt_active_{idx}", use_container_width=True, type="primary")
                 else:
                     if st.button(btn_label, key=f"opt_{idx}", use_container_width=True):
                         st.session_state.sched_idx = idx
                         st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+
+    with c_next:
+        if st.button("▶", key="next_btn", use_container_width=True):
+            if st.session_state.sched_idx < len(schedules) - 1:
+                st.session_state.sched_idx += 1
+            else:
+                st.session_state.sched_idx = 0
+            st.rerun()
+            
+# --------------------------------------------------------------------------------
 
     with c_next:
         if st.button("▶", key="next_btn", use_container_width=True):
