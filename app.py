@@ -1340,8 +1340,8 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-st.markdown('<div class="nav-row">', unsafe_allow_html=True)
-c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
+    st.markdown('<div class="nav-row">', unsafe_allow_html=True)
+    c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
         if st.button("◀", key="prev_btn", use_container_width=True):
