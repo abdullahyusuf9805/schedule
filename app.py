@@ -151,9 +151,32 @@ st.markdown(
             align-items: center !important;
         }
 
-      /* =========================================
+        /* =========================================
            CUSTOM BUTTON-BASED HORIZONTAL PAGINATOR
            ========================================= */
+           
+        /* =========================================
+           ANTI-SQUISH RULES FOR 50+ BUTTONS
+           ========================================= */
+
+        /* Force Streamlit columns to stay exactly 44px wide and NEVER shrink */
+        .options-scroll-container div[data-testid="column"] {
+            flex: 0 0 44px !important;
+            width: 44px !important;
+            min-width: 44px !important;
+            max-width: 44px !important;
+            padding: 0 !important;
+        }
+
+        /* Prevent the text inside the buttons from ever wrapping or stacking */
+        .options-scroll-container button div[data-testid="stMarkdownContainer"] p,
+        .options-scroll-container button p {
+            white-space: nowrap !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+        }
         
         /* Wrapper Container */
         [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
