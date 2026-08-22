@@ -1372,27 +1372,27 @@ else:
         code_val = s.get('code', '')
 
         excel_rows_html += "<tr>"
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">{code_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">{name_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">{id_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">{hall_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">{venue_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">{teacher_val}</div></td>'
-        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">{status_val}</div></td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{code_val}</div></td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{name_val}</div></td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{id_val}</div></td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{hall_val}</div></td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{venue_val}</div></td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{teacher_val}</div></td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">{status_val}</div></td>'
         excel_rows_html += "</tr>"
 
     excel_table_html = f"""
     <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
-        <table dir="rtl" style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; border-radius: 0px !important;">
+        <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; border-radius: 0px !important;">
             <thead>
                 <tr style="background-color: #212121; color: #ffffff;">
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">رمز المقرر</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">المقرر</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">رقم الشعبة</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">رقم القاعة</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">الوقت</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">المحاضر</div></th>
-                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="text-align: center !important; width: 100%;">الحالة</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">رمز المقرر</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">المقرر</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">رقم الشعبة</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">رقم القاعة</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">الوقت</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">المحاضر</div></th>
+                    <th style="border: 1px solid #333333; padding: 12px 10px; border-radius: 0px !important;"><div style="display: flex; justify-content: center; align-items: center; text-align: center; width: 100%;">الحالة</div></th>
                 </tr>
             </thead>
             <tbody>
@@ -1430,19 +1430,6 @@ else:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
-    except ModuleNotFoundError:
-        st.error("Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
-        csv_data = df_excel.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Current Schedule (CSV Backup)",
-            data=csv_data,
-            file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
-
-
-    
     except ModuleNotFoundError:
         st.error("Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
         csv_data = df_excel.to_csv(index=False).encode('utf-8')
