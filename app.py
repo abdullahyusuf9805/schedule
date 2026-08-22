@@ -33,211 +33,203 @@ st.set_page_config(page_title="Dynamic Timetable Solver", layout="wide")
 
 st.markdown(
     """
-    <style>
-        .stCaption {display: none;}
+<style>
+    .stCaption {display: none;}
+    
+    /* =========================================
+       GENERAL THEME & SPACING
+       ========================================= */
+    .stApp {
+        background-color: #000000;
+        color: #ffffff;
+    }
 
-        /* --- SQUASH ALL MAIN PAGE GAPS --- */
-        [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] {
-            gap: 0.3rem !important; /* Reduces the gap between every element */
-        }
+    /* Destroy massive main container padding */
+    div.block-container {
+        padding-top: 3.5rem !important;
+        padding-right: 1.5rem !important;
+        padding-left: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
 
-        /* Slim down the blue st.info box */
-        div[data-testid="stAlert"] {
-            padding-top: 0.6rem !important;
-            padding-bottom: 0.6rem !important;
-        }
-        
-        /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
-        .stApp {
-            background-color: #000000;
-            color: #ffffff;
-        }
+    /* Squash all main page gaps */
+    [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] {
+        gap: 0.3rem !important;
+    }
 
-        h1 {
-            font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
-            white-space: nowrap !important;
-            color: #ffffff !important;
-        }
+    /* Slim down the blue st.info box */
+    div[data-testid="stAlert"] {
+        padding-top: 0.3rem !important;
+        padding-bottom: 0.3rem !important;
+    }
 
-        .nav-row {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            width: 100%;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-        .nav-row > div:nth-child(1),
-        .nav-row > div:nth-child(3) {
-            flex: 0 0 50px !important;
-        }
-        .nav-row > div:nth-child(2) {
-            flex: 1 1 auto !important;
-        }
+    h1 {
+        font-size: clamp(1.2rem, 2.5vw, 2.2rem) !important;
+        white-space: nowrap !important;
+        color: #ffffff !important;
+    }
 
-        .center-download {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        /* UI TIGHTENING CSS (Squish Elements in Card) */
-        [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 0.2rem 0.8rem 0.5rem 0.8rem !important;
-            background-color: #000000 !important;
-            border-radius: 8px !important;
-            border: 1px solid #2a2a2a !important;
-            margin-bottom: 12px !important;
-        }
+    .center-download {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    /* =========================================
+       SIDEBAR & UI TIGHTENING
+       ========================================= */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
+        padding: 0.2rem 0.8rem 0.2rem 0.8rem !important; 
+        background-color: #1a1a1a !important;
+        border-radius: 8px !important;
+        border: 1px solid #2a2a2a !important;
+        margin-bottom: 12px !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] {
+        margin-bottom: -10px !important;
+    }
 
-        [data-testid="stSidebar"] div[data-testid="stTextInput"] {
-            border: 1px solid #777777 !important; 
-            border-radius: 6px !important;
-            background-color: #000000 !important;
-            overflow: hidden !important; 
-            margin-bottom: 0px !important; 
-        }
-        
-        /* NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS */
-        [data-testid="stTickBar"], 
-        [data-testid="stTickBarMin"], 
-        [data-testid="stTickBarMax"] {
-            display: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-        }
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] {
+        border: 1px solid #777777 !important; 
+        border-radius: 6px !important;
+        background-color: #1a1a1a !important;
+        overflow: hidden !important; 
+        margin-bottom: 0px !important; 
+    }
+    
+    /* =========================================
+       NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS
+       ========================================= */
+    [data-testid="stTickBar"], 
+    [data-testid="stTickBarMin"], 
+    [data-testid="stTickBarMax"] {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
 
-        div[data-baseweb="tooltip"], 
-        div[role="tooltip"],
-        div[data-testid="stThumbValue"] {
-            display: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-        }
+    div[data-baseweb="tooltip"], 
+    div[role="tooltip"],
+    div[data-testid="stThumbValue"] {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
 
-        div[data-baseweb="slider"] div[role="slider"] {
-            background-color: #ff4d4d !important;
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-        }
+    div[data-baseweb="slider"] div[role="slider"] {
+        background-color: #ff4d4d !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    
+    div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
+        background-color: #555555 !important;
+    }
 
-        /* DESTROY MASSIVE MAIN CONTAINER PADDING */
-        div.block-container {
-            padding-top: 3.5rem !important; /* Increased to stop the title from hiding under the top bar */
-            padding-right: 1.5rem !important;
-            padding-left: 1.5rem !important;
-            padding-bottom: 1.5rem !important;
-        }
+    [data-testid="stHorizontalBlock"] {
+        align-items: center !important;
+    }
 
+    /* =========================================
+       NATIVE STREAMLIT HORIZONTAL PAGINATOR
+       ========================================= */
 
-        /* Remove the weird gap above the selectbox caused by the hidden label */
-        [data-testid="stMainBlockContainer"] div[data-testid="stSelectbox"] label {
-            display: none !important;
-            height: 0px !important;
-            margin: 0px !important;
-            padding: 0px !important;
-        }
-        
-        div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
-            background-color: #555555 !important;
-        }
+    /* 1. Target the Main Nav Row (The one with exactly 3 columns) */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) {
+        background-color: #000000 !important;
+        padding: 12px 16px !important;
+        border-top: 1px solid #1a1a1a !important;
+        border-bottom: 1px solid #1a1a1a !important;
+        align-items: center !important;
+        gap: 16px !important;
+    }
 
-        [data-testid="stHorizontalBlock"] {
-            align-items: center !important;
-        }
+    /* 2. Target the Middle Column (c_sel) and force it to scroll horizontally */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        padding-bottom: 4px !important;
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"]::-webkit-scrollbar {
+        display: none !important;
+    }
 
-/* =========================================
-           CLEAN BUTTON-BASED HORIZONTAL PAGINATOR
-           ========================================= */
+    /* 3. Lock the 50 columns inside the middle block to EXACTLY 44px so they don't squish */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 0 0 44px !important;
+        width: 44px !important;
+        min-width: 44px !important;
+        max-width: 44px !important;
+        padding: 0 !important;
+    }
 
-        /* 1. Main Navigation Row Background & Spacing */
-        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
-            background-color: #000000 !important;
-            padding: 12px 16px !important;
-            border-top: 1px solid #1a1a1a !important;
-            border-bottom: 1px solid #1a1a1a !important;
-            align-items: center !important;
-            gap: 16px !important;
-        }
+    /* 4. Base Button Styles (44x44 Squares) */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button {
+        background-color: #1f1f1f !important;
+        border: 1px solid #333333 !important;
+        border-radius: 6px !important;
+        width: 44px !important; 
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: row !important; /* FORCE HORIZONTAL */
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: none !important;
+    }
 
-        /* 2. Inner Scrollable Container (Forces Horizontal Layout) */
-        .options-scroll-container div[data-testid="stHorizontalBlock"] {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            overflow-x: auto !important;
-            gap: 8px !important;
-            padding-bottom: 4px !important;
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-        .options-scroll-container div[data-testid="stHorizontalBlock"]::-webkit-scrollbar {
-            display: none !important;
-        }
+    /* 5. Destroy Internal Column Flex & Prevent Text Stacking */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button div {
+        display: flex !important;
+        flex-direction: row !important; /* Fixes the Streamlit wrapper stacking */
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
+        color: #e0e0e0 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        white-space: pre !important; /* "pre" is the magic bullet that prevents all wrapping */
+        word-break: normal !important;
+        display: inline-block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
 
-        /* 3. Force Columns to NEVER Shrink (Exact 44px Width) */
-        .options-scroll-container div[data-testid="column"] {
-            flex: 0 0 44px !important;
-            width: 44px !important;
-            min-width: 44px !important;
-            max-width: 44px !important;
-            padding: 0 !important;
-        }
+    /* 6. Hover & Active States */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button:hover {
+        background-color: #2a2a2a !important;
+        border-color: #555555 !important;
+    }
 
-        /* 4. Base Button Styles (44x44 Squares, No Padding) */
-        .options-scroll-container button {
-            background-color: #1f1f1f !important;
-            border: 1px solid #333333 !important;
-            border-radius: 6px !important;
-            width: 100% !important; 
-            height: 44px !important;
-            min-height: 44px !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            box-shadow: none !important;
-        }
-        
-        /* 5. Nuclear Text Wrap Prevention (Forces "01" onto one line) */
-        .options-scroll-container button * {
-            white-space: nowrap !important;
-            word-break: keep-all !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-        }
-        
-        .options-scroll-container button p {
-            color: #e0e0e0 !important;
-            font-size: 14px !important;
-            font-weight: 400 !important;
-        }
-
-        /* 6. Hover State */
-        .options-scroll-container button:hover {
-            background-color: #2a2a2a !important;
-            border-color: #555555 !important;
-        }
-
-        /* 7. Active State (Vibrant Green Border + Dark Green BG) */
-        .options-scroll-container button[kind="primary"] {
-            border: 2px solid #75d466 !important;
-            background-color: #1a2218 !important;
-        }
-        
-        .options-scroll-container button[kind="primary"] p {
-            color: #ffffff !important;
-            font-weight: 600 !important;
-        }
-        
-        
-    </style>
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] {
+        border: 2px solid #75d466 !important;
+        background-color: #1a2218 !important;
+    }
+    
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] p {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+</style>        
 """,
     unsafe_allow_html=True,
 )
