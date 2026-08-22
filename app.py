@@ -1288,44 +1288,51 @@ else:
 
 
 # --------------------------------------------------------------------------------
-    # THEME 2: iOS SEGMENTED PILL (PURE HTML/CSS/JS TOGGLE)
+    # NATIVE STREAMLIT PILL TOGGLE (THEME 2 iOS STYLE)
     # --------------------------------------------------------------------------------
-    current_view = st.session_state.get("active_view", "Visual View")
-    v_bg = '#2d333b' if current_view == 'Visual View' else 'transparent'
-    v_fg = '#ffffff' if current_view == 'Visual View' else '#8b949e'
-    v_shadow = '0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Visual View' else 'none'
+    st.markdown("""
+        <style>
+            /* Style the native pill container to match your exact dark iOS theme */
+            div[data-testid="stPills"] {
+                background-color: #1e2128 !important;
+                padding: 4px !important;
+                border-radius: 999px !important;
+                gap: 4px !important;
+                display: flex !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                margin-bottom: 20px !important;
+            }
+            div[data-testid="stPills"] button {
+                flex: 1 !important;
+                border: none !important;
+                border-radius: 999px !important;
+                background-color: transparent !important;
+                color: #8b949e !important;
+                font-weight: 500 !important;
+                transition: all 0.2s ease !important;
+            }
+            div[data-testid="stPills"] button[aria-selected="true"] {
+                background-color: #2d333b !important;
+                color: #ffffff !important;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
-    e_bg = '#2d333b' if current_view == 'Excel View' else 'transparent'
-    e_fg = '#ffffff' if current_view == 'Excel View' else '#8b949e'
-    e_shadow = '0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Excel View' else 'none'
+    # Use Streamlit's native pills component for instant, bug-free switching
+    selected_view = st.pills(
+        "View Mode",
+        options=["Visual View", "Excel View"],
+        default=st.session_state.get("active_view", "Visual View"),
+        label_visibility="collapsed",
+        key="ios_pill_view_selector"
+    )
 
-    toggle_html = f"""
-    <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 20px;">
-        <div style="display: flex; background-color: #1e2128; padding: 4px; border-radius: 999px; gap: 4px; width: 100%; box-sizing: border-box;">
-            <button onclick="setStreamlitView('Visual View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {v_bg}; color: {v_fg}; box-shadow: {v_shadow}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Visual View</button>
-            <button onclick="setStreamlitView('Excel View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {e_bg}; color: {e_fg}; box-shadow: {e_shadow}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Excel View</button>
-        </div>
-    </div>
-    """
-    
-    js_script = """
-    <script>
-        function setStreamlitView(viewName) {
-            const url = new URL(window.parent.location.href);
-            url.searchParams.set('view', viewName);
-            window.parent.location.href = url.href;
-        }
-    </script>
-    """
-    
-    st.markdown(toggle_html + js_script, unsafe_allow_html=True)
-
-    params = st.query_params
-    if "view" in params:
-        chosen_view = params["view"]
-        if chosen_view != st.session_state.active_view:
-            st.session_state.active_view = chosen_view
-            st.rerun()
+    if selected_view and selected_view != st.session_state.active_view:
+        st.session_state.active_view = selected_view
+        st.rerun()
+    # --------------------------------------------------------------------------------
     # --------------------------------------------------------------------------------
 
     active_sched = schedules[st.session_state.sched_idx]
