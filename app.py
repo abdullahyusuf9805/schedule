@@ -44,7 +44,7 @@ st.markdown("""
 
         /* Ensure smooth rendering for Arabic text */
         body {
-            direction: rtl;
+            direction: ltr;
         }
     </style>
 """, unsafe_allow_html=True)
