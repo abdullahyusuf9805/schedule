@@ -1286,7 +1286,7 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
     
-st.markdown("""
+    st.markdown("""
         <style>
             /* 1. Let info box size naturally without stretching */
             div[data-testid="stInfo"] {
