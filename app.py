@@ -173,7 +173,7 @@ st.markdown(
         padding: 0 !important;
     }
 
-    /* 4. Base Button Styles (44x44 Squares) */
+/* 4. Base Button Styles (44x44 Squares) */
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button {
         background-color: #1f1f1f !important;
         border: 1px solid #333333 !important;
@@ -184,17 +184,13 @@ st.markdown(
         min-height: 44px !important;
         padding: 0 !important;
         margin: 0 !important;
-        display: flex !important;
-        flex-direction: row !important; /* FORCE HORIZONTAL */
-        align-items: center !important;
-        justify-content: center !important;
         box-shadow: none !important;
     }
 
-    /* 5. Destroy Internal Column Flex & Prevent Text Stacking */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button div {
+    /* 5. THE FIX: Force the inner text wrappers to ignore column widths */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div,
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div > div {
         display: flex !important;
-        flex-direction: row !important; /* Fixes the Streamlit wrapper stacking */
         align-items: center !important;
         justify-content: center !important;
         width: 100% !important;
@@ -204,14 +200,15 @@ st.markdown(
     
     [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
         color: #e0e0e0 !important;
-        font-size: 14px !important;
+        font-size: 15px !important;
         font-weight: 500 !important;
-        white-space: pre !important; /* "pre" is the magic bullet that prevents all wrapping */
+        width: max-content !important; /* <-- THIS STOPS THE STACKING */
+        min-width: max-content !important; /* <-- THIS STOPS THE STACKING */
+        white-space: nowrap !important;
         word-break: normal !important;
-        display: inline-block !important;
         margin: 0 !important;
         padding: 0 !important;
-        line-height: 1 !important;
+        display: block !important;
     }
 
     /* 6. Hover & Active States */
