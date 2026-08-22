@@ -35,6 +35,17 @@ st.markdown(
     """
     <style>
         .stCaption {display: none;}
+
+        /* --- SQUASH ALL MAIN PAGE GAPS --- */
+        [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] {
+            gap: 0.3rem !important; /* Reduces the gap between every element */
+        }
+
+        /* Slim down the blue st.info box */
+        div[data-testid="stAlert"] {
+            padding-top: 0.3rem !important;
+            padding-bottom: 0.3rem !important;
+        }
         
         /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
         .stApp {
@@ -1260,7 +1271,6 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-    st.markdown('<div class="nav-row">', unsafe_allow_html=True)
     c_prev, c_sel, c_next = st.columns([1, 8, 1])
 
     with c_prev:
