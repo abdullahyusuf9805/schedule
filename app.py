@@ -151,11 +151,6 @@ st.markdown(
             align-items: center !important;
         }
 
-
-        /* ===========================================================================================================================
-           ========================================== PERFECT 1:1 SQUARE NAVIGATION BUTTONS ==========================================
-           =========================================================================================================================== */
-        
         /* =========================================
            HORIZONTAL PAGINATOR STYLES
            ========================================= */
@@ -203,7 +198,16 @@ st.markdown(
             display: none !important;
         }
 
-        /* 4. Option Buttons (Radio Labels) */
+        /* 4. Option Buttons (Radio Labels) & Complete Removal of Radio Circles */
+        div[role="radiogroup"] input,
+        div[role="radiogroup"] div[data-testid="stMarkdownContainer"] ~ div,
+        div[role="radiogroup"] > label > div:first-child,
+        div[role="radiogroup"] span {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+
         div[role="radiogroup"] > label {
             background-color: #1f1f1f !important;
             border: 1px solid #333333 !important;
@@ -225,18 +229,18 @@ st.markdown(
             border-color: #555555 !important;
         }
 
-        /* Hide the native radio circles */
-        div[role="radiogroup"] > label > div:first-child {
-            display: none !important;
-        }
-
         /* Number text inside options */
-        div[role="radiogroup"] > label div {
+        div[role="radiogroup"] p,
+        div[role="radiogroup"] div {
             color: #e0e0e0 !important;
             font-size: 14px !important;
             font-weight: 400 !important;
             font-variant-numeric: tabular-nums !important;
             margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         /* 5. Active State (Vibrant Green Border + Dark Green BG) */
@@ -244,6 +248,7 @@ st.markdown(
             border: 2px solid #75d466 !important;
             background-color: #1a2218 !important;
         }
+        div[role="radiogroup"] > label:has(input:checked) p,
         div[role="radiogroup"] > label:has(input:checked) div {
             color: #ffffff !important;
             font-weight: 600 !important;
