@@ -1260,7 +1260,7 @@ if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
     st.info(
-        f"Found {len(schedules)} Valid Schedule(s)."
+        f"Found {len(schedules)} Valid Schedules."
     )
 
     if "sched_idx" not in st.session_state:
