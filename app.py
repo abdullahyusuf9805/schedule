@@ -1360,21 +1360,66 @@ else:
 
     st.markdown(html_grid, unsafe_allow_html=True)
 
-    # --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
-    df_excel = pd.DataFrame([{
-        "CODE": s["code"],
-        "NAME": s["name"],
-        "ID (ش)": s["id"],
-        "HALL": s["hall"],
-        "VENUE": s["venue"],
-        "TEACHER": s["teacher"],
-        "STATUS": s["status"],
-    } for s in active_sched])
+# --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
+    excel_rows_html = ""
+    for s in active_sched:
+        # Clean the hall and time blocks text if needed
+        excel_rows_html += f"""
+        <tr>
+            <td>{s.get('status', 'مفتوحة')}</td>
+            <td>{s.get('teacher', '')}</td>
+            <td>{s.get('venue', '')}</td>
+            <td>{s.get('hall', '').replace('ش', '').replace('SHR', '').strip()}</td>
+            <td>{s.get('id', '')}</td>
+            <td>{s.get('name', '')}</td>
+            <td>{s.get('code', '')}</td>
+        </tr>
+        """
 
-    st.dataframe(df_excel, use_container_width=True)
+    excel_table_html = f"""
+    <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
+        <table dir="rtl" style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; text-align: right;">
+            <thead>
+                <tr style="background-color: #212121; color: #ffffff;">
+                    <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">الحالة</th>
+                    <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">المحاضر</th>
+                    <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">الوقت</th>
+                    <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">رقم القاعة</th>
+                    <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">رقم الشعبة</th>
+                    <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">المقرر</th>
+                    <th style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">رمز المقرر</th>
+                </tr>
+            </thead>
+            <tbody>
+                {excel_rows_html}
+            </tbody>
+        </table>
+    </div>
+    <style>
+        /* Force square corners on table cells */
+        table, th, td {{
+            border-radius: 0px !important;
+        }}
+    </style>
+    """
+
+    st.markdown(excel_table_html, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Generate the actual excel file buffer for downloading
+    df_excel = pd.DataFrame([{
+        "رمز المقرر": s["code"],
+        "المقرر": s["name"],
+        "رقم الشعبة": s["id"],
+        "رقم القاعة": s["hall"],
+        "الوقت": s["venue"],
+        "المحاضر": s["teacher"],
+        "الحالة": s["status"],
+    } for s in active_sched])
+
     try:
+        import openpyxl
         excel_buffer = io.BytesIO()
         with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
             df_excel.to_excel(writer, index=False, sheet_name="Schedule")
