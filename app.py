@@ -1363,17 +1363,23 @@ else:
 # --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
     excel_rows_html = ""
     for s in active_sched:
-        excel_rows_html += f"""
-        <tr>
-            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('status', 'مفتوحة')}</td>
-            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('teacher', '')}</td>
-            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('venue', '')}</td>
-            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{str(s.get('hall', '')).replace('ش', '').replace('SHR', '').strip()}</td>
-            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('id', '')}</td>
-            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('name', '')}</td>
-            <td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{s.get('code', '')}</td>
-        </tr>
-        """
+        status_val = s.get('status', 'مفتوحة')
+        teacher_val = s.get('teacher', '')
+        venue_val = s.get('venue', '')
+        hall_val = str(s.get('hall', '')).replace('ش', '').replace('SHR', '').strip()
+        id_val = s.get('id', '')
+        name_val = s.get('name', '')
+        code_val = s.get('code', '')
+
+        excel_rows_html += "<tr>"
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{status_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{teacher_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{venue_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{hall_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{id_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{name_val}</td>'
+        excel_rows_html += f'<td style="border: 1px solid #333333; padding: 10px; border-radius: 0px !important;">{code_val}</td>'
+        excel_rows_html += "</tr>"
 
     excel_table_html = f"""
     <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
@@ -1434,7 +1440,6 @@ else:
             mime="text/csv",
             use_container_width=True
         )
-
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
     
