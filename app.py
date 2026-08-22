@@ -1287,20 +1287,45 @@ else:
         st.session_state.sched_idx = 0
 
     # --------------------------------------------------------------------------------
-    # ROBUST NATIVE PAGINATOR BAR
+    # STYLING FOR SQUARED ARROWS & DOCK SPACING
     # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
+            /* Style the selectbox background */
             .st-key-sched_selectbox select {
                 background-color: #1f1f1f !important;
                 color: #ffffff !important;
                 border: 1px solid #333333 !important;
                 border-radius: 6px !important;
+                height: 44px !important;
+            }
+            
+            /* Force left/right arrow buttons to be exact 44x44 squares */
+            div[data-testid="stHorizontalBlock"]:has(#native_prev-target) button,
+            button[kind="secondary"]:has(p:contains("◀")),
+            button[kind="secondary"]:has(p:contains("▶")),
+            [data-testid="column"] button {
+                height: 44px !important;
+                min-height: 44px !important;
+                max-height: 44px !important;
+                border-radius: 6px !important;
+                background-color: #1f1f1f !important;
+                border: 1px solid #333333 !important;
+                color: #e0e0e0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            button:hover {
+                background-color: #2a2a2a !important;
+                border-color: #555555 !important;
             }
         </style>
     """, unsafe_allow_html=True)
 
-    c_prev, c_select, c_next = st.columns([1, 6, 1], vertical_alignment="center")
+    # Use a tighter column ratio with a clean gap to keep arrows close to the box without touching
+    c_prev, c_space, c_select, c_space2, c_next = st.columns([0.8, 0.1, 7.8, 0.1, 0.8], vertical_alignment="center")
     
     with c_prev:
         if st.button("◀", use_container_width=True, key="native_prev"):
@@ -1309,7 +1334,6 @@ else:
                 st.rerun()
 
     with c_select:
-        # Create a clean dropdown selector to instantly jump to any of the 100+ schedules seamlessly
         options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
         selected_option = st.selectbox(
             "Select Schedule",
@@ -1318,7 +1342,6 @@ else:
             label_visibility="collapsed",
             key="sched_selectbox"
         )
-        # Extract index from selection
         new_idx = options_list.index(selected_option)
         if new_idx != st.session_state.sched_idx:
             st.session_state.sched_idx = new_idx
@@ -1332,7 +1355,6 @@ else:
     # --------------------------------------------------------------------------------
 
     active_sched = schedules[st.session_state.sched_idx]
-
     
 
     is_visual = st.session_state.active_view == "Visual View"
