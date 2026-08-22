@@ -47,50 +47,53 @@ st.markdown(
     [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
 
     /* =========================================
-       1:1 HTML MATCH - NO SQUISHING, NO STACKING
+       1,000,000% EXACT HTML PAGINATOR
        ========================================= */
 
-    /* 1. Main Row (Black Container) */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) {
+    #my-paginator { display: none !important; }
+
+    /* 1. Main Black Wrapper Container */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] {
         background-color: #000000 !important;
         padding: 12px 16px !important;
         border-top: 1px solid #1a1a1a !important;
         border-bottom: 1px solid #1a1a1a !important;
         align-items: center !important;
-        gap: 16px !important;
     }
 
-    /* 2. Target the INNER row (the 50 columns) and make it scroll! */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] {
+    /* 2. Scrollable Row */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) > div > div[data-testid="stVerticalBlock"] {
         display: flex !important;
-        flex-wrap: nowrap !important;
+        flex-direction: row !important; 
         overflow-x: auto !important;
+        scroll-behavior: smooth !important;
         gap: 8px !important;
-        padding-bottom: 4px !important;
+        padding: 4px 0 !important;
+        flex-wrap: nowrap !important;
         -ms-overflow-style: none !important;
         scrollbar-width: none !important;
     }
     
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"]::-webkit-scrollbar {
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) > div > div[data-testid="stVerticalBlock"]::-webkit-scrollbar {
         display: none !important;
     }
 
-    /* 3. THE MAGIC BULLET: Override Streamlit's inline 2% width and lock columns to 44px */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 0 0 44px !important;
+    /* 3. ANTI-SQUISH: Lock each button's parent container to EXACTLY 44px */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) > div > div[data-testid="stVerticalBlock"] > div.element-container {
+        flex: 0 0 44px !important; /* DO NOT SHRINK! */
         width: 44px !important;
         min-width: 44px !important;
         max-width: 44px !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        display: block !important;
     }
 
-    /* 4. Base Button Styles (44x44 Squares) */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button {
+    /* 4. The Option Button Square */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button {
         background-color: #1f1f1f !important;
+        color: #e0e0e0 !important;
         border: 1px solid #333333 !important;
         border-radius: 6px !important;
-        width: 44px !important; 
+        width: 44px !important;
         height: 44px !important;
         min-width: 44px !important;
         min-height: 44px !important;
@@ -103,48 +106,50 @@ st.markdown(
         transition: all 0.2s ease !important;
     }
 
-    /* 5. FIX THE STACKING: Force inner divs to center and 'pre' format text */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button > div {
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button:hover {
+        background-color: #2a2a2a !important;
+        border-color: #555555 !important;
+    }
+
+    /* 5. ANTI-STACKING: Force Streamlit's inner divs to center perfectly */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button > div {
         display: flex !important;
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: center !important;
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
     }
-    
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button p {
-        color: #e0e0e0 !important;
+
+    /* Force Number Text to NEVER stack using 'pre' */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button p {
         font-size: 14px !important;
         font-weight: 400 !important;
         font-variant-numeric: tabular-nums !important;
-        white-space: pre !important; /* PREVENTS '0' and '1' FROM STACKING VERTICALLY */
-        word-break: keep-all !important;
+        white-space: pre !important; /* MAGIC BULLET: Forbids all wrapping */
+        word-break: normal !important;
+        letter-spacing: 0px !important;
         display: inline-block !important;
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1 !important;
     }
 
-    /* 6. Hover & Active States */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button:hover {
-        background-color: #2a2a2a !important;
-        border-color: #555555 !important;
-    }
-
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] {
+    /* 6. Active State (Vibrant Green) */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button[kind="primary"] {
         border: 2px solid #75d466 !important;
         background-color: #1a2218 !important;
     }
     
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(2) button[kind="primary"] p {
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button[kind="primary"] p {
         color: #ffffff !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
     }
 
-    /* 7. Nav Arrows Reset */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1) button,
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) button {
+    /* 7. Navigation Arrows (Reset them to look like icons) */
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) button,
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) button {
         background-color: transparent !important;
         border: none !important;
         color: #6b6b6b !important;
@@ -152,8 +157,8 @@ st.markdown(
         padding: 8px !important;
     }
     
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(1) button:hover,
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="column"]:nth-of-type(3):last-child) > [data-testid="column"]:nth-of-type(3) button:hover {
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) button:hover,
+    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) button:hover {
         opacity: 0.7 !important;
         background-color: transparent !important;
     }
