@@ -156,8 +156,32 @@ st.markdown(
            ========================================= */
            
         /* =========================================
-           ANTI-SQUISH RULES FOR 50+ BUTTONS
+           NUCLEAR TEXT WRAP PREVENTION 
            ========================================= */
+
+        /* 1. Strip ALL internal padding from the button and its nested wrappers */
+        .options-scroll-container button, 
+        .options-scroll-container button > div, 
+        .options-scroll-container button > div > div {
+            padding: 0px !important;
+            margin: 0px !important;
+            width: 100% !important;
+        }
+
+        /* 2. Force the text to NEVER break, wrap, or stack */
+        .options-scroll-container button p {
+            white-space: nowrap !important;
+            word-break: keep-all !important;
+            overflow-wrap: normal !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            font-size: 14px !important;
+        }
 
         /* Force Streamlit columns to stay exactly 44px wide and NEVER shrink */
         .options-scroll-container div[data-testid="column"] {
