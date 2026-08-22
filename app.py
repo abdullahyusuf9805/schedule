@@ -1290,39 +1290,20 @@ else:
 
 # --------------------------------------------------------------------------------
 
-    # 1. The Main Outer Columns
-    c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
+# Load our completely untouchable custom HTML paginator!
+    html_paginator = components.declare_component("html_paginator", path="paginator")
 
-    with c_prev:
-        if st.button("◀", key="prev_btn", use_container_width=True):
-            if st.session_state.sched_idx > 0:
-                st.session_state.sched_idx -= 1
-            else:
-                st.session_state.sched_idx = len(schedules) - 1
-            st.rerun()
+    # Display the component, passing it the total schedules and currently selected index
+    clicked_idx = html_paginator(
+        num_options=len(schedules), 
+        active_index=st.session_state.sched_idx, 
+        key="my_custom_paginator"
+    )
 
-    with c_sel:
-        # 2. Put the 50 Columns back! Our CSS will prevent them from squishing.
-        cols = st.columns(len(schedules))
-        for idx, col in enumerate(cols):
-            with col:
-                is_active = (idx == st.session_state.sched_idx)
-                btn_label = f"{idx + 1:02d}"
-                
-                if is_active:
-                    st.button(btn_label, key=f"opt_active_{idx}", use_container_width=True, type="primary")
-                else:
-                    if st.button(btn_label, key=f"opt_{idx}", use_container_width=True):
-                        st.session_state.sched_idx = idx
-                        st.rerun()
-
-    with c_next:
-        if st.button("▶", key="next_btn", use_container_width=True):
-            if st.session_state.sched_idx < len(schedules) - 1:
-                st.session_state.sched_idx += 1
-            else:
-                st.session_state.sched_idx = 0
-            st.rerun()
+    # When the Javascript sends a clicked number back, update the session and reload!
+    if clicked_idx is not None and clicked_idx != st.session_state.sched_idx:
+        st.session_state.sched_idx = clicked_idx
+        st.rerun()
             
 # --------------------------------------------------------------------------------
 
