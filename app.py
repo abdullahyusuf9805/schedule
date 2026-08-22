@@ -151,11 +151,11 @@ st.markdown(
             align-items: center !important;
         }
 
-        /* =========================================
-           HORIZONTAL PAGINATOR STYLES
+/* =========================================
+           HORIZONTAL PAGINATOR STYLES (FIXED)
            ========================================= */
         
-        /* 1. The Wrapper Container (Black background, top/bottom borders) */
+        /* 1. The Wrapper Container */
         [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
             background-color: #000000 !important;
             padding: 12px 16px !important;
@@ -165,7 +165,7 @@ st.markdown(
             gap: 16px !important;
         }
 
-        /* 2. Left/Right Arrow Buttons (Transparent with grey icon) */
+        /* 2. Left/Right Arrow Buttons */
         [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"] {
             background-color: transparent !important;
             border: none !important;
@@ -198,16 +198,13 @@ st.markdown(
             display: none !important;
         }
 
-        /* 4. Option Buttons (Radio Labels) & Complete Removal of Radio Circles */
+        /* 4. Completely hide the native radio icon containers and inputs */
         div[role="radiogroup"] input,
-        div[role="radiogroup"] div[data-testid="stMarkdownContainer"] ~ div,
-        div[role="radiogroup"] > label > div:first-child,
-        div[role="radiogroup"] span {
+        div[role="radiogroup"] div[data-baseweb="radio"] div:first-child {
             display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
         }
 
+        /* 5. Transform each radio option label into a 44x44 square tile */
         div[role="radiogroup"] > label {
             background-color: #1f1f1f !important;
             border: 1px solid #333333 !important;
@@ -217,6 +214,7 @@ st.markdown(
             min-width: 44px !important;
             max-width: 44px !important;
             display: flex !important;
+            flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
             padding: 0 !important;
@@ -229,27 +227,24 @@ st.markdown(
             border-color: #555555 !important;
         }
 
-        /* Number text inside options */
+        /* 6. Style the text inside the tiles perfectly */
         div[role="radiogroup"] p,
-        div[role="radiogroup"] div {
+        div[role="radiogroup"] span {
             color: #e0e0e0 !important;
             font-size: 14px !important;
             font-weight: 400 !important;
             font-variant-numeric: tabular-nums !important;
             margin: 0 !important;
             padding: 0 !important;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
         }
 
-        /* 5. Active State (Vibrant Green Border + Dark Green BG) */
+        /* 7. Active State (Vibrant Green Border + Dark Green BG) */
         div[role="radiogroup"] > label:has(input:checked) {
             border: 2px solid #75d466 !important;
             background-color: #1a2218 !important;
         }
         div[role="radiogroup"] > label:has(input:checked) p,
-        div[role="radiogroup"] > label:has(input:checked) div {
+        div[role="radiogroup"] > label:has(input:checked) span {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
