@@ -1287,57 +1287,10 @@ else:
         st.session_state.sched_idx = 0
 
     # --------------------------------------------------------------------------------
-    # BULLETPROOF SINGLE-LINE NATIVE PAGINATOR
+    # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
     # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            /* Force the container block to never wrap elements */
-            .unbreakable-nav {
-                display: flex !important;
-                flex-direction: row !important;
-                align-items: center !important;
-                gap: 8px !important;
-                width: 100% !important;
-                margin-bottom: 10px !important;
-            }
-            
-            /* Target the specific columns inside our block */
-            .unbreakable-nav > div[data-testid="column"] {
-                flex: 1 1 auto !important;
-                min-width: 0 !important;
-            }
-            
-            /* Lock the outer columns for arrows to exactly 44px */
-            .unbreakable-nav > div[data-testid="column"]:nth-child(1),
-            .unbreakable-nav > div[data-testid="column"]:nth-child(3) {
-                flex: 0 0 44px !important;
-                max-width: 44px !important;
-            }
-
-            /* Absolute 44x44 square buttons */
-            .unbreakable-nav button {
-                width: 44px !important;
-                height: 44px !important;
-                min-width: 44px !important;
-                min-height: 44px !important;
-                max-width: 44px !important;
-                max-height: 44px !important;
-                border-radius: 6px !important;
-                background-color: #1f1f1f !important;
-                border: 1px solid #333333 !important;
-                color: #e0e0e0 !important;
-                padding: 0 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-
-            .unbreakable-nav button:hover {
-                background-color: #2a2a2a !important;
-                border-color: #555555 !important;
-            }
-
-            /* Match selectbox height to 44px */
             .st-key-sched_selectbox select {
                 background-color: #1f1f1f !important;
                 color: #ffffff !important;
@@ -1348,37 +1301,19 @@ else:
         </style>
     """, unsafe_allow_html=True)
 
-    # Wrap columns in a custom div class to enforce single-line rules
-    with st.container():
-        st.markdown('<div class="unbreakable-nav">', unsafe_allow_html=True)
-        c_prev, c_select, c_next = st.columns([1, 12, 1], vertical_alignment="center")
-        
-        with c_prev:
-            if st.button("◀", use_container_width=True, key="native_prev"):
-                if st.session_state.sched_idx > 0:
-                    st.session_state.sched_idx -= 1
-                    st.rerun()
-
-        with c_select:
-            options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
-            selected_option = st.selectbox(
-                "Select Schedule",
-                options=options_list,
-                index=st.session_state.sched_idx,
-                label_visibility="collapsed",
-                key="sched_selectbox"
-            )
-            new_idx = options_list.index(selected_option)
-            if new_idx != st.session_state.sched_idx:
-                st.session_state.sched_idx = new_idx
-                st.rerun()
-
-        with c_next:
-            if st.button("▶", use_container_width=True, key="native_next"):
-                if st.session_state.sched_idx < len(schedules) - 1:
-                    st.session_state.sched_idx += 1
-                    st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
+    selected_option = st.selectbox(
+        "Select Schedule",
+        options=options_list,
+        index=st.session_state.sched_idx,
+        label_visibility="collapsed",
+        key="sched_selectbox"
+    )
+    
+    new_idx = options_list.index(selected_option)
+    if new_idx != st.session_state.sched_idx:
+        st.session_state.sched_idx = new_idx
+        st.rerun()
     # --------------------------------------------------------------------------------
 
     active_sched = schedules[st.session_state.sched_idx]
