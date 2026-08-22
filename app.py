@@ -133,6 +133,44 @@ st.markdown(
             padding-left: 1.5rem !important;
             padding-bottom: 1.5rem !important;
         }
+
+        /* --- PREMIUM NAVIGATION BAR UI --- */
+        
+        /* Force exact matching heights */
+        [data-testid="stMainBlockContainer"] button[kind="secondary"],
+        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] > div {
+            height: 42px !important;
+            min-height: 42px !important;
+            background-color: #121212 !important;
+            border: 1px solid #333333 !important;
+            border-radius: 6px !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* Hover effects for a premium feel */
+        [data-testid="stMainBlockContainer"] button[kind="secondary"]:hover,
+        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] > div:hover {
+            border-color: #555555 !important;
+            background-color: #1a1a1a !important;
+        }
+        
+        /* Fix the dropdown text color */
+        [data-testid="stMainBlockContainer"] div[data-baseweb="select"] span {
+            color: #ffffff !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+        }
+
+        /* Remove the weird gap above the selectbox caused by the hidden label */
+        [data-testid="stMainBlockContainer"] div[data-testid="stSelectbox"] label {
+            display: none !important;
+            height: 0px !important;
+            margin: 0px !important;
+            padding: 0px !important;
+        }
         
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
             background-color: #555555 !important;
@@ -1271,7 +1309,7 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-    c_prev, c_sel, c_next = st.columns([1, 8, 1])
+    c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
         if st.button("◀", key="prev_btn", use_container_width=True):
