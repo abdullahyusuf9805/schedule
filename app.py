@@ -841,7 +841,20 @@ if parsed_df.empty:
 # ==========================================
 # 9. PURE NATIVE STREAMLIT FILTERS (Tight UI)
 # ==========================================
-with st.sidebar.expander("⚙️ Filter By Day & Time", expanded=False):
+for exp_key in ["exp_day", "exp_avail", "exp_halls", "exp_teachers"]:
+    if exp_key not in st.session_state:
+        st.session_state[exp_key] = False
+
+
+with st.sidebar.expander("⚙️ Filter By Day & Time", expanded=st.session_state["exp_day"]):
+    # If the user just clicked to open this one, close all others
+    if not st.session_state["exp_day"]:
+        st.session_state["exp_day"] = True
+        st.session_state["exp_avail"] = False
+        st.session_state["exp_halls"] = False
+        st.session_state["exp_teachers"] = False
+        st.rerun()
+        
     days_config = {
         1: ("1 Sunday", True),
         2: ("2 Monday", True),
@@ -921,7 +934,14 @@ valid_blocks_df = parsed_df[~parsed_df["ID"].isin(invalid_ids)]
 # ==========================================
 # 9B. ENROLLMENT & AVAILABILITY OVERRIDES
 # ==========================================
-with st.sidebar.expander("⚙️ Filter By Availability", expanded=False):
+with st.sidebar.expander("⚙️ Filter By Availability", expanded=st.session_state["exp_avail"]):
+    if not st.session_state["exp_avail"]:
+        st.session_state["exp_day"] = False
+        st.session_state["exp_avail"] = True
+        st.session_state["exp_halls"] = False
+        st.session_state["exp_teachers"] = False
+        st.rerun()
+    
     enrolled_ids_str = st.session_state.get("auto_enrolled", "")
     enrolled_ids = [s.strip() for s in enrolled_ids_str.split(",") if s.strip()]
 
@@ -970,7 +990,14 @@ with st.sidebar.expander("⚙️ Filter By Availability", expanded=False):
 # ==========================================
 # 10. GLOBAL HALL & SHUBA RULES (REQUIRE / BAN)
 # ==========================================
-with st.sidebar.expander("⚙️ Filter By Hall & IDs", expanded=False):
+with st.sidebar.expander("⚙️ Filter By Hall & IDs", expanded=st.session_state["exp_halls"]):
+    if not st.session_state["exp_halls"]:
+        st.session_state["exp_day"] = False
+        st.session_state["exp_avail"] = False
+        st.session_state["exp_halls"] = True
+        st.session_state["exp_teachers"] = False
+        st.rerun()
+    
     all_halls = sorted(
         [str(h) for h in raw_df["HALL"].dropna().astype(str).unique() if h.strip()]
     )
@@ -1015,7 +1042,13 @@ if required_shubas:
 # ==========================================
 # 11. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
-with st.sidebar.expander("⚙️ Filter By teachers", expanded=False):
+with st.sidebar.expander("⚙️ Filter By Hall & IDs", expanded=st.session_state["exp_halls"]):
+    if not st.session_state["exp_halls"]:
+        st.session_state["exp_day"] = False
+        st.session_state["exp_avail"] = False
+        st.session_state["exp_halls"] = True
+        st.session_state["exp_teachers"] = False
+        st.rerun()
     
     all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
     subject_rules = {}
