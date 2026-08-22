@@ -1326,7 +1326,7 @@ else:
 
     # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
     # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
-    st.subheader("Visual View")
+    st.subheader("A. Visual View")
     html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
     html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
@@ -1362,7 +1362,7 @@ else:
     st.markdown(html_grid, unsafe_allow_html=True)
 
 # --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
-    st.subheader("Visual View")
+    st.subheader("B. Excel View")
     excel_rows_html = ""
     for s in active_sched:
         status_val = s.get('status', 'مفتوحة')
