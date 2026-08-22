@@ -152,59 +152,23 @@ st.markdown(
         }
 
 /* =========================================
-           HORIZONTAL PAGINATOR STYLES (FIXED)
+           ULTIMATE RADIO CIRCLE ANNIHILATION
            ========================================= */
-        
-        /* 1. The Wrapper Container */
-        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
-            background-color: #000000 !important;
-            padding: 12px 16px !important;
-            border-top: 1px solid #1a1a1a !important;
-            border-bottom: 1px solid #1a1a1a !important;
-            align-items: center !important;
-            gap: 16px !important;
-        }
-
-        /* 2. Left/Right Arrow Buttons */
-        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"] {
-            background-color: transparent !important;
-            border: none !important;
-            color: #6b6b6b !important;
-            box-shadow: none !important;
-            font-size: 20px !important;
-            padding: 8px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            transition: opacity 0.2s !important;
-            min-height: 44px !important;
-        }
-        [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) button[kind="secondary"]:hover {
-            opacity: 0.7 !important;
-            background-color: transparent !important;
-            color: #ffffff !important;
-        }
-
-        /* 3. Scrollable Radio Group Container */
-        div[role="radiogroup"] {
-            flex-wrap: nowrap !important;
-            overflow-x: auto !important;
-            padding: 4px 0px !important;
-            gap: 8px !important;
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-        div[role="radiogroup"]::-webkit-scrollbar {
+           
+        /* Hide all internal radio indicators, circles, and svgs inside the radiogroup */
+        div[role="radiogroup"] input[type="radio"],
+        div[role="radiogroup"] div[data-testid="stMarkdownContainer"] ~ div,
+        div[role="radiogroup"] label div[data-baseweb="radio"],
+        div[role="radiogroup"] span[data-baseweb="tag"],
+        div[role="radiogroup"] svg {
             display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
-        /* 4. Completely hide the native radio icon containers and inputs */
-        div[role="radiogroup"] input,
-        div[role="radiogroup"] div[data-baseweb="radio"] div:first-child {
-            display: none !important;
-        }
-
-        /* 5. Transform each radio option label into a 44x44 square tile */
+        /* Force each label into a clean, centered 44x44 square tile */
         div[role="radiogroup"] > label {
             background-color: #1f1f1f !important;
             border: 1px solid #333333 !important;
@@ -214,7 +178,7 @@ st.markdown(
             min-width: 44px !important;
             max-width: 44px !important;
             display: flex !important;
-            flex-direction: column !important;
+            flex-direction: row !important;
             align-items: center !important;
             justify-content: center !important;
             padding: 0 !important;
@@ -222,14 +186,16 @@ st.markdown(
             cursor: pointer !important;
             transition: all 0.2s ease !important;
         }
+        
         div[role="radiogroup"] > label:hover {
             background-color: #2a2a2a !important;
             border-color: #555555 !important;
         }
 
-        /* 6. Style the text inside the tiles perfectly */
+        /* Ensure the number text is properly centered and visible */
         div[role="radiogroup"] p,
-        div[role="radiogroup"] span {
+        div[role="radiogroup"] span,
+        div[role="radiogroup"] div {
             color: #e0e0e0 !important;
             font-size: 14px !important;
             font-weight: 400 !important;
@@ -238,13 +204,15 @@ st.markdown(
             padding: 0 !important;
         }
 
-        /* 7. Active State (Vibrant Green Border + Dark Green BG) */
+        /* Active State (Vibrant Green Border + Dark Green BG) */
         div[role="radiogroup"] > label:has(input:checked) {
             border: 2px solid #75d466 !important;
             background-color: #1a2218 !important;
         }
+        
         div[role="radiogroup"] > label:has(input:checked) p,
-        div[role="radiogroup"] > label:has(input:checked) span {
+        div[role="radiogroup"] > label:has(input:checked) span,
+        div[role="radiogroup"] > label:has(input:checked) div {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
