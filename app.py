@@ -545,8 +545,7 @@ def submit_captcha_and_scrape(username, password, captcha_val):
             driver.save_screenshot("error_screenshot.png")
             raise Exception("Could not find the main timetable <tbody>.")
             
-        final_html = f"<!-- SYNC_TIME: {time_str} -->\n" + str(target_tbody)
-        
+        final_html = f"<!-- SYNC_TIME: {time_str} -->\n<!-- STUDENT_ID: {username} -->\n" + str(target_tbody)
         return final_html, raw_enrolled_html, enrolled_str
         
     finally:
