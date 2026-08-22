@@ -114,6 +114,14 @@ st.markdown(
             box-shadow: none !important;
             outline: none !important;
         }
+
+        /* DESTROY MASSIVE MAIN CONTAINER PADDING */
+        div.block-container {
+            padding-top: 1.5rem !important;
+            padding-right: 1.5rem !important;
+            padding-left: 1.5rem !important;
+            padding-bottom: 1.5rem !important;
+        }
         
         div[data-baseweb="slider"][aria-disabled="true"] div[role="slider"] {
             background-color: #555555 !important;
