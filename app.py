@@ -1288,169 +1288,42 @@ else:
 
 
 
+  # --------------------------------------------------------------------------------
+    # THEME 2: iOS SEGMENTED PILL (PURE HTML/CSS/JS TOGGLE)
     # --------------------------------------------------------------------------------
-    # THEME 2: iOS SEGMENTED PILL STYLING INJECTION
-    # --------------------------------------------------------------------------------
-    st.markdown("""
-        <style>
-            /* Target the button container holding Visual View / Excel View */
-            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) {
-                background-color: #1e2128 !important;
-                padding: 4px !important;
-                border-radius: 999px !important;
-                gap: 4px !important;
-                display: flex !important;
-                box-sizing: border-box !important;
-                margin-bottom: 20px !important;
-            }
-
-            /* Turn individual columns and buttons into smooth pill segments */
-            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) > div[data-testid="column"] {
-                flex: 1 !important;
-            }
-
-            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button {
-                width: 100% !important;
-                border: none !important;
-                border-radius: 999px !important;
-                padding: 12px 24px !important;
-                font-size: 14px !important;
-                font-weight: 500 !important;
-                font-family: inherit !important;
-                transition: all 0.2s ease !important;
-                box-shadow: none !important;
-            }
-
-            /* Inactive pill style */
-            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button {
-                background-color: transparent !important;
-                color: #8b949e !important;
-            }
-
-            /* Active pill style */
-            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button[kind="primary"],
-            div[data-testid="stHorizontalBlock"]:has(button[key="btn_visual_view_main"]) button:active {
-                background-color: #2d333b !important;
-                color: #ffffff !important;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
+    current_view = st.session_state.get("active_view", "Visual View")
     
-    # --------------------------------------------------------------------------------
-    # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
-    # --------------------------------------------------------------------------------
-    options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
-    selected_option = st.selectbox(
-        "Select Schedule",
-        options=options_list,
-        index=st.session_state.sched_idx,
-        label_visibility="collapsed",
-        key="sched_selectbox"
-    )
-    
-    new_idx = options_list.index(selected_option)
-    if new_idx != st.session_state.sched_idx:
-        st.session_state.sched_idx = new_idx
-        st.rerun()
-    # --------------------------------------------------------------------------------
+    # We use a clean radio-like visual toggle via HTML
+    v_active_class = "active" if current_view == "Visual View" else ""
+    e_active_class = "active" if current_view == "Excel View" else ""
 
-    active_sched = schedules[st.session_state.sched_idx]
+    toggle_html = f"""
+    <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 20px;">
+        <div style="display: flex; background-color: #1e2128; padding: 4px; border-radius: 999px; gap: 4px; width: 100%; box-sizing: border-box;">
+            <button onclick="setStreamlitView('Visual View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {'#2d333b' if current_view == 'Visual View' else 'transparent'}; color: {'#ffffff' if current_view == 'Visual View' else '#8b949e'}; box-shadow: {'0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Visual View' else 'none'}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Visual View</button>
+            <button onclick="setStreamlitView('Excel View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {'#2d333b' if current_view == 'Excel View' else 'transparent'}; color: {'#ffffff' if current_view == 'Excel View' else '#8b949e'}; box-shadow: {'0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Excel View' else 'none'}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Excel View</button>
+        </div>
+    </div>
+    <script>
+        function setStreamlitView(viewName) {{
+            // Streamlit query param bridge to trigger a seamless rerun
+            const url = new URL(window.parent.location.href);
+            url.searchParams.set('view', viewName);
+            window.parent.location.href = url.href;
+        }}
+    </script>
+    """
+    st.markdown(toggle_html, unsafe_allow_html=True)
 
-    is_visual = st.session_state.active_view == "Visual View"
-    v_bg = "#000000" if is_visual else "#212121"
-    v_border = "#ffffff" if is_visual else "#424242"
-
-    is_excel = st.session_state.active_view == "Excel View"
-    e_bg = "#000000" if is_excel else "#212121"
-    e_border = "#ffffff" if is_excel else "#424242"
-
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button(
-            "Visual View", use_container_width=True, key="btn_visual_view_main"
-        ):
-            st.session_state.active_view = "Visual View"
+    # Catch the view change from the URL parameters
+    params = st.query_params
+    if "view" in params:
+        chosen_view = params["view"]
+        if chosen_view != st.session_state.active_view:
+            st.session_state.active_view = chosen_view
             st.rerun()
-    with col_btn2:
-        if st.button(
-            "Excel View", use_container_width=True, key="btn_excel_view_main"
-        ):
-            st.session_state.active_view = "Excel View"
-            st.rerun()
-
-    st.markdown(
-        f"""
-        <style>
-            div[data-testid="column"] button[key="btn_visual_view_main"] {{
-                background-color: {v_bg} !important;
-                color: #ffffff !important;
-                border: 2px solid {v_border} !important;
-                font-weight: bold;
-            }}
-            div[data-testid="column"] button[key="btn_excel_view_main"] {{
-                background-color: {e_bg} !important;
-                color: #ffffff !important;
-                border: 2px solid {e_border} !important;
-                font-weight: bold;
-            }}
-        </style>
-    """,
-        unsafe_allow_html=True,
-    )
-
-    if st.session_state.active_view == "Visual View":
-        html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
-        html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-        html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
-
-        col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-
-        for row_idx in range(11):
-            hour = 8 + row_idx
-            bg_color = "#121212" if row_idx % 2 == 0 else "#000000"
-            html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
-            html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
-
-            row_cells = [""] * 5
-            for section in active_sched:
-                for b in section["blocks"]:
-                    if b["start_time"] == hour:
-                        c_idx = col_map_html.get(b["day"])
-                        if c_idx:
-                            row_cells[c_idx - 1] = (
-                                f"<b>{section['code']}</b><br><small>(ش"
-                                f" {section['id']})</small>"
-                            )
-
-            for c in row_cells:
-                cell_bg = "#ffffff" if c else "#212121"
-                cell_fg = "#000000" if c else "#888888"
-                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
-            html_grid += "</tr>"
-        html_grid += "</table>"
-
-        st.markdown(html_grid, unsafe_allow_html=True)
-
-    else:
-        df_excel = pd.DataFrame([{
-            "CODE": s["code"],
-            "NAME": s["name"],
-            "ID (ش)": s["id"],
-            "HALL": s["hall"],
-            "VENUE": s["venue"],
-            "TEACHER": s["teacher"],
-            "STATUS": s["status"],
-        } for s in active_sched])
-
-        st.dataframe(df_excel, use_container_width=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        try:
-            excel_buffer = io.BytesIO()
-            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                df_excel.to_excel(writer, index=False, sheet_name="Schedule")
+    # --------------------------------------------------------------------------------
+            
             
             st.download_button(
                 label="📥 Download Current Schedule (Excel)",
