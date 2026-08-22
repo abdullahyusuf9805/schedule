@@ -175,7 +175,7 @@ updated_str = time_match.group(1) if time_match else "No data file found"
 
 # Display Last Update on the Main Page
 st.markdown(
-    f"<p style='color: #a0a0a0; font-size: 15px; margin-top: 5px; margin-bottom: 20px;'>"
+    f"<p style='color: #a0a0a0; font-size: 15px; margin-top: 1px; margin-bottom: 5px;'>"
     f"<b>Last Update:</b> {updated_str}"
     f"</p>",
     unsafe_allow_html=True,
