@@ -1133,7 +1133,7 @@ target_subjects = list(sections_by_subject.keys())
 total_required_subjects = len(all_subjects)
 
 if len(target_subjects) < total_required_subjects:
-    st.error("No Valid Schedule found.")
+    st.error("No Valid Schedule Found.")
     st.stop()
 
 @st.cache_data
@@ -1257,10 +1257,10 @@ def draw_schedule_image(schedule):
 
 
 if not schedules:
-    st.warning("No valid non-overlapping schedules found with these filters.")
+    st.warning("No Valid Schedule Found.")
 else:
     st.info(
-        f"Found {len(schedules)} valid schedules (Ranked by least gaps)."
+        f"Found {len(schedules)} Valid Schedule(s)."
     )
 
     if "sched_idx" not in st.session_state:
