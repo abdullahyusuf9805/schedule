@@ -47,7 +47,7 @@ st.markdown(
     [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
 
     /* =========================================
-       100% BULLETPROOF HTML PAGINATOR
+       100% EXACT HTML PAGINATOR (WITH SCROLL FIX)
        ========================================= */
 
     /* 1. paginator-wrapper (The Black Container) */
@@ -58,25 +58,32 @@ st.markdown(
         border-bottom: 1px solid #1a1a1a !important;
         align-items: center !important;
         width: 100% !important;
+        overflow: hidden !important;
     }
 
-    /* 2. options-container (The Scrollable Row) */
+    /* 2. THE SCROLL FIX: Make the Middle Column (c_sel) Scrollable */
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) {
+        overflow-x: auto !important;
+        scroll-behavior: smooth !important;
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
+        padding: 0 4px !important;
+    }
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2)::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* 3. options-container (Force the row to stretch past the screen edge!) */
     .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         gap: 8px !important;
-        overflow-x: auto !important;
-        scroll-behavior: smooth !important;
-        padding: 4px 0 !important;
         flex-wrap: nowrap !important;
-        -ms-overflow-style: none !important;
-        scrollbar-width: none !important;
-    }
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"]::-webkit-scrollbar {
-        display: none !important;
+        width: max-content !important; /* <--- THIS IS WHAT ENABLES SCROLLING */
+        min-width: max-content !important; 
     }
 
-    /* 3. Force Columns to Exactly 44px */
+    /* 4. Force Columns to Exactly 44px */
     .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"] {
         flex: 0 0 44px !important;
         width: 44px !important;
@@ -86,7 +93,7 @@ st.markdown(
         margin: 0 !important;
     }
 
-    /* 4. option-btn (The 44x44 Square) */
+    /* 5. option-btn (The 44x44 Square) */
     .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button {
         background-color: #1f1f1f !important;
         color: #e0e0e0 !important;
@@ -109,7 +116,7 @@ st.markdown(
         border-color: #555555 !important;
     }
 
-    /* 5. Force Number Text to NEVER Stack */
+    /* 6. Force Number Text to NEVER Stack */
     .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button * {
         white-space: nowrap !important;
         word-break: keep-all !important;
@@ -125,7 +132,7 @@ st.markdown(
         display: inline-block !important;
     }
 
-    /* 6. option-btn.active (Green Active State) */
+    /* 7. option-btn.active (Green Active State) */
     .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button[kind="primary"] {
         border: 2px solid #75d466 !important;
         background-color: #1a2218 !important;
@@ -136,7 +143,7 @@ st.markdown(
         font-weight: 500 !important;
     }
 
-    /* 7. nav-arrow (Side Arrow Reset) */
+    /* 8. nav-arrow (Side Arrow Reset) */
     .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(1) button,
     .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(3) button {
         background-color: transparent !important;
