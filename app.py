@@ -792,20 +792,28 @@ with st.sidebar.container(border=True):
         import os
         import pandas as pd
         
-        # 1. Extract and format the exact sync time from data.html
+        # 1. Extract and format the exact sync time & ID from data.html
         formatted_time = "UnknownTime"
+        extracted_id = "UnknownID"
+        
         if os.path.exists("data.html"):
             with open("data.html", "r", encoding="utf-8") as f:
-                content = f.read(250) # Read the first chunk to find the comment
-                match = re.search(r'<!-- SYNC_TIME:\s*(.*?)\s*-->', content)
-                if match:
-                    raw_time_str = match.group(1)
-                    # Convert to datetime and format perfectly to DDMMYY HHMM
+                content = f.read(500) # Increased size to catch both comments
+                
+                # Get Time
+                match_time = re.search(r'<!-- SYNC_TIME:\s*(.*?)\s*-->', content)
+                if match_time:
+                    raw_time_str = match_time.group(1)
                     parsed_time = pd.to_datetime(raw_time_str) 
                     formatted_time = parsed_time.strftime("%d%m%y%H%M")
+                    
+                # Get Student ID
+                match_id = re.search(r'<!-- STUDENT_ID:\s*(.*?)\s*-->', content)
+                if match_id:
+                    extracted_id = match_id.group(1).strip()
         
         # 2. Build the exact filename requested
-        excel_filename = f"MATROOHAAT {formatted_time}.xlsx"
+        excel_filename = f"MATROOHAT({extracted_id}) {formatted_time}.xlsx"
         
         raw_excel_buffer = io.BytesIO()
         with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
@@ -819,8 +827,7 @@ with st.sidebar.container(border=True):
             use_container_width=True
         )
     except ModuleNotFoundError:
-        st.error("Can't Export Row Data!")
-
+        st.error("Can't Export Raw Data!")
 
 # ==========================================
 # 8. PARSE VALID SCHEDULE BLOCKS
