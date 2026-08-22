@@ -1291,12 +1291,19 @@ else:
     # THEME 2: iOS SEGMENTED PILL (PURE HTML/CSS/JS TOGGLE)
     # --------------------------------------------------------------------------------
     current_view = st.session_state.get("active_view", "Visual View")
+    v_bg = '#2d333b' if current_view == 'Visual View' else 'transparent'
+    v_fg = '#ffffff' if current_view == 'Visual View' else '#8b949e'
+    v_shadow = '0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Visual View' else 'none'
+
+    e_bg = '#2d333b' if current_view == 'Excel View' else 'transparent'
+    e_fg = '#ffffff' if current_view == 'Excel View' else '#8b949e'
+    e_shadow = '0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Excel View' else 'none'
 
     toggle_html = f"""
     <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 20px;">
         <div style="display: flex; background-color: #1e2128; padding: 4px; border-radius: 999px; gap: 4px; width: 100%; box-sizing: border-box;">
-            <button onclick="setStreamlitView('Visual View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {'#2d333b' if current_view == 'Visual View' else 'transparent'}; color: {'#ffffff' if current_view == 'Visual View' else '#8b949e'}; box-shadow: {'0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Visual View' else 'none'}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Visual View</button>
-            <button onclick="setStreamlitView('Excel View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {'#2d333b' if current_view == 'Excel View' else 'transparent'}; color: {'#ffffff' if current_view == 'Excel View' else '#8b949e'}; box-shadow: {'0 2px 5px rgba(0,0,0,0.2)' if current_view == 'Excel View' else 'none'}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Excel View</button>
+            <button onclick="setStreamlitView('Visual View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {v_bg}; color: {v_fg}; box-shadow: {v_shadow}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Visual View</button>
+            <button onclick="setStreamlitView('Excel View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {e_bg}; color: {e_fg}; box-shadow: {e_shadow}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Excel View</button>
         </div>
     </div>
     <script>
