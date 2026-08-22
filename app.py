@@ -1091,10 +1091,8 @@ target_subjects = list(sections_by_subject.keys())
 total_required_subjects = len(all_subjects)
 
 if len(target_subjects) < total_required_subjects:
-    st.warning(
-        f"Only {len(target_subjects)} out of {total_required_subjects} valid"
-        " subjects remaining after filters. Check your filters or rules."
-    )
+    st.error("No Valid Schedule found.")
+    st.stop()
 
 @st.cache_data
 def generate_schedules(subjects_dict, targets):
