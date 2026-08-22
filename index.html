@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* Base page styling - removes margins to fit cleanly in Streamlit */
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  /* =========================================
+     YOUR EXACT PAGINATOR STYLES
+     ========================================= */
+  .paginator-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: #000000;
+    padding: 12px 16px;
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    border-top: 1px solid #1a1a1a;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .nav-arrow {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .nav-arrow:hover { opacity: 0.7; }
+  .nav-arrow svg { fill: #6b6b6b; width: 16px; height: 16px; }
+
+  .options-container {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 2px 0;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .options-container::-webkit-scrollbar { display: none; }
+
+  .option-btn {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    border: 1px solid #333333;
+    border-radius: 6px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .option-btn:hover {
+    background-color: #2a2a2a;
+    border-color: #555555;
+  }
+
+  .option-btn.active {
+    border: 2px solid #75d466;
+    background-color: #1a2218;
+    color: #ffffff;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+  <div class="paginator-wrapper">
+    <!-- Left Arrow -->
+    <button class="nav-arrow" id="scroll-left">
+      <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </button>
+
+    <!-- Options Container -->
+    <div class="options-container" id="options-scroll">
+      <!-- Javascript will automatically generate the buttons here! -->
+    </div>
+
+    <!-- Right Arrow -->
+    <button class="nav-arrow" id="scroll-right">
+      <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </button>
+  </div>
+
+  <script>
+    // --- 1. Streamlit Bridge Functions ---
+    function sendMessageToStreamlit(type, data) {
+        window.parent.postMessage({ isStreamlitMessage: true, type: type, ...data }, "*");
+    }
+
+    // Sends the clicked button's number back to your Python script!
+    function setComponentValue(value) {
+        sendMessageToStreamlit("setComponentValue", { value: value });
+    }
+
+    // Tell Streamlit we are ready and exactly how tall we are (so nothing gets cut off)
+    sendMessageToStreamlit("streamlit:componentReady", { apiVersion: 1 });
+    sendMessageToStreamlit("streamlit:setFrameHeight", { height: 75 }); 
+
+    // --- 2. Listen for Data from Python ---
+    window.addEventListener("message", function(event) {
+        if (event.data.type === "streamlit:render") {
+            const args = event.data.args;
+            const numOptions = args.num_options;
+            const activeIndex = args.active_index;
+
+            const container = document.getElementById("options-scroll");
+            container.innerHTML = ""; // Clear out old buttons
+
+            // Dynamically generate the correct number of perfectly styled buttons
+            for(let i = 0; i < numOptions; i++) {
+                const btn = document.createElement("div");
+                btn.className = "option-btn" + (i === activeIndex ? " active" : "");
+                
+                // Format as "01", "02", etc.
+                btn.innerText = (i + 1).toString().padStart(2, '0');
+                
+                // When clicked, send the number 'i' back to Python
+                btn.addEventListener("click", function() {
+                    setComponentValue(i);
+                });
+
+                // Auto-scroll to center the active button on load
+                if (i === activeIndex) {
+                    setTimeout(() => btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 100);
+                }
+
+                container.appendChild(btn);
+            }
+        }
+    });
+
+    // --- 3. Arrow Scrolling Logic ---
+    const scrollContainer = document.getElementById('options-scroll');
+    const scrollAmount = 200; 
+    
+    document.getElementById('scroll-left').addEventListener('click', () => {
+        scrollContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+    
+    document.getElementById('scroll-right').addEventListener('click', () => {
+        scrollContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
