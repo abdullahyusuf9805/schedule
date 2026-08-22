@@ -1157,7 +1157,7 @@ def generate_schedules(subjects_dict, targets):
     valid_schedules = []
 
     def backtrack(idx, current_schedule, occupied_slots):
-        if len(valid_schedules) >= 100:
+        if len(valid_schedules) > 100:  # <--- Collect up to 101 to check if there's more than 100
             return
         if idx == len(targets):
             valid_schedules.append(list(current_schedule))
@@ -1275,9 +1275,9 @@ def draw_schedule_image(schedule):
 if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
-    st.info(
-        f"Found {len(schedules)} Valid Schedules."
-    )
+    # Check if we hit our cap of 100+
+    total_count_label = f"100+" if len(schedules) > 100 else f"{len(schedules)}"
+    st.info(f"Found {total_count_label} Valid Schedules.")
 
     if "sched_idx" not in st.session_state:
         st.session_state.sched_idx = 0
