@@ -786,8 +786,24 @@ if raw_df is None or raw_df.empty:
 with st.sidebar.container(border=True):
     st.markdown("### 📥 Export Raw Data")
     try:
-        current_time_str = datetime.now().strftime("%d%m%Y-%H%M")
-        excel_filename = f"Scraped_Shuba_Data_{current_time_str}.xlsx"
+        import re
+        import os
+        import pandas as pd
+        
+        # 1. Extract and format the exact sync time from data.html
+        formatted_time = "UnknownTime"
+        if os.path.exists("data.html"):
+            with open("data.html", "r", encoding="utf-8") as f:
+                content = f.read(250) # Read the first chunk to find the comment
+                match = re.search(r'<!-- SYNC_TIME:\s*(.*?)\s*-->', content)
+                if match:
+                    raw_time_str = match.group(1)
+                    # Convert to datetime and format perfectly to DDMMYY HHMM
+                    parsed_time = pd.to_datetime(raw_time_str) 
+                    formatted_time = parsed_time.strftime("%d%m%y %H%M")
+        
+        # 2. Build the exact filename requested
+        excel_filename = f"MATROOHAAt {formatted_time}.xlsx"
         
         raw_excel_buffer = io.BytesIO()
         with pd.ExcelWriter(raw_excel_buffer, engine='openpyxl') as writer:
@@ -801,7 +817,7 @@ with st.sidebar.container(border=True):
             use_container_width=True
         )
     except ModuleNotFoundError:
-        st.error("⚠️ Add 'openpyxl' to requirements.txt to enable Excel downloads.")
+        st.error("Can't Export Row Data!")
 
 
 # ==========================================
