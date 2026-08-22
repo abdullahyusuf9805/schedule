@@ -1379,7 +1379,7 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-st.markdown('<div class="nav-row">', unsafe_allow_html=True)
+    st.markdown('<div class="nav-row">', unsafe_allow_html=True)
     c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
@@ -1411,6 +1411,8 @@ st.markdown('<div class="nav-row">', unsafe_allow_html=True)
                 st.session_state.sched_idx = 0
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
+
+    
 
     active_sched = schedules[st.session_state.sched_idx]
 
