@@ -44,57 +44,48 @@ st.markdown(
     /* Base theme */
     .stApp { background-color: #000000; color: #ffffff; }
     div.block-container { padding: 3.5rem 1.5rem 1.5rem 1.5rem !important; }
-    [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
 
     /* =========================================
-       100% EXACT HTML PAGINATOR (WITH SCROLL FIX)
+       1,000,000,000% EXACT HTML PAGINATOR
        ========================================= */
 
-    /* 1. paginator-wrapper (The Black Container) */
+    /* 1. The Black Wrapper */
     .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] {
         background-color: #000000 !important;
         padding: 12px 16px !important;
         border-top: 1px solid #1a1a1a !important;
         border-bottom: 1px solid #1a1a1a !important;
         align-items: center !important;
-        width: 100% !important;
-        overflow: hidden !important;
     }
 
-    /* 2. THE SCROLL FIX: Make the Middle Column (c_sel) Scrollable */
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) {
+    /* 2. Turn the Middle Column into a Scrollable Row */
+    .element-container:has(.paginator-scroll-marker) {
+        display: none !important; /* Hide the marker */
+    }
+    
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stVerticalBlock"] {
+        display: flex !important;
+        flex-direction: row !important; /* Flips the buttons horizontally! */
+        gap: 8px !important;
         overflow-x: auto !important;
         scroll-behavior: smooth !important;
+        padding: 2px 0 !important;
+        flex-wrap: nowrap !important;
         -ms-overflow-style: none !important;
         scrollbar-width: none !important;
-        padding: 0 4px !important;
     }
-    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2)::-webkit-scrollbar {
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stVerticalBlock"]::-webkit-scrollbar {
         display: none !important;
     }
 
-    /* 3. options-container (Force the row to stretch past the screen edge!) */
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 8px !important;
-        flex-wrap: nowrap !important;
-        width: max-content !important; /* <--- THIS IS WHAT ENABLES SCROLLING */
-        min-width: max-content !important; 
-    }
-
-    /* 4. Force Columns to Exactly 44px */
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 0 0 44px !important;
+    /* 3. Strip width constraints from the button wrappers */
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) > div > [data-testid="stVerticalBlock"] > .element-container {
         width: 44px !important;
-        min-width: 44px !important;
-        max-width: 44px !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        flex: 0 0 44px !important;
     }
 
-    /* 5. option-btn (The 44x44 Square) */
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button {
+    /* 4. Exact Option Buttons */
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button {
         background-color: #1f1f1f !important;
         color: #e0e0e0 !important;
         border: 1px solid #333333 !important;
@@ -109,41 +100,37 @@ st.markdown(
         padding: 0 !important;
         margin: 0 !important;
         box-shadow: none !important;
+        transition: all 0.2s ease !important;
     }
-    
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button:hover {
+
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button:hover {
         background-color: #2a2a2a !important;
         border-color: #555555 !important;
     }
 
-    /* 6. Force Number Text to NEVER Stack */
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button * {
-        white-space: nowrap !important;
-        word-break: keep-all !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1 !important;
-    }
-
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button p {
+    /* 5. Center Number Text and Prevent Stacking */
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button p {
         font-size: 14px !important;
         font-weight: 400 !important;
         font-variant-numeric: tabular-nums !important;
-        display: inline-block !important;
+        color: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
     }
 
-    /* 7. option-btn.active (Green Active State) */
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button[kind="primary"] {
+    /* 6. Active State */
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button[kind="primary"] {
         border: 2px solid #75d466 !important;
         background-color: #1a2218 !important;
+        color: #ffffff !important;
     }
     
-    .element-container:has(.paginator-scroll-marker) + .element-container > [data-testid="stHorizontalBlock"] button[kind="primary"] p {
-        color: #ffffff !important;
+    .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(2) button[kind="primary"] p {
         font-weight: 500 !important;
     }
 
-    /* 8. nav-arrow (Side Arrow Reset) */
+    /* 7. Nav Arrows Reset */
     .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(1) button,
     .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(3) button {
         background-color: transparent !important;
@@ -151,11 +138,15 @@ st.markdown(
         color: #6b6b6b !important;
         box-shadow: none !important;
         padding: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(1) button:hover,
     .element-container:has(.paginator-row-marker) + .element-container > [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-of-type(3) button:hover {
         opacity: 0.7 !important;
+        background-color: transparent !important;
     }
 </style>
 """,
@@ -1290,8 +1281,7 @@ else:
 
 # --------------------------------------------------------------------------------
 
-        # 1. Marker for the Outer Black Box
-    st.markdown('<span class="paginator-row-marker" style="display:none;"></span>', unsafe_allow_html=True)
+st.markdown('<span class="paginator-row-marker" style="display:none;"></span>', unsafe_allow_html=True)
     c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
@@ -1303,20 +1293,19 @@ else:
             st.rerun()
 
     with c_sel:
-        # 2. Marker for the Scrollable Container
+        # NO MORE st.columns() HERE! Just generate the buttons vertically. 
+        # Our CSS will flip them horizontally and add the exact scroll mechanics.
         st.markdown('<span class="paginator-scroll-marker" style="display:none;"></span>', unsafe_allow_html=True)
-        cols = st.columns(len(schedules))
-        for idx, col in enumerate(cols):
-            with col:
-                is_active = (idx == st.session_state.sched_idx)
-                btn_label = f"{idx + 1:02d}"
-                
-                if is_active:
-                    st.button(btn_label, key=f"opt_active_{idx}", use_container_width=True, type="primary")
-                else:
-                    if st.button(btn_label, key=f"opt_{idx}", use_container_width=True):
-                        st.session_state.sched_idx = idx
-                        st.rerun()
+        for idx in range(len(schedules)):
+            is_active = (idx == st.session_state.sched_idx)
+            btn_label = f"{idx + 1:02d}"
+            
+            if is_active:
+                st.button(btn_label, key=f"opt_active_{idx}", type="primary")
+            else:
+                if st.button(btn_label, key=f"opt_{idx}"):
+                    st.session_state.sched_idx = idx
+                    st.rerun()
 
     with c_next:
         if st.button("▶", key="next_btn", use_container_width=True):
