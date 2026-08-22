@@ -1306,6 +1306,9 @@ else:
             <button onclick="setStreamlitView('Excel View')" style="flex: 1; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; border: none; border-radius: 999px; background-color: {e_bg}; color: {e_fg}; box-shadow: {e_shadow}; transition: all 0.2s ease; font-family: inherit; text-align: center;">Excel View</button>
         </div>
     </div>
+    """
+    
+    js_script = """
     <script>
         function setStreamlitView(viewName) {
             const url = new URL(window.parent.location.href);
@@ -1314,7 +1317,8 @@ else:
         }
     </script>
     """
-    st.markdown(toggle_html, unsafe_allow_html=True)
+    
+    st.markdown(toggle_html + js_script, unsafe_allow_html=True)
 
     params = st.query_params
     if "view" in params:
