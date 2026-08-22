@@ -151,11 +151,11 @@ st.markdown(
             align-items: center !important;
         }
 
-/* =========================================
-           FIXED HORIZONTAL PAGINATOR STYLES
+    /* =========================================
+           ULTIMATE RADIO CIRCLE REMOVAL
            ========================================= */
         
-        /* 1. Wrapper Container */
+        /* 1. The Wrapper Container */
         [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
             background-color: #000000 !important;
             padding: 12px 16px !important;
@@ -185,7 +185,7 @@ st.markdown(
             color: #ffffff !important;
         }
 
-        /* 3. Force the radio group into a strict single horizontal line with scrolling */
+        /* 3. Single-line horizontal scroll container */
         div[role="radiogroup"] {
             display: flex !important;
             flex-direction: row !important;
@@ -200,14 +200,19 @@ st.markdown(
             display: none !important;
         }
 
-        /* 4. Completely hide the native radio circles and input dots */
+        /* 4. ANNIHILATE THE NATIVE RADIO CIRCLES AND INPUTS */
         div[role="radiogroup"] input[type="radio"],
-        div[role="radiogroup"] div[data-testid="stMarkdownContainer"] ~ div,
-        div[role="radiogroup"] div[class*="st-key"] div[data-baseweb="radio"] {
+        div[role="radiogroup"] label div:has(> svg),
+        div[role="radiogroup"] label div[data-baseweb="radio"] {
             display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
-        /* Target the individual radio option labels to look like 44x44 square buttons */
+        /* 5. Style the Option Buttons (Radio Labels) into 44x44 Squares */
         div[role="radiogroup"] > label {
             background-color: #1f1f1f !important;
             border: 1px solid #333333 !important;
@@ -230,7 +235,7 @@ st.markdown(
             border-color: #555555 !important;
         }
 
-        /* Style the number text cleanly inside the tiles */
+        /* Clean number text formatting */
         div[role="radiogroup"] p,
         div[role="radiogroup"] span {
             color: #e0e0e0 !important;
@@ -241,7 +246,7 @@ st.markdown(
             padding: 0 !important;
         }
 
-        /* 5. Active State (Vibrant Green Border + Dark Green BG) */
+        /* 6. Active State (Vibrant Green Border + Dark Green BG) */
         div[role="radiogroup"] > label:has(input:checked) {
             border: 2px solid #75d466 !important;
             background-color: #1a2218 !important;
