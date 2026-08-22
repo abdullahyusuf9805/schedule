@@ -151,58 +151,11 @@ st.markdown(
             align-items: center !important;
         }
 
-        /* =========================================
-           CUSTOM BUTTON-BASED HORIZONTAL PAGINATOR
-           ========================================= */
-           
-        /* =========================================
-           NUCLEAR TEXT WRAP PREVENTION 
+/* =========================================
+           CLEAN BUTTON-BASED HORIZONTAL PAGINATOR
            ========================================= */
 
-        /* 1. Strip ALL internal padding from the button and its nested wrappers */
-        .options-scroll-container button, 
-        .options-scroll-container button > div, 
-        .options-scroll-container button > div > div {
-            padding: 0px !important;
-            margin: 0px !important;
-            width: 100% !important;
-        }
-
-        /* 2. Force the text to NEVER break, wrap, or stack */
-        .options-scroll-container button p {
-            white-space: nowrap !important;
-            word-break: keep-all !important;
-            overflow-wrap: normal !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-            font-size: 14px !important;
-        }
-
-        /* Force Streamlit columns to stay exactly 44px wide and NEVER shrink */
-        .options-scroll-container div[data-testid="column"] {
-            flex: 0 0 44px !important;
-            width: 44px !important;
-            min-width: 44px !important;
-            max-width: 44px !important;
-            padding: 0 !important;
-        }
-
-        /* Prevent the text inside the buttons from ever wrapping or stacking */
-        .options-scroll-container button div[data-testid="stMarkdownContainer"] p,
-        .options-scroll-container button p {
-            white-space: nowrap !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-            display: inline-block !important;
-        }
-        
-        /* Wrapper Container */
+        /* 1. Main Navigation Row Background & Spacing */
         [data-testid="stHorizontalBlock"]:has(> div:nth-child(3):last-child) {
             background-color: #000000 !important;
             padding: 12px 16px !important;
@@ -212,47 +165,73 @@ st.markdown(
             gap: 16px !important;
         }
 
-        /* Make the inner selection container scroll horizontally */
+        /* 2. Inner Scrollable Container (Forces Horizontal Layout) */
         .options-scroll-container div[data-testid="stHorizontalBlock"] {
             display: flex !important;
-            overflow-x: auto !important;
             flex-wrap: nowrap !important;
+            overflow-x: auto !important;
             gap: 8px !important;
+            padding-bottom: 4px !important;
+            -ms-overflow-style: none !important;
             scrollbar-width: none !important;
         }
         .options-scroll-container div[data-testid="stHorizontalBlock"]::-webkit-scrollbar {
             display: none !important;
         }
 
-        /* Force all option buttons into clean 44x44 squares */
+        /* 3. Force Columns to NEVER Shrink (Exact 44px Width) */
+        .options-scroll-container div[data-testid="column"] {
+            flex: 0 0 44px !important;
+            width: 44px !important;
+            min-width: 44px !important;
+            max-width: 44px !important;
+            padding: 0 !important;
+        }
+
+        /* 4. Base Button Styles (44x44 Squares, No Padding) */
         .options-scroll-container button {
             background-color: #1f1f1f !important;
             border: 1px solid #333333 !important;
             border-radius: 6px !important;
-            width: 44px !important;
+            width: 100% !important; 
             height: 44px !important;
-            min-width: 44px !important;
-            max-width: 44px !important;
             min-height: 44px !important;
-            color: #e0e0e0 !important;
-            font-size: 14px !important;
-            font-weight: 400 !important;
-            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            padding: 0 !important;
+            box-shadow: none !important;
         }
         
+        /* 5. Nuclear Text Wrap Prevention (Forces "01" onto one line) */
+        .options-scroll-container button * {
+            white-space: nowrap !important;
+            word-break: keep-all !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+        }
+        
+        .options-scroll-container button p {
+            color: #e0e0e0 !important;
+            font-size: 14px !important;
+            font-weight: 400 !important;
+        }
+
+        /* 6. Hover State */
         .options-scroll-container button:hover {
             background-color: #2a2a2a !important;
             border-color: #555555 !important;
         }
 
-        /* Active State Style (Vibrant Green Border + Dark Green BG) */
+        /* 7. Active State (Vibrant Green Border + Dark Green BG) */
         .options-scroll-container button[kind="primary"] {
             border: 2px solid #75d466 !important;
             background-color: #1a2218 !important;
+        }
+        
+        .options-scroll-container button[kind="primary"] p {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
