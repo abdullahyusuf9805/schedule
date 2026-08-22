@@ -1275,14 +1275,6 @@ def draw_schedule_image(schedule):
 if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
-    # --------------------------------------------------------------------------------
-    # DYNAMIC SCHEDULE COUNTER (e.g., Schedule 001 of 100)
-    # --------------------------------------------------------------------------------
-    current_num = st.session_state.get("sched_idx", 0) + 1
-    total_count = len(schedules)
-    st.info(f"Schedule {current_num:03d} of {total_count}")
-    # --------------------------------------------------------------------------------
-
     if "sched_idx" not in st.session_state:
         st.session_state.sched_idx = 0
     if "active_view" not in st.session_state:
@@ -1296,12 +1288,6 @@ else:
     # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            div[data-testid="stInfo"] {
-                min-height: auto !important;
-                height: auto !important;
-                margin-bottom: 12px !important;
-            }
-
             .stSelectbox > div > div,
             div[data-testid="stPills"] {
                 min-height: 48px !important;
@@ -1322,7 +1308,10 @@ else:
         </style>
     """, unsafe_allow_html=True)
 
-    options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
+    # Format each option in the dropdown to show "Schedule 001 of 100", etc.
+    total_count = len(schedules)
+    options_list = [f"Schedule {i+1:03d} of {total_count}" for i in range(total_count)]
+    
     selected_option = st.selectbox(
         "Select Schedule",
         options=options_list,
