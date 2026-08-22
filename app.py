@@ -1286,30 +1286,31 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
     
-    st.markdown("""
+st.markdown("""
         <style>
-            /* 1. Normalize all primary UI blocks to a uniform height (44px) */
-            div[data-testid="stInfo"],
-            .stSelectbox > div > div,
-            div[data-testid="stPills"] {
-                min-height: 44px !important;
-                max-height: 44px !important;
-                height: 44px !important;
-                display: flex !important;
-                align-items: center !important;
-                box-sizing: border-box !important;
-            }
-
-            /* 2. Enforce an even, consistent vertical gap between all elements */
-            div.element-container, 
-            div[data-testid="stVerticalBlock"] > div {
+            /* 1. Let info box size naturally without stretching */
+            div[data-testid="stInfo"] {
+                min-height: auto !important;
+                height: auto !important;
                 margin-bottom: 12px !important;
             }
 
-            /* 3. Standardize selectbox internal text alignment */
+            /* 2. Normalize the Selectbox and Pills containers to equal heights */
+            .stSelectbox > div > div,
+            div[data-testid="stPills"] {
+                min-height: 48px !important;
+                max-height: 48px !important;
+                height: 48px !important;
+                display: flex !important;
+                align-items: center !important;
+                box-sizing: border-box !important;
+                margin-bottom: 12px !important;
+            }
+
+            /* 3. Ensure selectbox internal text alignment matches */
             .stSelectbox div[data-baseweb="select"] > div {
-                min-height: 44px !important;
-                height: 44px !important;
+                min-height: 48px !important;
+                height: 48px !important;
                 display: flex !important;
                 align-items: center !important;
             }
