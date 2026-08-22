@@ -1157,7 +1157,7 @@ def generate_schedules(subjects_dict, targets):
     valid_schedules = []
 
     def backtrack(idx, current_schedule, occupied_slots):
-        if len(valid_schedules) >= 50:
+        if len(valid_schedules) >= 100:
             return
         if idx == len(targets):
             valid_schedules.append(list(current_schedule))
