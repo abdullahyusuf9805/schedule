@@ -32,7 +32,7 @@ from selenium.webdriver.chrome.service import Service
 st.set_page_config(page_title="Dynamic Timetable Solver", layout="wide")
 
 st.markdown(
-    """
+"""
 <style>
     /* Hide Streamlit elements */
     .stCaption {display: none;}
@@ -80,17 +80,17 @@ st.markdown(
 
     /* 3. ANTI-SQUISH: Lock each button's parent container to EXACTLY 44px */
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) > div > div[data-testid="stVerticalBlock"] > div.element-container {
-        flex: 0 0 44px !important; /* DO NOT SHRINK! */
+        flex: 0 0 44px !important; 
         width: 44px !important;
         min-width: 44px !important;
         max-width: 44px !important;
         display: block !important;
     }
 
-    /* 4. The Option Button Square */
+    /* 4. The Option Button Square (SET TO RELATIVE POSITIONING) */
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button {
+        position: relative !important; /* <--- THIS IS CRITICAL FOR THE TEXT FIX */
         background-color: #1f1f1f !important;
-        color: #e0e0e0 !important;
         border: 1px solid #333333 !important;
         border-radius: 6px !important;
         width: 44px !important;
@@ -99,9 +99,6 @@ st.markdown(
         min-height: 44px !important;
         padding: 0 !important;
         margin: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
         box-shadow: none !important;
         transition: all 0.2s ease !important;
     }
@@ -111,26 +108,19 @@ st.markdown(
         border-color: #555555 !important;
     }
 
-    /* 5. ANTI-STACKING: Force Streamlit's inner divs to center perfectly */
-    div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button > div {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Force Number Text to NEVER stack using 'pre' */
+    /* 5. THE ULTIMATE TEXT FIX: ABSOLUTE POSITIONING */
     div.element-container:has(#my-paginator) + div.element-container > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button p {
+        position: absolute !important; /* <--- RIPS THE TEXT OUT OF STREAMLIT'S CONTROL */
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important; /* PERFECTLY CENTERS IT */
+        color: #e0e0e0 !important;
         font-size: 14px !important;
         font-weight: 400 !important;
         font-variant-numeric: tabular-nums !important;
-        white-space: pre !important; /* MAGIC BULLET: Forbids all wrapping */
-        word-break: normal !important;
+        white-space: pre !important; 
+        word-break: keep-all !important;
         letter-spacing: 0px !important;
-        display: inline-block !important;
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1 !important;
@@ -162,7 +152,7 @@ st.markdown(
         opacity: 0.7 !important;
         background-color: transparent !important;
     }
-</style>
+</style>    
 """,
     unsafe_allow_html=True,
 )
