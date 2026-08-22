@@ -1287,11 +1287,57 @@ else:
         st.session_state.sched_idx = 0
 
     # --------------------------------------------------------------------------------
-    # STYLING FOR SQUARED ARROWS & DOCK SPACING
+    # SINGLE-LINE FLEXBOX PAGINATOR (EXACT SQUARES & CONTROLLED GAP)
     # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            /* Style the selectbox background */
+            /* Force the entire horizontal block container into a tight single-line flex row */
+            div[data-testid="stHorizontalBlock"]:has(.sched-paginator-row) {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 10px !important; /* Controls the exact minimum distance between arrows and box */
+                width: 100% !important;
+            }
+
+            /* Force left and right arrow columns to wrap tightly around their buttons */
+            div[data-testid="stHorizontalBlock"]:has(.sched-paginator-row) > div[data-testid="column"]:nth-child(1),
+            div[data-testid="stHorizontalBlock"]:has(.sched-paginator-row) > div[data-testid="column"]:nth-child(3) {
+                flex: 0 0 44px !important;
+                width: 44px !important;
+                min-width: 44px !important;
+            }
+
+            /* Force middle column (selectbox) to fill the remaining space */
+            div[data-testid="stHorizontalBlock"]:has(.sched-paginator-row) > div[data-testid="column"]:nth-child(2) {
+                flex: 1 1 auto !important;
+            }
+
+            /* Lock the arrow buttons into absolute 44x44 squares */
+            div[data-testid="stHorizontalBlock"]:has(.sched-paginator-row) button {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px !important;
+                min-height: 44px !important;
+                max-width: 44px !important;
+                max-height: 44px !important;
+                border-radius: 6px !important;
+                background-color: #1f1f1f !important;
+                border: 1px solid #333333 !important;
+                color: #e0e0e0 !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: none !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.sched-paginator-row) button:hover {
+                background-color: #2a2a2a !important;
+                border-color: #555555 !important;
+            }
+
+            /* Match selectbox height to 44px */
             .st-key-sched_selectbox select {
                 background-color: #1f1f1f !important;
                 color: #ffffff !important;
@@ -1299,33 +1345,13 @@ else:
                 border-radius: 6px !important;
                 height: 44px !important;
             }
-            
-            /* Force left/right arrow buttons to be exact 44x44 squares */
-            div[data-testid="stHorizontalBlock"]:has(#native_prev-target) button,
-            button[kind="secondary"]:has(p:contains("◀")),
-            button[kind="secondary"]:has(p:contains("▶")),
-            [data-testid="column"] button {
-                height: 44px !important;
-                min-height: 44px !important;
-                max-height: 44px !important;
-                border-radius: 6px !important;
-                background-color: #1f1f1f !important;
-                border: 1px solid #333333 !important;
-                color: #e0e0e0 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-            
-            button:hover {
-                background-color: #2a2a2a !important;
-                border-color: #555555 !important;
-            }
         </style>
     """, unsafe_allow_html=True)
 
-    # Use a tighter column ratio with a clean gap to keep arrows close to the box without touching
-    c_prev, c_space, c_select, c_space2, c_next = st.columns([0.8, 0.1, 7.8, 0.1, 0.8], vertical_alignment="center")
+    # Invisible marker to let the CSS target this specific row
+    st.markdown('<span class="sched-paginator-row" style="display:none;"></span>', unsafe_allow_html=True)
+
+    c_prev, c_select, c_next = st.columns([1, 10, 1], vertical_alignment="center")
     
     with c_prev:
         if st.button("◀", use_container_width=True, key="native_prev"):
