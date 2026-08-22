@@ -1379,6 +1379,7 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
+st.markdown('<div class="nav-row">', unsafe_allow_html=True)
     c_prev, c_sel, c_next = st.columns([1, 8, 1], gap="small", vertical_alignment="center")
 
     with c_prev:
@@ -1389,12 +1390,11 @@ else:
                 st.session_state.sched_idx = len(schedules) - 1
             st.rerun()
 
-with c_sel:
+    with c_sel:
         selected_idx = st.radio(
             "Browse Schedule Options:",
             options=range(len(schedules)),
             index=st.session_state.sched_idx,
-            # This formats the numbers to look exactly like your image: "01", "02", "03"
             format_func=lambda x: f"{x + 1:02d}", 
             horizontal=True,
             label_visibility="collapsed",
