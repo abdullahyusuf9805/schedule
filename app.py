@@ -1272,13 +1272,12 @@ def draw_schedule_image(schedule):
     return buf.getvalue()
 
 
+
 if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
     if "sched_idx" not in st.session_state:
         st.session_state.sched_idx = 0
-    if "active_view" not in st.session_state:
-        st.session_state.active_view = "Visual View"
 
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
@@ -1288,8 +1287,7 @@ else:
     # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            .stSelectbox > div > div,
-            div[data-testid="stPills"] {
+            .stSelectbox > div > div {
                 min-height: 48px !important;
                 max-height: 48px !important;
                 height: 48px !important;
@@ -1308,7 +1306,6 @@ else:
         </style>
     """, unsafe_allow_html=True)
 
-    # Format each option in the dropdown to show "Schedule 001 of 100", etc.
     total_count = len(schedules)
     options_list = [f"Schedule {i+1:03d} of {total_count}" for i in range(total_count)]
     
@@ -1327,84 +1324,86 @@ else:
 
     active_sched = schedules[st.session_state.sched_idx]
 
-    if st.session_state.active_view == "Visual View":
-        html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
-        html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-        html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
+    # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
+    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
+    html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
+    html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
 
-        col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+    col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
-        for row_idx in range(11):
-            hour = 8 + row_idx
-            bg_color = "#121212" if row_idx % 2 == 0 else "#000000"
-            html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
-            html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
+    for row_idx in range(11):
+        hour = 8 + row_idx
+        bg_color = "#121212" if row_idx % 2 == 0 else "#000000"
+        html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
+        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
-            row_cells = [""] * 5
-            for section in active_sched:
-                for b in section["blocks"]:
-                    if b["start_time"] == hour:
-                        c_idx = col_map_html.get(b["day"])
-                        if c_idx:
-                            raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                            hall_display = f"<br><small>({raw_hall})</small>" if raw_hall else ""
-                            
-                            row_cells[c_idx - 1] = (
-                                f"<b>{section['code']}</b>{hall_display}"
-                            )
+        row_cells = [""] * 5
+        for section in active_sched:
+            for b in section["blocks"]:
+                if b["start_time"] == hour:
+                    c_idx = col_map_html.get(b["day"])
+                    if c_idx:
+                        raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+                        hall_display = f"<br><small>({raw_hall})</small>" if raw_hall else ""
+                        
+                        row_cells[c_idx - 1] = (
+                            f"<b>{section['code']}</b>{hall_display}"
+                        )
 
-            for c in row_cells:
-                cell_bg = "#ffffff" if c else "#212121"
-                cell_fg = "#000000" if c else "#888888"
-                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
-            html_grid += "</tr>"
-        html_grid += "</table>"
+        for c in row_cells:
+            cell_bg = "#ffffff" if c else "#212121"
+            cell_fg = "#000000" if c else "#888888"
+            html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
+        html_grid += "</tr>"
+    html_grid += "</table>"
 
-        st.markdown(html_grid, unsafe_allow_html=True)
+    st.markdown(html_grid, unsafe_allow_html=True)
 
-    else:
-        df_excel = pd.DataFrame([{
-            "CODE": s["code"],
-            "NAME": s["name"],
-            "ID (ش)": s["id"],
-            "HALL": s["hall"],
-            "VENUE": s["venue"],
-            "TEACHER": s["teacher"],
-            "STATUS": s["status"],
-        } for s in active_sched])
+    st.markdown("<br>", unsafe_allow_html=True)
 
-        st.dataframe(df_excel, use_container_width=True)
+    # --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
+    df_excel = pd.DataFrame([{
+        "CODE": s["code"],
+        "NAME": s["name"],
+        "ID (ش)": s["id"],
+        "HALL": s["hall"],
+        "VENUE": s["venue"],
+        "TEACHER": s["teacher"],
+        "STATUS": s["status"],
+    } for s in active_sched])
+
+    st.dataframe(df_excel, use_container_width=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    try:
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+            df_excel.to_excel(writer, index=False, sheet_name="Schedule")
         
-        st.markdown("<br>", unsafe_allow_html=True)
-        try:
-            excel_buffer = io.BytesIO()
-            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                df_excel.to_excel(writer, index=False, sheet_name="Schedule")
-            
-            st.download_button(
-                label="📥 Download Current Schedule (Excel)",
-                data=excel_buffer.getvalue(),
-                file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
-            )
-        except ModuleNotFoundError:
-            st.error("Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
-            csv_data = df_excel.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="📥 Download Current Schedule (CSV Backup)",
-                data=csv_data,
-                file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
+        st.download_button(
+            label="📥 Download Current Schedule (Excel)",
+            data=excel_buffer.getvalue(),
+            file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+    except ModuleNotFoundError:
+        st.error("Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
+        csv_data = df_excel.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Current Schedule (CSV Backup)",
+            data=csv_data,
+            file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
 
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
     
     col_zip, col_excel = st.columns(2)
     
-    # --- 1. ZIP JPG DOWNLOAD ---
+    # --- 3. ZIP JPG DOWNLOAD ---
     with col_zip:
         if st.button("Render All as JPGs (ZIP)", key="download_zip_btn", use_container_width=True):
             with st.spinner("Drawing high-res images..."):
@@ -1422,7 +1421,7 @@ else:
                     use_container_width=True
                 )
             
-    # --- 2. ALL SCHEDULES EXCEL DOWNLOAD ---
+    # --- 4. ALL SCHEDULES EXCEL DOWNLOAD ---
     with col_excel:
         try:
             import openpyxl
