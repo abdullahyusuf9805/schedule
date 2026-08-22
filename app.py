@@ -1325,13 +1325,14 @@ else:
     active_sched = schedules[st.session_state.sched_idx]
 
     # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
+    # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
     html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
     html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
 
     col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
-    for row_idx in range(11):
+    for row_idx in range(10): # Changed from 11 to 10 to remove the 18:00 row
         hour = 8 + row_idx
         bg_color = "#121212" if row_idx % 2 == 0 else "#000000"
         html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
@@ -1358,8 +1359,6 @@ else:
     html_grid += "</table>"
 
     st.markdown(html_grid, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
 
     # --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
     df_excel = pd.DataFrame([{
