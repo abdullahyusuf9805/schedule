@@ -1384,7 +1384,7 @@ else:
 
     excel_table_html = f"""
     <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
-        <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; border-radius: 0px !important;">
+        <table dir="ltr" style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; background-color: #121212; color: #ffffff; border-radius: 0px !important;">
             <thead>
                 <tr style="background-color: #212121; color: #ffffff;">
                     <th style="border: 1px solid #333333; padding: 12px 10px; text-align: center !important; vertical-align: middle !important; border-radius: 0px !important;">الحالة</th>
@@ -1441,6 +1441,7 @@ else:
             mime="text/csv",
             use_container_width=True
         )
+        
     
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
