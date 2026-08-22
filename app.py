@@ -1286,48 +1286,20 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-# --------------------------------------------------------------------------------
-    # PASTE THE UNIFORM HEIGHT & SPACING CSS HERE
+    # --------------------------------------------------------------------------------
+    # CLEAN FULL-WIDTH SELECTOR (NO ARROWS)
     # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
-            /* 1. Normalize all primary UI blocks to a uniform height (44px) */
-            div[data-testid="stInfo"],
-            .stSelectbox > div > div,
-            div[data-testid="stPills"] {
-                min-height: 44px !important;
-                max-height: 44px !important;
+            .st-key-sched_selectbox select {
+                background-color: #1f1f1f !important;
+                color: #ffffff !important;
+                border: 1px solid #333333 !important;
+                border-radius: 6px !important;
                 height: 44px !important;
-                display: flex !important;
-                align-items: center !important;
-                box-sizing: border-box !important;
-            }
-
-            /* 2. Enforce an even, consistent vertical gap between all elements */
-            div.element-container, 
-            div[data-testid="stVerticalBlock"] > div {
-                margin-bottom: 12px !important;
-            }
-
-            /* 3. Standardize selectbox internal text alignment */
-            .stSelectbox div[data-baseweb="select"] > div {
-                min-height: 44px !important;
-                height: 44px !important;
-                display: flex !important;
-                align-items: center !important;
             }
         </style>
     """, unsafe_allow_html=True)
-    # --------------------------------------------------------------------------------
-
-    options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
-    selected_option = st.selectbox(
-        "Select Schedule",
-        options=options_list,
-        index=st.session_state.sched_idx,
-        label_visibility="collapsed",
-        key="sched_selectbox"
-    )
 
     options_list = [f"Schedule Option {i+1:02d}" for i in range(len(schedules))]
     selected_option = st.selectbox(
