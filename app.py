@@ -1371,7 +1371,10 @@ else:
         # First column (Time column) is dark gray (#212121) with white text
         html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
-        row_cells = [""] * 5
+        row_cells = ["" ] * 5
+        # Track day-to-content mapping for this hour row
+        row_cell_meta = [{} for _ in range(5)]
+
         for section in active_sched:
             for b in section["blocks"]:
                 if b["start_time"] == hour:
@@ -1383,16 +1386,39 @@ else:
                         
                         details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
                         row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
+                        row_cell_meta[c_idx - 1] = {"day": b["day"], "hour": hour}
 
-        for c in row_cells:
-            cell_bg = "#000000"
-            html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
+        for idx, c in enumerate(row_cells):
+            day_num = idx + 1 # 1: Sunday, 2: Monday, etc.
+            
+            # Check for special very dark red slot: Monday (2) at 10 AM (10)
+            if not c and day_num == 2 and hour == 10:
+                cell_bg = "#4a1515" # Very dark red
+                cell_style = f"border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;"
+                html_grid += f"<td style='{cell_style}'></td>"
+            elif c:
+                # Active course block cell (black background)
+                cell_bg = "#000000"
+                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
+            else:
+                # Empty cell with crossed lines pattern (matching dark theme)
+                # Creates a subtle crossed hatch pattern using repeating linear-gradients
+                crossed_lines_bg = (
+                    "background-color: #000000; "
+                    "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
+                    "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
+                    "linear-gradient(45deg, transparent 75%, #16261a 75%), "
+                    "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
+                    "background-size: 16px 16px; "
+                    "background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
+                )
+                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; {crossed_lines_bg} color: #888888;'></td>"
+
         html_grid += "</tr>"
 
     html_grid += "</table>"
     st.markdown(html_grid, unsafe_allow_html=True)
-
-    # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
+    
     # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
     st.subheader("Excel View")
 
