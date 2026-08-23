@@ -1554,117 +1554,45 @@ else:
 # =============================================================================================================================    
 
 
-import io
-import os
-import urllib.request
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-import arabic_reshaper
-from bidi.algorithm import get_display
+# --- ONE-CLICK BROWSER SCREENSHOT BUTTON ---
+# Ensure your Visual View table is wrapped in: <div id='schedule-capture-area'> ... </div>
 
-# 1. Download exact Tajawal fonts (Regular and Bold) to guarantee shaping and style
-FONT_REGULAR_PATH = "Tajawal-Regular.ttf"
-FONT_BOLD_PATH = "Tajawal-Bold.ttf"
-
-if not os.path.exists(FONT_REGULAR_PATH):
-    urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Regular.ttf", FONT_REGULAR_PATH)
-if not os.path.exists(FONT_BOLD_PATH):
-    urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Bold.ttf", FONT_BOLD_PATH)
-
-# Force Matplotlib to use these exact files
-tajawal_regular = fm.FontProperties(fname=FONT_REGULAR_PATH)
-tajawal_bold = fm.FontProperties(fname=FONT_BOLD_PATH)
-
-def fix_arabic(text):
-    # Reshapes connected letters and fixes right-to-left direction
-    return get_display(arabic_reshaper.reshape(text))
-
-def generate_exact_schedule_jpg(schedule):
-    # Enforce exact 17 width and 10 height layout
-    fig, ax = plt.subplots(figsize=(17, 10), facecolor='#000000')
-    ax.set_facecolor('#000000')
-    ax.axis("tight")
-    ax.axis("off")
-
-    # Reverse columns so Matplotlib draws them RTL (Time is on the far right)
-    cols = ["الخميس", "الأربعاء", "الثلاثاء", "الاثنين", "الأحد", "الوقت"]
-    cols_reshaped = [fix_arabic(c) for c in cols]
-
-    active_h = set()
-    for s in schedule:
-        for b in s["blocks"]:
-            active_h.add(b["start_time"])
-    s_hours = sorted(list(active_h))
-    if not s_hours:
-        s_hours = list(range(8, 13))
-
-    num_rows = len(s_hours)
-    cell_matrix = [["" for _ in range(6)] for _ in range(num_rows)]
-    col_map = {1: 4, 2: 3, 3: 2, 4: 1, 5: 0}
-
-    for r_idx, h in enumerate(s_hours):
-        cell_matrix[r_idx][5] = f"{h}:00"
-
-    for s in schedule:
-        c_val = s['code']
-        s_id = s['id']
-        r_hall = str(s.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-        h_str = f" - قــ {r_hall}" if r_hall else ""
+ss_button_html = f"""
+<div style="margin-top: 15px;">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <button onclick="captureAndDownload()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s;">
+        📸 Take Screenshot & Download (.jpg)
+    </button>
+    
+    <script>
+    function captureAndDownload() {{
+        const targetDiv = document.getElementById('schedule-capture-area');
+        if (!targetDiv) {{
+            alert("Table not found! Make sure the table wrapper has id='schedule-capture-area'");
+            return;
+        }}
         
-        raw_txt = f"{c_val}\n(شـ {s_id}{h_str})"
-        full_txt = fix_arabic(raw_txt)
+        // scale: 1 and logging: false prevent mobile memory limits from causing crashes
+        html2canvas(targetDiv, {{ 
+            backgroundColor: '#000000', 
+            scale: 1, 
+            useCORS: true,
+            logging: false 
+        }}).then(canvas => {{
+            const link = document.createElement('a');
+            link.download = 'SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+        }}).catch(err => {{
+            console.error("Screenshot failed: ", err);
+            alert("Failed to take screenshot. Please try again.");
+        }});
+    }}
+    </script>
+</div>
+"""
 
-        for b in s["blocks"]:
-            if b["start_time"] in s_hours:
-                r_idx = s_hours.index(b["start_time"])
-                c_idx = col_map.get(b["day"])
-                if c_idx is not None:
-                    cell_matrix[r_idx][c_idx] = full_txt
-
-    table = ax.table(cellText=cell_matrix, colLabels=cols_reshaped, loc="center", cellLoc="center", bbox=[0, 0, 1, 1])
-
-    for (row, col), cell in table.get_celld().items():
-        cell.set_edgecolor("#333333")
-        cell.set_linewidth(1.5)
-        
-        t_obj = cell.get_text()
-        t_obj.set_color("#ffffff")
-        
-        # Apply Tajawal Bold for Headers and Time, Tajawal Regular for classes
-        if row == 0 or col == 5:
-            cell.set_facecolor("#212121")
-            t_obj.set_fontproperties(tajawal_bold)
-            t_obj.set_fontsize(16)
-        else:
-            r_idx = row - 1
-            h_val = s_hours[r_idx]
-            day_num = 5 - col 
-            txt = cell_matrix[r_idx][col]
-            
-            if txt != "":
-                cell.set_facecolor("#000000")
-                t_obj.set_fontproperties(tajawal_bold) # Make class codes bold
-                t_obj.set_fontsize(15)
-            elif day_num == 2 and h_val == 10:
-                cell.set_facecolor("#220306") # Dark red slot
-            else:
-                cell.set_facecolor("#000000")
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format="jpg", dpi=200, bbox_inches="tight", facecolor='#000000', pad_inches=0)
-    buf.seek(0)
-    plt.close(fig)
-    return buf.getvalue()
-
-# --- NATIVE ONE-CLICK JPG DOWNLOAD BUTTON ---
-image_bytes = generate_exact_schedule_jpg(active_sched)
-st.download_button(
-    label="📥 Download Schedule Image (.jpg)",
-    data=image_bytes,
-    file_name=f"SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.jpg",
-    mime="image/jpeg",
-    use_container_width=True
-)
+st.markdown(ss_button_html, unsafe_allow_html=True)
 
 
 # =============================================================================================================================
