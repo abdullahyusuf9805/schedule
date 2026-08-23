@@ -1106,9 +1106,17 @@ with st.sidebar.expander("⚙️ Filter By teachers", expanded=st.session_state[
         subj_name_row = raw_df[raw_df["CODE"].astype(str) == subj]
         subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
 
+        # Nested HTML expander for each subject
+        st.markdown(f"""
+            <details style="background-color: #121212; border: 1px solid #333333; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px;">
+                <summary style="font-family: 'Tajawal', sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; cursor: pointer; direction: rtl; text-align: right;">
+                    📚 {subj_name}
+                </summary>
+            </details>
+        """, unsafe_allow_html=True)
+        
+        # Container holding the multiselect rules right underneath
         with st.container(border=True):
-            st.markdown(f"<div dir='rtl' style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff; text-align: right;'>📚 {subj_name}</div>", unsafe_allow_html=True)
-            
             teachers_for_subj = sorted(
                 raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
             )
@@ -1122,24 +1130,6 @@ with st.sidebar.expander("⚙️ Filter By teachers", expanded=st.session_state[
             )
 
             subject_rules[subj] = {"ban": banned_t, "require": required_t}
-
-# Process the rules correctly
-for subj, rules in subject_rules.items():
-    if rules["ban"]:
-        valid_blocks_df = valid_blocks_df[
-            ~(
-                (valid_blocks_df["CODE"].astype(str) == subj)
-                & (valid_blocks_df["TEACHER"].isin(rules["ban"]))
-            )
-        ]
-    if rules["require"]:
-        valid_blocks_df = valid_blocks_df[
-            ~(
-                (valid_blocks_df["CODE"].astype(str) == subj)
-                & (~valid_blocks_df["TEACHER"].isin(rules["require"]))
-            )
-        ]
-
 
 
 # ==========================================
