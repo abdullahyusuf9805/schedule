@@ -1337,17 +1337,27 @@ else:
     active_sched = schedules[st.session_state.sched_idx]
 
     # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
-    # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
-    st.subheader("A. Visual View")
-    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: sans-serif; background-color: #121212; color: #ffffff;'>"
+# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
+    st.subheader("Visual View")
+    
+    # 1. Collect only the hours that actually have scheduled classes
+    active_hours = set()
+    for section in active_sched:
+        for b in section["blocks"]:
+            active_hours.add(b["start_time"])
+
+    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: 'Tajawal', sans-serif; background-color: #121212; color: #ffffff;'>"
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
     html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
 
     col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
-    for row_idx in range(10): # Changed from 11 to 10 to remove the 18:00 row
-        hour = 8 + row_idx
-        bg_color = "#121212" if row_idx % 2 == 0 else "#000000"
+    row_count = 0
+    # Sort active hours so they display in chronological order (e.g., 8, 9, 10...)
+    sorted_active_hours = sorted(list(active_hours))
+
+    for hour in sorted_active_hours:
+        bg_color = "#121212" if row_count % 2 == 0 else "#000000"
         html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
         html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
@@ -1369,6 +1379,8 @@ else:
             cell_fg = "#000000" if c else "#888888"
             html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
         html_grid += "</tr>"
+        row_count += 1
+
     html_grid += "</table>"
 
     st.markdown(html_grid, unsafe_allow_html=True)
