@@ -8,3 +8,6 @@ openpyxl
 selenium
 Pillow
 PyGithub
+streamlit
+arabic-reshaper
+python-bidi
