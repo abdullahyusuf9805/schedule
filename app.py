@@ -1107,7 +1107,7 @@ with st.sidebar.expander("⚙️ Filter By teachers", expanded=st.session_state[
         subj_name = subj_name_row["NAME"].iloc[0] if not subj_name_row.empty else ""
 
         with st.container(border=True):
-            st.markdown(f"<div dir='rtl' style='font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #ffffff; text-align: right;'>📚 {subj_name}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div dir='rtl' style='font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #ffffff; text-align: right;'>📚 {subj_name}</div>", unsafe_allow_html=True)
             
             teachers_for_subj = sorted(
                 raw_df[raw_df["CODE"].astype(str) == subj]["TEACHER"].astype(str).unique()
