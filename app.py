@@ -1346,7 +1346,7 @@ else:
 # =============================================================================================================================
 # =============================================================================================================================
 
-    # --- 1. VISUAL VIEW SUBHEADING & TABLE ---
+# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
     st.subheader("Visual View")
     
     active_hours = set()
@@ -1354,23 +1354,22 @@ else:
         for b in section["blocks"]:
             active_hours.add(b["start_time"])
 
-    # Table background set to black, grid lines set to white (#ffffff)
-    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #ffffff;'>"
+    # Table background set to black, grid lines set to subtle dark gray (#333333)
+    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
     
-    # First row (Header) is dark gray (#212121) with white text and white borders
+    # First row (Header) is dark gray (#212121) with white text and dark gray borders
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-    html_grid += "<th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الخميس</th></tr>"
+    html_grid += "<th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الخميس</th></tr>"
 
     col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
     sorted_active_hours = sorted(list(active_hours))
 
     for hour in sorted_active_hours:
-        # All body rows are black (#000000)
-        html_grid += "<tr style='background-color: #000000; border: 1px solid #ffffff;'>"
+        html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
         
         # First column (Time column) is dark gray (#212121) with white text
-        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #ffffff; padding: 8px;'><b>{hour}:00</b></td>"
+        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
         row_cells = [""] * 5
         for section in active_sched:
@@ -1386,9 +1385,8 @@ else:
                         row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
 
         for c in row_cells:
-            # Data cells are black (#000000) with white text and white borders
             cell_bg = "#000000"
-            html_grid += f"<td style='border: 1px solid #ffffff; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
+            html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
         html_grid += "</tr>"
 
     html_grid += "</table>"
@@ -1398,6 +1396,7 @@ else:
     st.subheader("Excel View")
 
     excel_rows_html = ""
+    # Using active_sched directly preserves the correct sequence (first item stays first)
     for s in active_sched:
         status_val = s.get('status', 'مفتوحة')
         teacher_val = s.get('teacher', '')
@@ -1408,14 +1407,14 @@ else:
         code_val = s.get('code', '')
 
         excel_rows_html += "<tr>"
-        # First column of data row gets dark gray (#212121), rest are black (#000000), text is white
-        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #ffffff;">{status_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{teacher_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{venue_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{hall_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{id_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{name_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{code_val}</td>'
+        # First column (الحالة) gets dark gray (#212121), the rest are black (#000000)
+        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{status_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{teacher_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{venue_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{hall_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{id_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{name_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{code_val}</td>'
         excel_rows_html += "</tr>"
 
     excel_table_html = f"""
@@ -1427,10 +1426,10 @@ else:
             font-size: 14px !important;
             background-color: #000000 !important;
             color: #ffffff !important;
-            border: 1px solid #ffffff !important;
+            border: 1px solid #333333 !important;
         }}
         .custom-excel-table th, .custom-excel-table td {{
-            border: 1px solid #ffffff !important;
+            border: 1px solid #333333 !important;
             padding: 12px 10px !important;
             text-align: center !important;
             vertical-align: middle !important;
@@ -1446,7 +1445,7 @@ else:
         <table dir="ltr" class="custom-excel-table">
             <thead>
                 <tr>
-                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #ffffff;">الحالة</th>
+                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">الحالة</th>
                     <th>المحاضر</th>
                     <th>الوقت</th>
                     <th>رقم القاعة</th>
