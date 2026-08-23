@@ -1552,70 +1552,60 @@ else:
 # =============================================================================================================================
 # =============================================================================================================================    
 # =============================================================================================================================    
-# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
-st.subheader("A. Visual View")
-
-active_hours = set()
-for section in active_sched:
-    for b in section["blocks"]:
-        active_hours.add(b["start_time"])
-
-# Instructions / SS Helper bar (Automatically hidden when taking screenshot or printing)
-st.markdown("""
-<style>
-    @media print {
-        .ss-helper-bar { display: none !important; }
-    }
-</style>
-<div class="ss-helper-bar" style="background-color: #212121; color: #ffffff; padding: 8px 12px; border-radius: 6px; font-family: 'Tajawal', sans-serif; font-size: 13px; margin-bottom: 8px; text-align: center; border: 1px solid #333333;">
-    💡 <b>Tip for Mobile/PC:</b> Take a screenshot (SS) of your schedule below. Margins are optimized for a clean capture!
+# --- ONE-CLICK EXACT IMAGE DOWNLOAD BUTTON ---
+download_script = f"""
+<div style="margin-top: 10px; margin-bottom: 20px;">
+    <button id="exact-img-download-btn" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; width: 100%;">
+        📥 Download Exact Schedule Image
+    </button>
 </div>
-""", unsafe_allow_html=True)
+<script>
+document.getElementById('exact-img-download-btn').onclick = function() {{
+    const element = document.getElementById('schedule-capture-area');
+    if (!element) {{
+        alert('Schedule area not found!');
+        return;
+    }}
+    
+    // Convert HTML element to SVG foreignObject string (Zero server lag, zero mobile crashes)
+    const htmlContent = element.outerHTML;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${{element.offsetWidth}}" height="${{element.offsetHeight}}">
+        <foreignObject width="100%" height="100%">
+            <div xmlns="http://www.w3.org/1999/xhtml">
+                <style>
+                    body {{ background-color: #000000; color: #ffffff; font-family: 'Tajawal', sans-serif; margin: 0; }}
+                    table {{ border-collapse: collapse; width: 100%; text-align: center; background-color: #000000; color: #ffffff; }}
+                    th, td {{ border: 1px solid #333333; padding: 10px; }}
+                </style>
+                ${{htmlContent}}
+            </div>
+        </foreignObject>
+    </svg>`;
 
-# Table layout with narrow padding and all-black background
-html_grid = "<div style='background-color: #000000; padding: 4px; margin: 0px; width: 100%;'>"
-html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
+    const blob = new Blob([svg], {{ type: 'image/svg+xml;charset=utf-8' }});
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    
+    img.onload = function() {{
+        const canvas = document.createElement('canvas');
+        canvas.width = element.offsetWidth * 2;  /* 2x Scale for crisp HD resolution */
+        canvas.height = element.offsetHeight * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0);
+        
+        const link = document.createElement('a');
+        link.download = 'SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+        URL.revokeObjectURL(url);
+    }};
+    img.src = url;
+}};
+</script>
+"""
 
-# First row (Header) is dark gray (#212121) with white text
-html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الخميس</th></tr>"
-
-col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-sorted_active_hours = sorted(list(active_hours))
-
-for hour in sorted_active_hours:
-    html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 6px;'><b>{hour}:00</b></td>"
-
-    row_cells = [""] * 5
-    for section in active_sched:
-        for b in section["blocks"]:
-            if b["start_time"] == hour:
-                c_idx = col_map_html.get(b["day"])
-                if c_idx:
-                    code_val = section.get('code', '')
-                    sec_id = section.get('id', '')
-                    raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
-
-    for idx, c in enumerate(row_cells):
-        day_num = idx + 1
-        if not c and day_num == 2 and hour == 10:
-            html_grid += "<td style='border: 1px solid #333333; padding: 6px; background-color: #220306;'></td>"
-        elif c:
-            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; background-color: #000000; color: #ffffff;'>{c}</td>"
-        else:
-            crossed_lines_bg = (
-                "background-color: #000000; "
-                "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
-                "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
-                "linear-gradient(45deg, transparent 75%, #16261a 75%), "
-                "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
-                "background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
-            )
-            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; {crossed_lines_bg}'></td>"
-    html_grid += "</tr>"
+st.markdown(download_script, unsafe_allow_html=True)
 
 html_grid += "</table></div>"
 st.markdown(html_grid, unsafe_allow_html=True)
