@@ -1416,8 +1416,9 @@ else:
         for b in section["blocks"]:
             active_hours.add(b["start_time"])
 
-    # Table background set to black, grid lines set to subtle dark gray (#333333)
-    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
+    # Wrapped in a container with a unique ID for one-click client-side snapshotting
+    html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; display: inline-block; width: 100%;'>"
+    html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
     
     # First row (Header) is dark gray (#212121) with white text and dark gray borders
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
@@ -1459,7 +1460,8 @@ else:
                 html_grid += f"<td style='{cell_style}'></td>"
             elif c:
                 cell_bg = "#000000"
-                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
+                cell_style = f"border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;"
+                html_grid += f"<td style='{cell_style}'>{c}</td>"
             else:
                 # Empty cell with crossed lines pattern matching your dark color palette
                 crossed_lines_bg = (
@@ -1475,8 +1477,29 @@ else:
 
         html_grid += "</tr>"
 
-    html_grid += "</table>"
+    html_grid += "</table></div>"
+
+    # One-click Client-Side Image Snapshot Tool
+    one_click_downloader = f"""
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <button onclick="downloadTableImage()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 10px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%;">
+        📥 Download Current Schedule as Image (One Click)
+    </button>
+    <script>
+    function downloadTableImage() {{
+        const element = document.getElementById('schedule-capture-area');
+        html2canvas(element, {{ backgroundColor: '#000000', scale: 2 }}).then(canvas => {{
+            const link = document.createElement('a');
+            link.download = 'Schedule_Option_{st.session_state.sched_idx + 1}.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+        }});
+    }}
+    </script>
+    """
+
     st.markdown(html_grid, unsafe_allow_html=True)
+    components.html(one_click_downloader, height=60)
     
     # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
     st.subheader("B. Excel View")
