@@ -1555,10 +1555,25 @@ else:
 
 
 import io
+import os
+import urllib.request
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import arabic_reshaper
 from bidi.algorithm import get_display
+
+# 1. Download exact Tajawal fonts (Regular and Bold) to guarantee shaping and style
+FONT_REGULAR_PATH = "Tajawal-Regular.ttf"
+FONT_BOLD_PATH = "Tajawal-Bold.ttf"
+
+if not os.path.exists(FONT_REGULAR_PATH):
+    urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Regular.ttf", FONT_REGULAR_PATH)
+if not os.path.exists(FONT_BOLD_PATH):
+    urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/tajawal/Tajawal-Bold.ttf", FONT_BOLD_PATH)
+
+# Force Matplotlib to use these exact files
+tajawal_regular = fm.FontProperties(fname=FONT_REGULAR_PATH)
+tajawal_bold = fm.FontProperties(fname=FONT_BOLD_PATH)
 
 def fix_arabic(text):
     # Reshapes connected letters and fixes right-to-left direction
@@ -1571,7 +1586,7 @@ def generate_exact_schedule_jpg(schedule):
     ax.axis("tight")
     ax.axis("off")
 
-    # 1. Reverse the column order so Matplotlib draws it RTL (Time is on the far right)
+    # Reverse columns so Matplotlib draws them RTL (Time is on the far right)
     cols = ["الخميس", "الأربعاء", "الثلاثاء", "الاثنين", "الأحد", "الوقت"]
     cols_reshaped = [fix_arabic(c) for c in cols]
 
@@ -1585,12 +1600,9 @@ def generate_exact_schedule_jpg(schedule):
 
     num_rows = len(s_hours)
     cell_matrix = [["" for _ in range(6)] for _ in range(num_rows)]
-    
-    # 2. Map Days to the reversed column indices (Sunday=4, Monday=3, etc.)
     col_map = {1: 4, 2: 3, 3: 2, 4: 1, 5: 0}
 
     for r_idx, h in enumerate(s_hours):
-        # Time column goes to index 5 (far right)
         cell_matrix[r_idx][5] = f"{h}:00"
 
     for s in schedule:
@@ -1599,7 +1611,6 @@ def generate_exact_schedule_jpg(schedule):
         r_hall = str(s.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
         h_str = f" - قــ {r_hall}" if r_hall else ""
         
-        # Build the exact raw string FIRST, then pass the whole thing to fix_arabic
         raw_txt = f"{c_val}\n(شـ {s_id}{h_str})"
         full_txt = fix_arabic(raw_txt)
 
@@ -1612,47 +1623,32 @@ def generate_exact_schedule_jpg(schedule):
 
     table = ax.table(cellText=cell_matrix, colLabels=cols_reshaped, loc="center", cellLoc="center", bbox=[0, 0, 1, 1])
 
-    available_fonts = fm.get_font_names()
-    chosen_font = "Tajawal" if "Tajawal" in available_fonts else "Segoe UI"
-
     for (row, col), cell in table.get_celld().items():
         cell.set_edgecolor("#333333")
         cell.set_linewidth(1.5)
         
-        if row == 0:
+        t_obj = cell.get_text()
+        t_obj.set_color("#ffffff")
+        
+        # Apply Tajawal Bold for Headers and Time, Tajawal Regular for classes
+        if row == 0 or col == 5:
             cell.set_facecolor("#212121")
-            t_obj = cell.get_text()
-            t_obj.set_fontname(chosen_font)
-            t_obj.set_color("#ffffff")
-            t_obj.set_weight("bold")
+            t_obj.set_fontproperties(tajawal_bold)
             t_obj.set_fontsize(16)
         else:
             r_idx = row - 1
             h_val = s_hours[r_idx]
+            day_num = 5 - col 
+            txt = cell_matrix[r_idx][col]
             
-            # Index 5 is the Time Column
-            if col == 5:
-                cell.set_facecolor("#212121")
-                t_obj = cell.get_text()
-                t_obj.set_fontname(chosen_font)
-                t_obj.set_color("#ffffff")
-                t_obj.set_weight("bold")
-                t_obj.set_fontsize(16)
+            if txt != "":
+                cell.set_facecolor("#000000")
+                t_obj.set_fontproperties(tajawal_bold) # Make class codes bold
+                t_obj.set_fontsize(15)
+            elif day_num == 2 and h_val == 10:
+                cell.set_facecolor("#220306") # Dark red slot
             else:
-                day_num = 5 - col  # Map index back to real day (0->5, 1->4, 2->3, 3->2, 4->1)
-                txt = cell_matrix[r_idx][col]
-                
-                if txt != "":
-                    cell.set_facecolor("#000000")
-                    t_obj = cell.get_text()
-                    t_obj.set_fontname(chosen_font)
-                    t_obj.set_color("#ffffff")
-                    t_obj.set_fontsize(14)
-                    t_obj.set_weight("bold")
-                elif day_num == 2 and h_val == 10:
-                    cell.set_facecolor("#220306") # Dark red slot
-                else:
-                    cell.set_facecolor("#000000")
+                cell.set_facecolor("#000000")
 
     buf = io.BytesIO()
     plt.savefig(buf, format="jpg", dpi=200, bbox_inches="tight", facecolor='#000000', pad_inches=0)
