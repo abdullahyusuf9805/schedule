@@ -1361,7 +1361,7 @@ else:
     sorted_active_hours = sorted(list(active_hours))
 
     for hour in sorted_active_hours:
-        bg_color = "#121212" if row_count % 2 == 0 else "#000000"
+        bg_color = "#000000" if row_count % 2 == 0 else "#212121"
         html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
         html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
