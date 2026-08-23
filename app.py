@@ -1347,7 +1347,7 @@ else:
 # =============================================================================================================================
 
 # --- 1. VISUAL VIEW SUBHEADING & TABLE ---
-    st.subheader("Visual View")
+    st.subheader("A. Visual View")
     
     active_hours = set()
     for section in active_sched:
@@ -1417,7 +1417,7 @@ else:
     st.markdown(html_grid, unsafe_allow_html=True)
     
     # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
-    st.subheader("Excel View")
+    st.subheader("B. Excel View")
 
     excel_rows_html = ""
     for s in active_sched:
