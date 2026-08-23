@@ -1552,3 +1552,40 @@ else:
 # =============================================================================================================================
 # =============================================================================================================================    
 # =============================================================================================================================    
+# --- ONE-CLICK PRINT / PDF FIT-TO-PAGE BUTTON ---
+print_button_html = """
+<style>
+    /* Print-specific rules: Hide sidebar, header, and unnecessary elements, force black background and single-page fit */
+    @media print {
+        body {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        /* Hide Streamlit sidebar, top toolbar, and navigation */
+        [data-testid="stSidebar"], header, footer, button {
+            display: none !important;
+        }
+        /* Make main block fill the printable page and prevent page breaks */
+        [data-testid="stMainBlockContainer"] {
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        table {
+            page-break-inside: avoid !important;
+        }
+        @page {
+            size: landscape;
+            margin: 10mm;
+        }
+    }
+</style>
+
+<button onclick="window.print()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 10px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%;">
+    🖨️ Print / Save as PDF (Fit to One Page)
+</button>
+"""
+
+components.html(print_button_html, height=55)
