@@ -1326,7 +1326,7 @@ else:
     """, unsafe_allow_html=True)
 
     total_count = len(schedules)
-    options_list = [f"Schedule {i+1:03d} of {total_count}" for i in range(total_count)]
+    options_list = [f"Schedule {i+1:03d} of {total_count}" for {i+1:03d} in range(total_count)]
     
     selected_option = st.selectbox(
         "Select Schedule",
