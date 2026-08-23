@@ -1562,17 +1562,22 @@ for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 5px; margin: 0px; width: 100%;'>"
-html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
+html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; margin: 0px; width: 100%; box-sizing: border-box;'>"
+html_grid += "<table dir='rtl' style='width:100%; height: 100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الخميس</th></tr>"
+html_grid += "<th style='border: 1px solid #333333; padding: 10px; color: #ffffff; font-size: 18px;'>الوقت</th>"
+html_grid += "<th style='border: 1px solid #333333; padding: 10px; color: #ffffff; font-size: 18px;'>الأحد</th>"
+html_grid += "<th style='border: 1px solid #333333; padding: 10px; color: #ffffff; font-size: 18px;'>الاثنين</th>"
+html_grid += "<th style='border: 1px solid #333333; padding: 10px; color: #ffffff; font-size: 18px;'>الثلاثاء</th>"
+html_grid += "<th style='border: 1px solid #333333; padding: 10px; color: #ffffff; font-size: 18px;'>الأربعاء</th>"
+html_grid += "<th style='border: 1px solid #333333; padding: 10px; color: #ffffff; font-size: 18px;'>الخميس</th></tr>"
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
 
 for hour in sorted_active_hours:
     html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 6px;'><b>{hour}:00</b></td>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 10px; font-size: 18px;'><b>{hour}:00</b></td>"
 
     row_cells = [""] * 5
     for section in active_sched:
@@ -1583,15 +1588,15 @@ for hour in sorted_active_hours:
                     code_val = section.get('code', '')
                     sec_id = section.get('id', '')
                     raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
+                    details_display = f"<br><small style='color: #ffffff; font-size: 15px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff; font-size: 15px;'>(شـ {sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 19px;'>{code_val}</b>{details_display}"
 
     for idx, c in enumerate(row_cells):
         day_num = idx + 1
         if not c and day_num == 2 and hour == 10:
-            html_grid += "<td style='border: 1px solid #333333; padding: 6px; background-color: #220306;'></td>"
+            html_grid += "<td style='border: 1px solid #333333; padding: 10px; background-color: #220306;'></td>"
         elif c:
-            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; background-color: #000000; color: #ffffff;'>{c}</td>"
+            html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: #000000; color: #ffffff;'>{c}</td>"
         else:
             crossed_lines_bg = (
                 "background-color: #000000; "
@@ -1601,11 +1606,11 @@ for hour in sorted_active_hours:
                 "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
                 "background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
             )
-            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; {crossed_lines_bg}'></td>"
+            html_grid += f"<td style='border: 1px solid #333333; padding: 10px; {crossed_lines_bg}'></td>"
     html_grid += "</tr>"
 html_grid += "</table></div>"
 
-# --- 2. BUNDLE TABLE & JS BUTTON INTO ONE COMPONENT ---
+# --- 2. BUNDLE TABLE & JS BUTTON INTO ONE SECURE COMPONENT ---
 combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1623,50 +1628,56 @@ combined_html = f"""
     {html_grid}
     
     <!-- The native button inside the same frame -->
-    <button onclick="takeScreenshot()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px;">
+    <button onclick="takeScreenshot()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; transition: 0.2s;">
         📸 Take Screenshot & Download (.jpg)
     </button>
 
-<!-- Script that runs perfectly because it owns the frame -->
+    <!-- Script that forces exact 1700x1000 size and takes screenshot -->
     <script>
-    function takeScreenshot() {
+    function takeScreenshot() {{
         const targetDiv = document.getElementById('schedule-capture-area');
         
-        // 1. Save the original flexible size
+        // 1. Save original styles so it doesn't break the user's screen view
         const originalWidth = targetDiv.style.width;
         const originalHeight = targetDiv.style.height;
+        const originalPosition = targetDiv.style.position;
         
-        // 2. Force the exact pixel dimensions for the downloaded image (1700x1000)
+        // 2. Force exact 1700x1000 pixel dimensions strictly for the screenshot
         targetDiv.style.width = "1700px";
         targetDiv.style.height = "1000px";
+        
+        // This stops the huge 1700px box from stretching the web page visually during the snapshot
+        targetDiv.style.position = "absolute"; 
 
-        html2canvas(targetDiv, { 
+        html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
-            scale: 1, // Keep at 1 since we are setting a massive pixel size manually
+            scale: 1, // Keep at 1 since we are setting exact large pixels
             width: 1700,
             height: 1000,
             windowWidth: 1700,
             windowHeight: 1000,
             useCORS: true
-        }).then(canvas => {
-            // 3. Shrink the table back to normal on the screen instantly
+        }}).then(canvas => {{
+            // 3. Shrink the table back instantly
             targetDiv.style.width = originalWidth;
             targetDiv.style.height = originalHeight;
+            targetDiv.style.position = originalPosition;
 
-            // 4. Download the perfectly sized image
+            // 4. Download image
             const link = document.createElement('a');
             link.download = 'SEM03_TIMETABLE.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.95);
             link.click();
-        }).catch(err => {
+        }}).catch(err => {{
             console.error("Screenshot failed: ", err);
             alert("Screenshot failed. Please try again.");
             
             // Restore size even if it fails
             targetDiv.style.width = originalWidth;
             targetDiv.style.height = originalHeight;
-        });
-    }
+            targetDiv.style.position = originalPosition;
+        }});
+    }}
     </script>
 </body>
 </html>
@@ -1674,9 +1685,9 @@ combined_html = f"""
 
 st.subheader("A. Visual View")
 
-# Render everything inside a dedicated embedded window (height=500px ensures it fits comfortably)
-components.html(combined_html, height=500, scrolling=True)
-
+# Render everything inside a dedicated embedded window. 
+# Height is set to 600px so the button is clearly visible below the table in the UI.
+components.html(combined_html, height=600, scrolling=True)
 
 
 # =============================================================================================================================
