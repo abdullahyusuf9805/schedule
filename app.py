@@ -1133,13 +1133,16 @@ for subj, rules in subject_rules.items():
             )
         ]
 
+
+
 # ==========================================
 # 12. DATA GROUPING & SOLVER
 # ==========================================
 sections_by_subject = {}
-for code, group in valid_blocks_df.groupby("CODE"):
+# Use an ordered collection to preserve the exact appearance order from raw_df
+for code, group in valid_blocks_df.groupby("CODE", sort=False):
     sections_by_subject[str(code)] = []
-    for sec_id, sec_group in group.groupby("ID"):
+    for sec_id, sec_group in group.groupby("ID", sort=False):
         blocks = [
             {"day": r["day"], "start_time": r["start_time"]}
             for _, r in sec_group.iterrows()
@@ -1294,9 +1297,6 @@ else:
     if st.session_state.sched_idx >= len(schedules):
         st.session_state.sched_idx = 0
 
-    # --------------------------------------------------------------------------------
-    # UNIFORM HEIGHT & SPACING CSS NORMALIZATION
-    # --------------------------------------------------------------------------------
     st.markdown("""
         <style>
             .stSelectbox > div > div {
@@ -1336,24 +1336,21 @@ else:
 
     active_sched = schedules[st.session_state.sched_idx]
 
-    # --- 1. VISUAL VIEW TABLE (RENDERED FIRST) ---
-# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
+    # --- 1. VISUAL VIEW SUBHEADING & TABLE ---
     st.subheader("Visual View")
     
-    # 1. Collect only the hours that actually have scheduled classes
     active_hours = set()
     for section in active_sched:
         for b in section["blocks"]:
             active_hours.add(b["start_time"])
 
-    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: 'Tajawal', sans-serif; background-color: #121212; color: #ffffff;'>"
+    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #121212; color: #ffffff;'>"
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
     html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
 
     col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
     row_count = 0
-    # Sort active hours so they display in chronological order (e.g., 8, 9, 10...)
     sorted_active_hours = sorted(list(active_hours))
 
     for hour in sorted_active_hours:
@@ -1385,12 +1382,10 @@ else:
 
     st.markdown(html_grid, unsafe_allow_html=True)
 
-# --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
-# --- 2. EXCEL VIEW SUBHEADING & TABLE ---
+    # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
     st.subheader("Excel View")
 
     excel_rows_html = ""
-    # Iterating directly through active_sched preserves the exact original order from data/source
     for s in active_sched:
         status_val = s.get('status', 'مفتوحة')
         teacher_val = s.get('teacher', '')
@@ -1456,7 +1451,6 @@ else:
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Generate the actual excel file buffer for downloading in the same order
     df_excel = pd.DataFrame([{
         "رمز المقرر": s["code"],
         "المقرر": s["name"],
@@ -1491,13 +1485,11 @@ else:
             use_container_width=True
         )
         
-    
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
     
     col_zip, col_excel = st.columns(2)
     
-    # --- 3. ZIP JPG DOWNLOAD ---
     with col_zip:
         if st.button("Render All as JPGs (ZIP)", key="download_zip_btn", use_container_width=True):
             with st.spinner("Drawing high-res images..."):
@@ -1515,7 +1507,6 @@ else:
                     use_container_width=True
                 )
             
-    # --- 4. ALL SCHEDULES EXCEL DOWNLOAD ---
     with col_excel:
         try:
             import openpyxl
@@ -1523,13 +1514,13 @@ else:
             with pd.ExcelWriter(all_excel_buffer, engine='openpyxl') as writer:
                 for i, sched in enumerate(schedules):
                     df_sched = pd.DataFrame([{
-                        "CODE": s["code"],
-                        "NAME": s["name"],
-                        "ID (ش)": s["id"],
-                        "HALL": s["hall"],
-                        "VENUE": s["venue"],
-                        "TEACHER": s["teacher"],
-                        "STATUS": s["status"],
+                        "رمز المقرر": s["code"],
+                        "المقرر": s["name"],
+                        "رقم الشعبة": s["id"],
+                        "رقم القاعة": s["hall"],
+                        "الوقت": s["venue"],
+                        "المحاضر": s["teacher"],
+                        "الحالة": s["status"],
                     } for s in sched])
                     df_sched.to_excel(writer, index=False, sheet_name=f"Option_{i+1}")
             
@@ -1544,4 +1535,3 @@ else:
             st.error("⚠️ Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
 
     st.markdown("</div>", unsafe_allow_html=True)
-    
