@@ -1557,15 +1557,22 @@ else:
 import io
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import arabic_reshaper
+from bidi.algorithm import get_display
+
+def fix_arabic(text):
+    # Reshapes connected letters and fixes right-to-left direction
+    return get_display(arabic_reshaper.reshape(text))
 
 def generate_exact_schedule_jpg(schedule):
-    # Enforce exact 17 width and 10 height
+    # Enforce exact 17 width and 10 height layout
     fig, ax = plt.subplots(figsize=(17, 10), facecolor='#000000')
     ax.set_facecolor('#000000')
     ax.axis("tight")
     ax.axis("off")
 
-    cols = ["الوقت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"]
+    # 1. Reverse the column order so Matplotlib draws it RTL (Time is on the far right)
+    cols = ["الخميس", "الأربعاء", "الثلاثاء", "الاثنين", "الأحد", "الوقت"]
     cols_reshaped = [fix_arabic(c) for c in cols]
 
     active_h = set()
@@ -1578,18 +1585,23 @@ def generate_exact_schedule_jpg(schedule):
 
     num_rows = len(s_hours)
     cell_matrix = [["" for _ in range(6)] for _ in range(num_rows)]
-    col_map = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+    
+    # 2. Map Days to the reversed column indices (Sunday=4, Monday=3, etc.)
+    col_map = {1: 4, 2: 3, 3: 2, 4: 1, 5: 0}
 
     for r_idx, h in enumerate(s_hours):
-        cell_matrix[r_idx][0] = f"{h}:00"
+        # Time column goes to index 5 (far right)
+        cell_matrix[r_idx][5] = f"{h}:00"
 
     for s in schedule:
-        c_val = fix_arabic(s['code'])
+        c_val = s['code']
         s_id = s['id']
         r_hall = str(s.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
         h_str = f" - قــ {r_hall}" if r_hall else ""
-        sub_val = fix_arabic(f"(شـ {s_id}{h_str})")
-        full_txt = f"{c_val}\n{sub_val}"
+        
+        # Build the exact raw string FIRST, then pass the whole thing to fix_arabic
+        raw_txt = f"{c_val}\n(شـ {s_id}{h_str})"
+        full_txt = fix_arabic(raw_txt)
 
         for b in s["blocks"]:
             if b["start_time"] in s_hours:
@@ -1598,7 +1610,6 @@ def generate_exact_schedule_jpg(schedule):
                 if c_idx is not None:
                     cell_matrix[r_idx][c_idx] = full_txt
 
-    # bbox=[0, 0, 1, 1] forces the table to stretch and divide evenly across the entire 17x10 canvas
     table = ax.table(cellText=cell_matrix, colLabels=cols_reshaped, loc="center", cellLoc="center", bbox=[0, 0, 1, 1])
 
     available_fonts = fm.get_font_names()
@@ -1618,7 +1629,9 @@ def generate_exact_schedule_jpg(schedule):
         else:
             r_idx = row - 1
             h_val = s_hours[r_idx]
-            if col == 0:
+            
+            # Index 5 is the Time Column
+            if col == 5:
                 cell.set_facecolor("#212121")
                 t_obj = cell.get_text()
                 t_obj.set_fontname(chosen_font)
@@ -1626,8 +1639,9 @@ def generate_exact_schedule_jpg(schedule):
                 t_obj.set_weight("bold")
                 t_obj.set_fontsize(16)
             else:
-                day_num = 6 - col
+                day_num = 5 - col  # Map index back to real day (0->5, 1->4, 2->3, 3->2, 4->1)
                 txt = cell_matrix[r_idx][col]
+                
                 if txt != "":
                     cell.set_facecolor("#000000")
                     t_obj = cell.get_text()
@@ -1636,12 +1650,11 @@ def generate_exact_schedule_jpg(schedule):
                     t_obj.set_fontsize(14)
                     t_obj.set_weight("bold")
                 elif day_num == 2 and h_val == 10:
-                    cell.set_facecolor("#220306")
+                    cell.set_facecolor("#220306") # Dark red slot
                 else:
                     cell.set_facecolor("#000000")
 
     buf = io.BytesIO()
-    # pad_inches=0 ensures no extra white space ruins the exact 17x10 ratio
     plt.savefig(buf, format="jpg", dpi=200, bbox_inches="tight", facecolor='#000000', pad_inches=0)
     buf.seek(0)
     plt.close(fig)
