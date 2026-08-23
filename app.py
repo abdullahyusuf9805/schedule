@@ -1554,45 +1554,71 @@ else:
 # =============================================================================================================================    
 
 
-# --- ONE-CLICK BROWSER SCREENSHOT BUTTON ---
-# Ensure your Visual View table is wrapped in: <div id='schedule-capture-area'> ... </div>
+import streamlit.components.v1 as components
 
-ss_button_html = f"""
-<div style="margin-top: 15px;">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <button onclick="captureAndDownload()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s;">
-        📸 Take Screenshot & Download (.jpg)
-    </button>
-    
-    <script>
-    function captureAndDownload() {{
-        const targetDiv = document.getElementById('schedule-capture-area');
-        if (!targetDiv) {{
-            alert("Table not found! Make sure the table wrapper has id='schedule-capture-area'");
-            return;
-        }}
-        
-        // scale: 1 and logging: false prevent mobile memory limits from causing crashes
-        html2canvas(targetDiv, {{ 
-            backgroundColor: '#000000', 
-            scale: 1, 
-            useCORS: true,
-            logging: false 
-        }}).then(canvas => {{
-            const link = document.createElement('a');
-            link.download = 'SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 0.95);
-            link.click();
-        }}).catch(err => {{
-            console.error("Screenshot failed: ", err);
-            alert("Failed to take screenshot. Please try again.");
-        }});
+# Make sure your visual view table is still being printed first:
+# st.markdown(html_grid, unsafe_allow_html=True)
+
+# --- ONE-CLICK BROWSER SCREENSHOT INJECTION ---
+injection_js = f"""
+<script>
+const parentDoc = window.parent.document;
+
+// 1. Load the screenshot tool natively into Streamlit if not already loaded
+if (!parentDoc.getElementById('html2canvas-script')) {{
+    const script = parentDoc.createElement('script');
+    script.id = 'html2canvas-script';
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    parentDoc.head.appendChild(script);
+}}
+
+// 2. Remove old button if Streamlit reloads the page
+const oldBtn = parentDoc.getElementById('native-ss-btn');
+if (oldBtn) oldBtn.remove();
+
+// 3. Create the perfect styled button
+const btn = parentDoc.createElement('button');
+btn.id = 'native-ss-btn';
+btn.innerHTML = "📸 Take Screenshot & Download (.jpg)";
+btn.style.cssText = "background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px;";
+
+// 4. What happens when clicked
+btn.onclick = function() {{
+    const targetDiv = parentDoc.getElementById('schedule-capture-area');
+    if (!targetDiv) {{
+        alert('Table not found! Make sure the table wrapper has id="schedule-capture-area"');
+        return;
     }}
-    </script>
-</div>
+    
+    if (typeof parentDoc.defaultView.html2canvas === 'undefined') {{
+        alert('Tool is still loading... please click again in 1 second.');
+        return;
+    }}
+
+    parentDoc.defaultView.html2canvas(targetDiv, {{
+        backgroundColor: '#000000',
+        scale: 2,  /* 2x scale for HD crisp image */
+        useCORS: true
+    }}).then(canvas => {{
+        const link = parentDoc.createElement('a');
+        link.download = 'SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+    }}).catch(err => {{
+        console.error("Failed to capture: ", err);
+    }});
+}};
+
+// 5. Inject the button right under your table!
+const targetDiv = parentDoc.getElementById('schedule-capture-area');
+if (targetDiv) {{
+    targetDiv.parentNode.insertBefore(btn, targetDiv.nextSibling);
+}}
+</script>
 """
 
-st.markdown(ss_button_html, unsafe_allow_html=True)
+# This runs the code invisibly (height=0) to securely place the button on your page!
+components.html(injection_js, height=0, width=0)
 
 
 # =============================================================================================================================
