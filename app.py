@@ -1552,17 +1552,23 @@ else:
 # =============================================================================================================================
 # =============================================================================================================================    
 # =============================================================================================================================    
-    # One-click Safe Image Snapshot Tool (Crash-free lightweight approach)
-    one_click_downloader = f"""
-    <button onclick="triggerDownload()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 10px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%;">
-        📥 Download Schedule as Image
-    </button>
+    # Direct HTML injection via st.markdown to avoid iframe click blocking
+    download_btn_code = f"""
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <div style="margin-top: 10px; margin-bottom: 10px;">
+        <button id="safe-download-btn" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; width: 100%;">
+            📥 Download Schedule as Image
+        </button>
+    </div>
     <script>
-    function triggerDownload() {{
+    document.getElementById('safe-download-btn').onclick = function() {{
         const element = document.getElementById('schedule-capture-area');
-        if (!element) return;
+        if (!element) {{
+            alert('Schedule area not found!');
+            return;
+        }}
         
-        // Convert the HTML element to an SVG data URL (zero memory overhead, no crashes)
+        // Lightweight SVG-to-canvas rendering to prevent mobile crashes
         const htmlContent = element.outerHTML;
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${{element.offsetWidth}}" height="${{element.offsetHeight}}">
             <foreignObject width="100%" height="100%">
@@ -1596,9 +1602,9 @@ else:
             URL.revokeObjectURL(url);
         }};
         img.src = url;
-    }}
+    }};
     </script>
     """
 
     st.markdown(html_grid, unsafe_allow_html=True)
-    components.html(one_click_downloader, height=60)
+    st.markdown(download_btn_code, unsafe_allow_html=True)
