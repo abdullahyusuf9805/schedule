@@ -1386,8 +1386,11 @@ else:
     st.markdown(html_grid, unsafe_allow_html=True)
 
 # --- 2. EXCEL VIEW TABLE (RENDERED BELOW) ---
-    st.subheader("B. Excel View")
+# --- 2. EXCEL VIEW SUBHEADING & TABLE ---
+    st.subheader("Excel View")
+
     excel_rows_html = ""
+    # Iterating directly through active_sched preserves the exact original order from data/source
     for s in active_sched:
         status_val = s.get('status', 'مفتوحة')
         teacher_val = s.get('teacher', '')
@@ -1412,7 +1415,7 @@ else:
         .custom-excel-table {{
             width: 100% !important;
             border-collapse: collapse !important;
-            font-family: sans-serif !important;
+            font-family: 'Tajawal', sans-serif !important;
             font-size: 14px !important;
             background-color: #121212 !important;
             color: #ffffff !important;
@@ -1453,7 +1456,7 @@ else:
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Generate the actual excel file buffer for downloading
+    # Generate the actual excel file buffer for downloading in the same order
     df_excel = pd.DataFrame([{
         "رمز المقرر": s["code"],
         "المقرر": s["name"],
