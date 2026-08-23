@@ -1343,7 +1343,7 @@ else:
 
     active_sched = schedules[st.session_state.sched_idx]
 
-    # --- 1. VISUAL VIEW SUBHEADING & TABLE ---
+# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
     st.subheader("Visual View")
     
     active_hours = set()
@@ -1371,12 +1371,14 @@ else:
                 if b["start_time"] == hour:
                     c_idx = col_map_html.get(b["day"])
                     if c_idx:
+                        code_val = section.get('code', '')
+                        sec_id = section.get('id', '')
                         raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                        hall_display = f"<br><small>({raw_hall})</small>" if raw_hall else ""
                         
-                        row_cells[c_idx - 1] = (
-                            f"<b>{section['code']}</b>{hall_display}"
-                        )
+                        # Format exact layout requested: Course Code, then section (شـ) and hall (قــ)
+                        details_display = f"<br><small>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small>(شـ {sec_id})</small>"
+                        
+                        row_cells[c_idx - 1] = f"<b>{code_val}</b>{details_display}"
 
         for c in row_cells:
             cell_bg = "#ffffff" if c else "#212121"
