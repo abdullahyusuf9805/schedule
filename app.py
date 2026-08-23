@@ -1342,8 +1342,11 @@ else:
         st.rerun()
 
     active_sched = schedules[st.session_state.sched_idx]
+# =============================================================================================================================
+# =============================================================================================================================
+# =============================================================================================================================
 
-# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
+    # --- 1. VISUAL VIEW SUBHEADING & TABLE ---
     st.subheader("Visual View")
     
     active_hours = set()
@@ -1351,20 +1354,23 @@ else:
         for b in section["blocks"]:
             active_hours.add(b["start_time"])
 
-    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff;'>"
+    # Table background set to black, grid lines set to white (#ffffff)
+    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #ffffff;'>"
+    
+    # First row (Header) is dark gray (#212121) with white text and white borders
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-    html_grid += "<th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الخميس</th></tr>"
+    html_grid += "<th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #ffffff; padding: 8px; color: #ffffff;'>الخميس</th></tr>"
 
     col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
-    row_count = 0
     sorted_active_hours = sorted(list(active_hours))
 
     for hour in sorted_active_hours:
-        # Alternating strictly between black (#000000) and dark gray (#212121)
-        bg_color = "#000000" if row_count % 2 == 0 else "#212121"
-        html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #212121;'>"
-        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #212121; padding: 8px;'><b>{hour}:00</b></td>"
+        # All body rows are black (#000000)
+        html_grid += "<tr style='background-color: #000000; border: 1px solid #ffffff;'>"
+        
+        # First column (Time column) is dark gray (#212121) with white text
+        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #ffffff; padding: 8px;'><b>{hour}:00</b></td>"
 
         row_cells = [""] * 5
         for section in active_sched:
@@ -1377,19 +1383,15 @@ else:
                         raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
                         
                         details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
-                        
                         row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
 
         for c in row_cells:
-            # Active cells use dark gray (#212121), empty cells use black (#000000). All text is white (#ffffff).
-            cell_bg = "#212121" if c else "#000000"
-            cell_fg = "#ffffff"
-            html_grid += f"<td style='border: 1px solid #212121; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
+            # Data cells are black (#000000) with white text and white borders
+            cell_bg = "#000000"
+            html_grid += f"<td style='border: 1px solid #ffffff; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
         html_grid += "</tr>"
-        row_count += 1
 
     html_grid += "</table>"
-
     st.markdown(html_grid, unsafe_allow_html=True)
 
     # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
@@ -1406,13 +1408,14 @@ else:
         code_val = s.get('code', '')
 
         excel_rows_html += "<tr>"
-        excel_rows_html += f'<td style="color: #ffffff;">{status_val}</td>'
-        excel_rows_html += f'<td style="color: #ffffff;">{teacher_val}</td>'
-        excel_rows_html += f'<td style="color: #ffffff;">{venue_val}</td>'
-        excel_rows_html += f'<td style="color: #ffffff;">{hall_val}</td>'
-        excel_rows_html += f'<td style="color: #ffffff;">{id_val}</td>'
-        excel_rows_html += f'<td style="color: #ffffff;">{name_val}</td>'
-        excel_rows_html += f'<td style="color: #ffffff;">{code_val}</td>'
+        # First column of data row gets dark gray (#212121), rest are black (#000000), text is white
+        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #ffffff;">{status_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{teacher_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{venue_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{hall_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{id_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{name_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #ffffff;">{code_val}</td>'
         excel_rows_html += "</tr>"
 
     excel_table_html = f"""
@@ -1424,18 +1427,15 @@ else:
             font-size: 14px !important;
             background-color: #000000 !important;
             color: #ffffff !important;
+            border: 1px solid #ffffff !important;
         }}
         .custom-excel-table th, .custom-excel-table td {{
-            border: 1px solid #212121 !important;
+            border: 1px solid #ffffff !important;
             padding: 12px 10px !important;
             text-align: center !important;
             vertical-align: middle !important;
             border-radius: 0px !important;
             color: #ffffff !important;
-            background-color: #000000 !important;
-        }}
-        .custom-excel-table tr:nth-child(even) td {{
-            background-color: #212121 !important;
         }}
         .custom-excel-table th {{
             background-color: #212121 !important;
@@ -1446,7 +1446,7 @@ else:
         <table dir="ltr" class="custom-excel-table">
             <thead>
                 <tr>
-                    <th>الحالة</th>
+                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #ffffff;">الحالة</th>
                     <th>المحاضر</th>
                     <th>الوقت</th>
                     <th>رقم القاعة</th>
@@ -1463,7 +1463,10 @@ else:
     """
 
     st.markdown(excel_table_html, unsafe_allow_html=True)
-        
+
+# =============================================================================================================================
+# =============================================================================================================================    
+# =============================================================================================================================    
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
     
