@@ -1552,40 +1552,53 @@ else:
 # =============================================================================================================================
 # =============================================================================================================================    
 # =============================================================================================================================    
-# --- ONE-CLICK PRINT / PDF FIT-TO-PAGE BUTTON ---
-print_button_html = """
-<style>
-    /* Print-specific rules: Hide sidebar, header, and unnecessary elements, force black background and single-page fit */
-    @media print {
-        body {
-            background-color: #000000 !important;
-            color: #ffffff !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-        /* Hide Streamlit sidebar, top toolbar, and navigation */
-        [data-testid="stSidebar"], header, footer, button {
-            display: none !important;
-        }
-        /* Make main block fill the printable page and prevent page breaks */
-        [data-testid="stMainBlockContainer"] {
-            max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        table {
-            page-break-inside: avoid !important;
-        }
-        @page {
-            size: landscape;
-            margin: 10mm;
-        }
-    }
-</style>
+    # One-click Safe Image Snapshot Tool (Crash-free lightweight approach)
+    one_click_downloader = f"""
+    <button onclick="triggerDownload()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 10px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%;">
+        📥 Download Schedule as Image
+    </button>
+    <script>
+    function triggerDownload() {{
+        const element = document.getElementById('schedule-capture-area');
+        if (!element) return;
+        
+        // Convert the HTML element to an SVG data URL (zero memory overhead, no crashes)
+        const htmlContent = element.outerHTML;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${{element.offsetWidth}}" height="${{element.offsetHeight}}">
+            <foreignObject width="100%" height="100%">
+                <div xmlns="http://www.w3.org/1999/xhtml">
+                    <style>
+                        body {{ background-color: #000000; color: #ffffff; font-family: 'Tajawal', sans-serif; }}
+                        table {{ border-collapse: collapse; width: 100%; text-align: center; }}
+                        th, td {{ border: 1px solid #333333; padding: 10px; }}
+                    </style>
+                    ${{htmlContent}}
+                </div>
+            </foreignObject>
+        </svg>`;
 
-<button onclick="window.print()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 10px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%;">
-    🖨️ Print / Save as PDF (Fit to One Page)
-</button>
-"""
+        const blob = new Blob([svg], {{ type: 'image/svg+xml;charset=utf-8' }});
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        
+        img.onload = function() {{
+            const canvas = document.createElement('canvas');
+            canvas.width = element.offsetWidth * 2;
+            canvas.height = element.offsetHeight * 2;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(2, 2);
+            ctx.drawImage(img, 0, 0);
+            
+            const link = document.createElement('a');
+            link.download = 'Schedule_Option_{st.session_state.sched_idx + 1}.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+            URL.revokeObjectURL(url);
+        }};
+        img.src = url;
+    }}
+    </script>
+    """
 
-components.html(print_button_html, height=55)
+    st.markdown(html_grid, unsafe_allow_html=True)
+    components.html(one_click_downloader, height=60)
