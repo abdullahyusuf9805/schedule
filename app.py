@@ -1554,93 +1554,107 @@ else:
 # =============================================================================================================================    
 
 
-import base64
+import io
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 
-# --- 1. VISUAL VIEW TABLE WRAPPED WITH ID ---
-st.subheader("A. Visual View")
+def generate_exact_schedule_image(schedule):
+    # Create figure matching dark theme
+    fig, ax = plt.subplots(figsize=(10, 5), facecolor='#000000')
+    ax.set_facecolor('#000000')
+    ax.axis("tight")
+    ax.axis("off")
 
-active_hours = set()
-for section in active_sched:
-    for b in section["blocks"]:
-        active_hours.add(b["start_time"])
+    cols = ["الوقت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"]
+    cols_reshaped = [fix_arabic(c) for c in cols]
 
-html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 4px; margin: 0px; width: 100%;'>"
-html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
-html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الخميس</th></tr>"
+    active_h = set()
+    for s in schedule:
+        for b in s["blocks"]:
+            active_h.add(b["start_time"])
+    s_hours = sorted(list(active_h))
+    if not s_hours:
+        s_hours = list(range(8, 13))
 
-col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-sorted_active_hours = sorted(list(active_hours))
+    num_rows = len(s_hours)
+    cell_matrix = [["" for _ in range(6)] for _ in range(num_rows)]
+    col_map = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
-for hour in sorted_active_hours:
-    html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 6px;'><b>{hour}:00</b></td>"
+    for r_idx, h in enumerate(s_hours):
+        cell_matrix[r_idx][0] = f"{h}:00"
 
-    row_cells = [""] * 5
-    for section in active_sched:
-        for b in section["blocks"]:
-            if b["start_time"] == hour:
-                c_idx = col_map_html.get(b["day"])
-                if c_idx:
-                    code_val = section.get('code', '')
-                    sec_id = section.get('id', '')
-                    raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
+    for s in schedule:
+        c_val = fix_arabic(s['code'])
+        s_id = s['id']
+        r_hall = str(s.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+        h_str = f" - قــ {r_hall}" if r_hall else ""
+        sub_val = fix_arabic(f"(شـ {s_id}{h_str})")
+        full_txt = f"{c_val}\n{sub_val}"
 
-    for idx, c in enumerate(row_cells):
-        day_num = idx + 1
-        if not c and day_num == 2 and hour == 10:
-            html_grid += "<td style='border: 1px solid #333333; padding: 6px; background-color: #220306;'></td>"
-        elif c:
-            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; background-color: #000000; color: #ffffff;'>{c}</td>"
+        for b in s["blocks"]:
+            if b["start_time"] in s_hours:
+                r_idx = s_hours.index(b["start_time"])
+                c_idx = col_map.get(b["day"])
+                if c_idx is not None:
+                    cell_matrix[r_idx][c_idx] = full_txt
+
+    table = ax.table(cellText=cell_matrix, colLabels=cols_reshaped, loc="center", cellLoc="center")
+    table.scale(1, 2.0)
+
+    # Use Tajawal or clean system font
+    available_fonts = fm.get_font_names()
+    chosen_font = "Tajawal" if "Tajawal" in available_fonts else "Segoe UI"
+
+    for (row, col), cell in table.get_celld().items():
+        cell.set_edgecolor("#333333")
+        cell.set_linewidth(1.0)
+        
+        if row == 0:
+            cell.set_facecolor("#212121")
+            t_obj = cell.get_text()
+            t_obj.set_fontname(chosen_font)
+            t_obj.set_color("white")
+            t_obj.set_weight("bold")
+            t_obj.set_fontsize(11)
         else:
-            crossed_lines_bg = (
-                "background-color: #000000; "
-                "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
-                "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
-                "linear-gradient(45deg, transparent 75%, #16261a 75%), "
-                "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
-                "background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
-            )
-            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; {crossed_lines_bg}'></td>"
-    html_grid += "</tr>"
+            r_idx = row - 1
+            h_val = s_hours[r_idx]
+            if col == 0:
+                cell.set_facecolor("#212121")
+                t_obj = cell.get_text()
+                t_obj.set_fontname(chosen_font)
+                t_obj.set_color("white")
+                t_obj.set_weight("bold")
+                t_obj.set_fontsize(11)
+            else:
+                day_num = 6 - col
+                txt = cell_matrix[r_idx][col]
+                if txt != "":
+                    cell.set_facecolor("#000000")
+                    t_obj = cell.get_text()
+                    t_obj.set_fontname(chosen_font)
+                    t_obj.set_color("white")
+                    t_obj.set_fontsize(10)
+                elif day_num == 2 and h_val == 10:
+                    cell.set_facecolor("#220306")  # Exact dark red slot for Monday 10 AM
+                else:
+                    cell.set_facecolor("#000000")
 
-html_grid += "</table></div>"
-st.markdown(html_grid, unsafe_allow_html=True)
+    buf = io.BytesIO()
+    plt.savefig(buf, format="jpg", dpi=300, bbox_inches="tight", facecolor='#000000')
+    buf.seek(0)
+    plt.close(fig)
+    return buf.getvalue()
 
-# --- 2. FOOLPROOF MOBILE DOWNLOAD BUTTON ---
-# This encodes the exact HTML markup into a downloadable file link natively handled by browsers
-complete_html_page = f"""
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {{ background-color: #000000; color: #ffffff; font-family: 'Tajawal', sans-serif; padding: 20px; }}
-        table {{ border-collapse: collapse; width: 100%; text-align: center; }}
-        th, td {{ border: 1px solid #333333; padding: 10px; }}
-    </style>
-</head>
-<body>
-    {html_grid}
-</body>
-</html>
-"""
-
-b64 = base64.b64encode(complete_html_page.encode('utf-8')).decode('utf-8')
-download_link = f"""
-<div style="margin-top: 10px; margin-bottom: 20px;">
-    <a href="data:text/html;base64,{b64}" download="SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.html" style="text-decoration: none;">
-        <button style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; width: 100%;">
-            📥 Download Timetable File (One Click)
-        </button>
-    </a>
-</div>
-"""
-st.markdown(download_link, unsafe_allow_html=True)
-
+# Native One-Click Image Download Button
+image_bytes = generate_exact_schedule_image(active_sched)
+st.download_button(
+    label="📥 Download Schedule Image (.jpg)",
+    data=image_bytes,
+    file_name=f"SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.jpg",
+    mime="image/jpeg",
+    use_container_width=True
+)
 
 # =============================================================================================================================
 # =============================================================================================================================    
