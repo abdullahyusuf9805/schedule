@@ -1627,25 +1627,46 @@ combined_html = f"""
         📸 Take Screenshot & Download (.jpg)
     </button>
 
-    <!-- Script that runs perfectly because it owns the frame -->
+<!-- Script that runs perfectly because it owns the frame -->
     <script>
-    function takeScreenshot() {{
+    function takeScreenshot() {
         const targetDiv = document.getElementById('schedule-capture-area');
         
-        html2canvas(targetDiv, {{ 
+        // 1. Save the original flexible size
+        const originalWidth = targetDiv.style.width;
+        const originalHeight = targetDiv.style.height;
+        
+        // 2. Force the exact pixel dimensions for the downloaded image (1700x1000)
+        targetDiv.style.width = "1700px";
+        targetDiv.style.height = "1000px";
+
+        html2canvas(targetDiv, { 
             backgroundColor: '#000000', 
-            scale: 2, // 2x for HD download
+            scale: 1, // Keep at 1 since we are setting a massive pixel size manually
+            width: 1700,
+            height: 1000,
+            windowWidth: 1700,
+            windowHeight: 1000,
             useCORS: true
-        }}).then(canvas => {{
+        }).then(canvas => {
+            // 3. Shrink the table back to normal on the screen instantly
+            targetDiv.style.width = originalWidth;
+            targetDiv.style.height = originalHeight;
+
+            // 4. Download the perfectly sized image
             const link = document.createElement('a');
             link.download = 'SEM03_TIMETABLE.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.95);
             link.click();
-        }}).catch(err => {{
+        }).catch(err => {
             console.error("Screenshot failed: ", err);
             alert("Screenshot failed. Please try again.");
-        }});
-    }}
+            
+            // Restore size even if it fails
+            targetDiv.style.width = originalWidth;
+            targetDiv.style.height = originalHeight;
+        });
+    }
     </script>
 </body>
 </html>
