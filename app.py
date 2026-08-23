@@ -37,15 +37,15 @@ st.markdown("""
         /* Import Tajawal from Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
-        /* Apply Tajawal to headers, paragraphs, labels, and table contents */
+        /* Apply Tajawal globally to standard text elements and tables */
         h1, h2, h3, h4, h5, h6, p, label, table, th, td {
             font-family: 'Tajawal', sans-serif !important;
         }
 
-        /* Apply Tajawal to sidebar expander text without breaking their icons */
-        [data-testid="stExpander"] details summary p, 
-        [data-testid="stSidebar"] .stMultiSelect span, 
-        [data-testid="stSidebar"] .stCheckbox span {
+        /* Target sidebar text containers and widgets explicitly so subject names use Tajawal */
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"], 
+        [data-testid="stSidebar"] label, 
+        [data-testid="stSidebar"] div[data-baseweb="select"] span {
             font-family: 'Tajawal', sans-serif !important;
         }
     </style>
