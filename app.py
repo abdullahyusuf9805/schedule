@@ -1089,7 +1089,7 @@ if required_shubas:
 # 11. SUBJECT-SPECIFIC TEACHER RULES
 # ==========================================
 with st.sidebar.expander("⚙️ Filter By teachers", expanded=st.session_state["exp_teachers"]):
-    all_subjects = sorted([str(c) for c in raw_df["CODE"].astype(str).unique()])
+    all_subjects = [str(c) for c in raw_df["CODE"].dropna().drop_duplicates().astype(str)]
     subject_rules = {}
     
     if not all_subjects:
