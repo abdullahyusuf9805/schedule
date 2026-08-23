@@ -1393,10 +1393,10 @@ else:
     st.markdown(html_grid, unsafe_allow_html=True)
 
     # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
+    # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
     st.subheader("Excel View")
 
     excel_rows_html = ""
-    # Using active_sched directly preserves the correct sequence (first item stays first)
     for s in active_sched:
         status_val = s.get('status', 'مفتوحة')
         teacher_val = s.get('teacher', '')
@@ -1407,14 +1407,15 @@ else:
         code_val = s.get('code', '')
 
         excel_rows_html += "<tr>"
-        # First column (الحالة) gets dark gray (#212121), the rest are black (#000000)
-        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{status_val}</td>'
+        # Standard black background for columns 1 to 5
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{status_val}</td>'
         excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{teacher_val}</td>'
         excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{venue_val}</td>'
         excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{hall_val}</td>'
         excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{id_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{name_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{code_val}</td>'
+        # Highlighted dark gray (#212121) for المقرر and رمز المقرر
+        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{name_val}</td>'
+        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{code_val}</td>'
         excel_rows_html += "</tr>"
 
     excel_table_html = f"""
@@ -1445,13 +1446,13 @@ else:
         <table dir="ltr" class="custom-excel-table">
             <thead>
                 <tr>
-                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">الحالة</th>
+                    <th>الحالة</th>
                     <th>المحاضر</th>
                     <th>الوقت</th>
                     <th>رقم القاعة</th>
                     <th>رقم الشعبة</th>
-                    <th>المقرر</th>
-                    <th>رمز المقرر</th>
+                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">المقرر</th>
+                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">رمز المقرر</th>
                 </tr>
             </thead>
             <tbody>
