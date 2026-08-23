@@ -1554,7 +1554,92 @@ else:
 # =============================================================================================================================    
 
 
+import base64
 
+# --- 1. VISUAL VIEW TABLE WRAPPED WITH ID ---
+st.subheader("A. Visual View")
+
+active_hours = set()
+for section in active_sched:
+    for b in section["blocks"]:
+        active_hours.add(b["start_time"])
+
+html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 4px; margin: 0px; width: 100%;'>"
+html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
+html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
+html_grid += "<th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الخميس</th></tr>"
+
+col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+sorted_active_hours = sorted(list(active_hours))
+
+for hour in sorted_active_hours:
+    html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 6px;'><b>{hour}:00</b></td>"
+
+    row_cells = [""] * 5
+    for section in active_sched:
+        for b in section["blocks"]:
+            if b["start_time"] == hour:
+                c_idx = col_map_html.get(b["day"])
+                if c_idx:
+                    code_val = section.get('code', '')
+                    sec_id = section.get('id', '')
+                    raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+                    details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
+
+    for idx, c in enumerate(row_cells):
+        day_num = idx + 1
+        if not c and day_num == 2 and hour == 10:
+            html_grid += "<td style='border: 1px solid #333333; padding: 6px; background-color: #220306;'></td>"
+        elif c:
+            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; background-color: #000000; color: #ffffff;'>{c}</td>"
+        else:
+            crossed_lines_bg = (
+                "background-color: #000000; "
+                "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
+                "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
+                "linear-gradient(45deg, transparent 75%, #16261a 75%), "
+                "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
+                "background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
+            )
+            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; {crossed_lines_bg}'></td>"
+    html_grid += "</tr>"
+
+html_grid += "</table></div>"
+st.markdown(html_grid, unsafe_allow_html=True)
+
+# --- 2. FOOLPROOF MOBILE DOWNLOAD BUTTON ---
+# This encodes the exact HTML markup into a downloadable file link natively handled by browsers
+complete_html_page = f"""
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {{ background-color: #000000; color: #ffffff; font-family: 'Tajawal', sans-serif; padding: 20px; }}
+        table {{ border-collapse: collapse; width: 100%; text-align: center; }}
+        th, td {{ border: 1px solid #333333; padding: 10px; }}
+    </style>
+</head>
+<body>
+    {html_grid}
+</body>
+</html>
+"""
+
+b64 = base64.b64encode(complete_html_page.encode('utf-8')).decode('utf-8')
+download_link = f"""
+<div style="margin-top: 10px; margin-bottom: 20px;">
+    <a href="data:text/html;base64,{b64}" download="SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.html" style="text-decoration: none;">
+        <button style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 14px; border-radius: 6px; cursor: pointer; width: 100%;">
+            📥 Download Timetable File (One Click)
+        </button>
+    </a>
+</div>
+"""
+st.markdown(download_link, unsafe_allow_html=True)
 
 
 # =============================================================================================================================
