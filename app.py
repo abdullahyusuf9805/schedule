@@ -1556,69 +1556,106 @@ else:
 
 import streamlit.components.v1 as components
 
-# Make sure your visual view table is still being printed first:
-# st.markdown(html_grid, unsafe_allow_html=True)
+# --- 1. BUILD THE HTML TABLE ---
+active_hours = set()
+for section in active_sched:
+    for b in section["blocks"]:
+        active_hours.add(b["start_time"])
 
-# --- ONE-CLICK BROWSER SCREENSHOT INJECTION ---
-injection_js = f"""
-<script>
-const parentDoc = window.parent.document;
+html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 5px; margin: 0px; width: 100%;'>"
+html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
+html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
+html_grid += "<th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 6px; color: #ffffff;'>الخميس</th></tr>"
 
-// 1. Load the screenshot tool natively into Streamlit if not already loaded
-if (!parentDoc.getElementById('html2canvas-script')) {{
-    const script = parentDoc.createElement('script');
-    script.id = 'html2canvas-script';
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-    parentDoc.head.appendChild(script);
-}}
+col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+sorted_active_hours = sorted(list(active_hours))
 
-// 2. Remove old button if Streamlit reloads the page
-const oldBtn = parentDoc.getElementById('native-ss-btn');
-if (oldBtn) oldBtn.remove();
+for hour in sorted_active_hours:
+    html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 6px;'><b>{hour}:00</b></td>"
 
-// 3. Create the perfect styled button
-const btn = parentDoc.createElement('button');
-btn.id = 'native-ss-btn';
-btn.innerHTML = "📸 Take Screenshot & Download (.jpg)";
-btn.style.cssText = "background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px;";
+    row_cells = [""] * 5
+    for section in active_sched:
+        for b in section["blocks"]:
+            if b["start_time"] == hour:
+                c_idx = col_map_html.get(b["day"])
+                if c_idx:
+                    code_val = section.get('code', '')
+                    sec_id = section.get('id', '')
+                    raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+                    details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
 
-// 4. What happens when clicked
-btn.onclick = function() {{
-    const targetDiv = parentDoc.getElementById('schedule-capture-area');
-    if (!targetDiv) {{
-        alert('Table not found! Make sure the table wrapper has id="schedule-capture-area"');
-        return;
-    }}
+    for idx, c in enumerate(row_cells):
+        day_num = idx + 1
+        if not c and day_num == 2 and hour == 10:
+            html_grid += "<td style='border: 1px solid #333333; padding: 6px; background-color: #220306;'></td>"
+        elif c:
+            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; background-color: #000000; color: #ffffff;'>{c}</td>"
+        else:
+            crossed_lines_bg = (
+                "background-color: #000000; "
+                "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
+                "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
+                "linear-gradient(45deg, transparent 75%, #16261a 75%), "
+                "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
+                "background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
+            )
+            html_grid += f"<td style='border: 1px solid #333333; padding: 6px; {crossed_lines_bg}'></td>"
+    html_grid += "</tr>"
+html_grid += "</table></div>"
+
+# --- 2. BUNDLE TABLE & JS BUTTON INTO ONE COMPONENT ---
+combined_html = f"""
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }}
+    </style>
+</head>
+<body>
     
-    if (typeof parentDoc.defaultView.html2canvas === 'undefined') {{
-        alert('Tool is still loading... please click again in 1 second.');
-        return;
+    <!-- Render the visual table -->
+    {html_grid}
+    
+    <!-- The native button inside the same frame -->
+    <button onclick="takeScreenshot()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px;">
+        📸 Take Screenshot & Download (.jpg)
+    </button>
+
+    <!-- Script that runs perfectly because it owns the frame -->
+    <script>
+    function takeScreenshot() {{
+        const targetDiv = document.getElementById('schedule-capture-area');
+        
+        html2canvas(targetDiv, {{ 
+            backgroundColor: '#000000', 
+            scale: 2, // 2x for HD download
+            useCORS: true
+        }}).then(canvas => {{
+            const link = document.createElement('a');
+            link.download = 'SEM03_TIMETABLE.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+        }}).catch(err => {{
+            console.error("Screenshot failed: ", err);
+            alert("Screenshot failed. Please try again.");
+        }});
     }}
-
-    parentDoc.defaultView.html2canvas(targetDiv, {{
-        backgroundColor: '#000000',
-        scale: 2,  /* 2x scale for HD crisp image */
-        useCORS: true
-    }}).then(canvas => {{
-        const link = parentDoc.createElement('a');
-        link.download = 'SEM03_TIMETABLE_{st.session_state.sched_idx + 1}.jpg';
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
-        link.click();
-    }}).catch(err => {{
-        console.error("Failed to capture: ", err);
-    }});
-}};
-
-// 5. Inject the button right under your table!
-const targetDiv = parentDoc.getElementById('schedule-capture-area');
-if (targetDiv) {{
-    targetDiv.parentNode.insertBefore(btn, targetDiv.nextSibling);
-}}
-</script>
+    </script>
+</body>
+</html>
 """
 
-# This runs the code invisibly (height=0) to securely place the button on your page!
-components.html(injection_js, height=0, width=0)
+st.subheader("A. Visual View")
+
+# Render everything inside a dedicated embedded window (height=500px ensures it fits comfortably)
+components.html(combined_html, height=500, scrolling=True)
+
 
 
 # =============================================================================================================================
