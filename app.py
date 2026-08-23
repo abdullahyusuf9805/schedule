@@ -1371,8 +1371,7 @@ else:
         # First column (Time column) is dark gray (#212121) with white text
         html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
-        row_cells = ["" ] * 5
-        # Track day-to-content mapping for this hour row
+        row_cells = [""] * 5
         row_cell_meta = [{} for _ in range(5)]
 
         for section in active_sched:
@@ -1391,18 +1390,16 @@ else:
         for idx, c in enumerate(row_cells):
             day_num = idx + 1 # 1: Sunday, 2: Monday, etc.
             
-            # Check for special very dark red slot: Monday (2) at 10 AM (10)
+            # Special slot for Monday (2) at 10 AM (10) set to exact hex #220306
             if not c and day_num == 2 and hour == 10:
-                cell_bg = "#4a1515" # Very dark red
+                cell_bg = "#220306"
                 cell_style = f"border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;"
                 html_grid += f"<td style='{cell_style}'></td>"
             elif c:
-                # Active course block cell (black background)
                 cell_bg = "#000000"
                 html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
             else:
-                # Empty cell with crossed lines pattern (matching dark theme)
-                # Creates a subtle crossed hatch pattern using repeating linear-gradients
+                # Empty cell with crossed lines pattern matching your dark color palette
                 crossed_lines_bg = (
                     "background-color: #000000; "
                     "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
