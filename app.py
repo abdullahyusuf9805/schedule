@@ -1351,9 +1351,9 @@ else:
         for b in section["blocks"]:
             active_hours.add(b["start_time"])
 
-    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #121212; color: #ffffff;'>"
+    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff;'>"
     html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-    html_grid += "<th style='border: 1px solid #333333; padding: 8px;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px;'>الخميس</th></tr>"
+    html_grid += "<th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #212121; padding: 8px; color: #ffffff;'>الخميس</th></tr>"
 
     col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
@@ -1361,9 +1361,10 @@ else:
     sorted_active_hours = sorted(list(active_hours))
 
     for hour in sorted_active_hours:
+        # Alternating strictly between black (#000000) and dark gray (#212121)
         bg_color = "#000000" if row_count % 2 == 0 else "#212121"
-        html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #333333;'>"
-        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
+        html_grid += f"<tr style='background-color: {bg_color}; border: 1px solid #212121;'>"
+        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #212121; padding: 8px;'><b>{hour}:00</b></td>"
 
         row_cells = [""] * 5
         for section in active_sched:
@@ -1375,15 +1376,15 @@ else:
                         sec_id = section.get('id', '')
                         raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
                         
-                        # Format exact layout requested: Course Code, then section (شـ) and hall (قــ)
-                        details_display = f"<br><small>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small>(شـ {sec_id})</small>"
+                        details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
                         
-                        row_cells[c_idx - 1] = f"<b>{code_val}</b>{details_display}"
+                        row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
 
         for c in row_cells:
-            cell_bg = "#ffffff" if c else "#212121"
-            cell_fg = "#000000" if c else "#888888"
-            html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
+            # Active cells use dark gray (#212121), empty cells use black (#000000). All text is white (#ffffff).
+            cell_bg = "#212121" if c else "#000000"
+            cell_fg = "#ffffff"
+            html_grid += f"<td style='border: 1px solid #212121; padding: 10px; background-color: {cell_bg}; color: {cell_fg};'>{c}</td>"
         html_grid += "</tr>"
         row_count += 1
 
@@ -1405,13 +1406,13 @@ else:
         code_val = s.get('code', '')
 
         excel_rows_html += "<tr>"
-        excel_rows_html += f'<td>{status_val}</td>'
-        excel_rows_html += f'<td>{teacher_val}</td>'
-        excel_rows_html += f'<td>{venue_val}</td>'
-        excel_rows_html += f'<td>{hall_val}</td>'
-        excel_rows_html += f'<td>{id_val}</td>'
-        excel_rows_html += f'<td>{name_val}</td>'
-        excel_rows_html += f'<td>{code_val}</td>'
+        excel_rows_html += f'<td style="color: #ffffff;">{status_val}</td>'
+        excel_rows_html += f'<td style="color: #ffffff;">{teacher_val}</td>'
+        excel_rows_html += f'<td style="color: #ffffff;">{venue_val}</td>'
+        excel_rows_html += f'<td style="color: #ffffff;">{hall_val}</td>'
+        excel_rows_html += f'<td style="color: #ffffff;">{id_val}</td>'
+        excel_rows_html += f'<td style="color: #ffffff;">{name_val}</td>'
+        excel_rows_html += f'<td style="color: #ffffff;">{code_val}</td>'
         excel_rows_html += "</tr>"
 
     excel_table_html = f"""
@@ -1421,15 +1422,20 @@ else:
             border-collapse: collapse !important;
             font-family: 'Tajawal', sans-serif !important;
             font-size: 14px !important;
-            background-color: #121212 !important;
+            background-color: #000000 !important;
             color: #ffffff !important;
         }}
         .custom-excel-table th, .custom-excel-table td {{
-            border: 1px solid #333333 !important;
+            border: 1px solid #212121 !important;
             padding: 12px 10px !important;
             text-align: center !important;
             vertical-align: middle !important;
             border-radius: 0px !important;
+            color: #ffffff !important;
+            background-color: #000000 !important;
+        }}
+        .custom-excel-table tr:nth-child(even) td {{
+            background-color: #212121 !important;
         }}
         .custom-excel-table th {{
             background-color: #212121 !important;
@@ -1457,42 +1463,6 @@ else:
     """
 
     st.markdown(excel_table_html, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    df_excel = pd.DataFrame([{
-        "رمز المقرر": s["code"],
-        "المقرر": s["name"],
-        "رقم الشعبة": s["id"],
-        "رقم القاعة": s["hall"],
-        "الوقت": s["venue"],
-        "المحاضر": s["teacher"],
-        "الحالة": s["status"],
-    } for s in active_sched])
-
-    try:
-        import openpyxl
-        excel_buffer = io.BytesIO()
-        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-            df_excel.to_excel(writer, index=False, sheet_name="Schedule")
-        
-        st.download_button(
-            label="📥 Download Current Schedule (Excel)",
-            data=excel_buffer.getvalue(),
-            file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
-        )
-    except ModuleNotFoundError:
-        st.error("Please add 'openpyxl' to your requirements.txt to enable Excel downloads.")
-        csv_data = df_excel.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Current Schedule (CSV Backup)",
-            data=csv_data,
-            file_name=f"Schedule_Option_{st.session_state.sched_idx + 1}.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
         
     st.markdown("---")
     st.markdown('<div class="center-download">', unsafe_allow_html=True)
