@@ -1558,9 +1558,9 @@ import io
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-def generate_exact_schedule_image(schedule):
-    # Create figure matching dark theme
-    fig, ax = plt.subplots(figsize=(10, 5), facecolor='#000000')
+def generate_exact_schedule_jpg(schedule):
+    # Enforce exact 17 width and 10 height
+    fig, ax = plt.subplots(figsize=(17, 10), facecolor='#000000')
     ax.set_facecolor('#000000')
     ax.axis("tight")
     ax.axis("off")
@@ -1598,24 +1598,23 @@ def generate_exact_schedule_image(schedule):
                 if c_idx is not None:
                     cell_matrix[r_idx][c_idx] = full_txt
 
-    table = ax.table(cellText=cell_matrix, colLabels=cols_reshaped, loc="center", cellLoc="center")
-    table.scale(1, 2.0)
+    # bbox=[0, 0, 1, 1] forces the table to stretch and divide evenly across the entire 17x10 canvas
+    table = ax.table(cellText=cell_matrix, colLabels=cols_reshaped, loc="center", cellLoc="center", bbox=[0, 0, 1, 1])
 
-    # Use Tajawal or clean system font
     available_fonts = fm.get_font_names()
     chosen_font = "Tajawal" if "Tajawal" in available_fonts else "Segoe UI"
 
     for (row, col), cell in table.get_celld().items():
         cell.set_edgecolor("#333333")
-        cell.set_linewidth(1.0)
+        cell.set_linewidth(1.5)
         
         if row == 0:
             cell.set_facecolor("#212121")
             t_obj = cell.get_text()
             t_obj.set_fontname(chosen_font)
-            t_obj.set_color("white")
+            t_obj.set_color("#ffffff")
             t_obj.set_weight("bold")
-            t_obj.set_fontsize(11)
+            t_obj.set_fontsize(16)
         else:
             r_idx = row - 1
             h_val = s_hours[r_idx]
@@ -1623,9 +1622,9 @@ def generate_exact_schedule_image(schedule):
                 cell.set_facecolor("#212121")
                 t_obj = cell.get_text()
                 t_obj.set_fontname(chosen_font)
-                t_obj.set_color("white")
+                t_obj.set_color("#ffffff")
                 t_obj.set_weight("bold")
-                t_obj.set_fontsize(11)
+                t_obj.set_fontsize(16)
             else:
                 day_num = 6 - col
                 txt = cell_matrix[r_idx][col]
@@ -1633,21 +1632,23 @@ def generate_exact_schedule_image(schedule):
                     cell.set_facecolor("#000000")
                     t_obj = cell.get_text()
                     t_obj.set_fontname(chosen_font)
-                    t_obj.set_color("white")
-                    t_obj.set_fontsize(10)
+                    t_obj.set_color("#ffffff")
+                    t_obj.set_fontsize(14)
+                    t_obj.set_weight("bold")
                 elif day_num == 2 and h_val == 10:
-                    cell.set_facecolor("#220306")  # Exact dark red slot for Monday 10 AM
+                    cell.set_facecolor("#220306")
                 else:
                     cell.set_facecolor("#000000")
 
     buf = io.BytesIO()
-    plt.savefig(buf, format="jpg", dpi=300, bbox_inches="tight", facecolor='#000000')
+    # pad_inches=0 ensures no extra white space ruins the exact 17x10 ratio
+    plt.savefig(buf, format="jpg", dpi=200, bbox_inches="tight", facecolor='#000000', pad_inches=0)
     buf.seek(0)
     plt.close(fig)
     return buf.getvalue()
 
-# Native One-Click Image Download Button
-image_bytes = generate_exact_schedule_image(active_sched)
+# --- NATIVE ONE-CLICK JPG DOWNLOAD BUTTON ---
+image_bytes = generate_exact_schedule_jpg(active_sched)
 st.download_button(
     label="📥 Download Schedule Image (.jpg)",
     data=image_bytes,
@@ -1655,6 +1656,7 @@ st.download_button(
     mime="image/jpeg",
     use_container_width=True
 )
+
 
 # =============================================================================================================================
 # =============================================================================================================================    
