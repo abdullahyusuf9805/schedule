@@ -1637,18 +1637,18 @@ combined_html = f"""
         const origPos = targetDiv.style.position;
         const origSize = targetDiv.style.fontSize;
 
-        targetDiv.style.width = "1700px";
-        targetDiv.style.height = "1000px";
+        targetDiv.style.width = "850px";
+        targetDiv.style.height = "500px";
         targetDiv.style.position = "absolute";
         targetDiv.style.fontSize = "24px"; // Scales up text to perfectly fill the 1700x1000 frame
 
         html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
             scale: 1, 
-            width: 1700,
-            height: 1000,
-            windowWidth: 1700,
-            windowHeight: 1000,
+            width: 850,
+            height: 500,
+            windowWidth: 850,
+            windowHeight: 500,
             useCORS: true
         }}).then(canvas => {{
             targetDiv.style.width = origW;
@@ -1657,7 +1657,7 @@ combined_html = f"""
             targetDiv.style.fontSize = origSize;
 
             const link = document.createElement('a');
-            link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
+            link.download = 'SEM03_TIMETABLE_850x500.jpg';
             link.href = canvas.toDataURL('image/jpeg', 1.0);
             link.click();
         }}).catch(err => {{
