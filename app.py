@@ -1250,6 +1250,8 @@ else:
 
     active_sched = schedules[st.session_state.sched_idx]
 
+
+
 # ==========================================
 # 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON
 # ==========================================
@@ -1318,12 +1320,12 @@ unified_visual_html = f"""
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }}
-        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 10px; }}
+        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 15px; }}
         #download-btn {{
             background-color: #212121;
             color: white;
             border: 1px solid #333333;
-            padding: 12px 20px;
+            padding: 14px 20px;
             font-family: 'Tajawal', sans-serif;
             font-size: 15px;
             border-radius: 6px;
@@ -1411,7 +1413,10 @@ unified_visual_html = f"""
 </html>
 """
 
-components.html(unified_visual_html, height=480, scrolling=False)
+# Increased component frame height to 550px to comfortably hold rows and button at any zoom level
+components.html(unified_visual_html, height=550, scrolling=False)
+
+
 # ==========================================
 # 15. B. EXCEL VIEW
 # ==========================================
