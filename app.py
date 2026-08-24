@@ -1560,23 +1560,24 @@ for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-html_grid = "<div style='width: 100%; overflow-x: auto; background-color: #000000; padding: 5px; box-sizing: border-box;'>"
-html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 100%; box-sizing: border-box;'>"
+# Outer scroll wrapper forces stable widescreen layout on mobile without squishing
+html_grid = "<div style='width: 100%; overflow-x: auto; background-color: #000000; padding: 5px; box-sizing: border-box; -webkit-overflow-scrolling: touch;'>"
+html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; margin: 0 auto;'>"
 html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الوقت</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الأحد</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الاثنين</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الثلاثاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الأربعاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الخميس</th></tr>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الوقت</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأحد</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الاثنين</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الثلاثاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأربعاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الخميس</th></tr>"
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
 
 for hour in sorted_active_hours:
     html_grid += "<tr style='background-color: #000000; border: 2px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 16px;'><b>{hour}:00</b></td>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 16px; white-space: nowrap;'><b>{hour}:00</b></td>"
 
     row_cells = [""] * 5
     for section in active_sched:
@@ -1587,9 +1588,9 @@ for hour in sorted_active_hours:
                     code_val = section.get('code', '')
                     sec_id = section.get('id', '')
                     raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    # Clean stacked layout: Course code on top, smaller lighter text on the line below
-                    details_display = f"<br><small style='color: #b0b0b0; font-size: 13px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #b0b0b0; font-size: 13px;'>(شـ {sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 17px;'>{code_val}</b>{details_display}"
+                    # Clean stacked layout with non-breaking spaces to protect line integrity
+                    details_display = f"<br><small style='color: #b0b0b0; font-size: 13px; white-space: nowrap;'>(شـ&nbsp;{sec_id}&nbsp;-&nbsp;قــ&nbsp;{raw_hall})</small>" if raw_hall else f"<br><small style='color: #b0b0b0; font-size: 13px; white-space: nowrap;'>(شـ&nbsp;{sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 17px; white-space: nowrap;'>{code_val}</b>{details_display}"
 
     for idx, c in enumerate(row_cells):
         day_num = idx + 1
@@ -1634,10 +1635,12 @@ combined_html = f"""
         const targetDiv = document.getElementById('schedule-capture-area');
         
         const origW = targetDiv.style.width;
+        const origMinWidth = targetDiv.style.minWidth;
         const origH = targetDiv.style.height;
         const origPos = targetDiv.style.position;
 
         targetDiv.style.width = "1700px";
+        targetDiv.style.minWidth = "1700px";
         targetDiv.style.height = "1000px";
         targetDiv.style.position = "absolute";
 
@@ -1651,6 +1654,7 @@ combined_html = f"""
             useCORS: true
         }}).then(canvas => {{
             targetDiv.style.width = origW;
+            targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
 
@@ -1661,6 +1665,7 @@ combined_html = f"""
         }}).catch(err => {{
             console.error("Screenshot failed: ", err);
             targetDiv.style.width = origW;
+            targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
             alert("Screenshot failed. Please try again.");
