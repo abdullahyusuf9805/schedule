@@ -67,8 +67,8 @@ st.markdown(
     [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
 
     /* =========================================
-       1,000,000% EXACT HTML PAGINATOR
-       ========================================= */
+        1,000,000% EXACT HTML PAGINATOR
+        ========================================= */
 
     #my-paginator { display: none !important; }
 
@@ -222,14 +222,12 @@ if st.session_state.get("captcha_img_bytes"):
     try:
         image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
         img = Image.open(image_stream).convert("RGB") 
-        # Invert colors (White background becomes black, dark text becomes bright)
         inverted_img = ImageOps.invert(img)
         rgba_img = inverted_img.convert("RGBA")
         data = rgba_img.getdata()
         
         new_data = []
         for item in data:
-            # Turn the new black background transparent
             if item[0] < 60 and item[1] < 60 and item[2] < 60:
                 new_data.append((255, 255, 255, 0)) 
             else:
@@ -248,7 +246,6 @@ st.markdown(
     <style>
         .stCaption {{display: none;}}
         
-        /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
         .stApp {{
             background-color: #000000;
             color: #ffffff;
@@ -286,7 +283,6 @@ st.markdown(
             text-align: center;
         }}
         
-        /* UI TIGHTENING CSS (Squish Elements in Card) */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {{
             padding: 0.2rem 0.8rem 0.2rem 0.8rem !important; 
             background-color: #1a1a1a !important;
@@ -295,7 +291,6 @@ st.markdown(
             margin-bottom: 12px !important;
         }}
         
-        /* Pull the button closer to the header text */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] {{
             margin-bottom: -10px !important;
         }}
@@ -308,7 +303,6 @@ st.markdown(
             margin-bottom: 0px !important; 
         }}
         
-        /* NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS */
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
         [data-testid="stTickBarMax"] {{
@@ -340,7 +334,6 @@ st.markdown(
             align-items: center !important;
         }}
 
-        /* CAPTCHA INJECTION & FORM STYLING */
         [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
             background-image: url("data:image/png;base64,{captcha_b64}") !important;
             background-position: right 6px center !important;
@@ -439,7 +432,6 @@ st.markdown(
             line-height: 1.3 !important;
         }}
 
-        /* FIX SPINNER ALIGNMENT */
         [data-testid="stSpinner"] {{
             align-items: center !important;
             margin-top: 10px !important;
@@ -456,7 +448,6 @@ st.markdown(
             margin: 0 !important;
             padding: 0 !important;
         }}
-        
     </style>
     """,
     unsafe_allow_html=True
@@ -700,7 +691,6 @@ def push_to_github(repo, file_path, content, commit_message):
 with st.sidebar.container(border=True):
     st.markdown("### 🌐 Sync Data From Portal")
     
-    # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
         if st.button("Login And Scrap Data from Portal", use_container_width=True):
             if os.path.exists("error_screenshot.png"):
@@ -713,9 +703,7 @@ with st.sidebar.container(border=True):
                 except Exception as e:
                     st.error(f"Error: {e}")
 
-    # --- PHASE 2: The UI Form ---
     else:
-        # Dynamically invert, remove background, and inject the CAPTCHA
         if st.session_state.get("captcha_img_bytes"):
             try:
                 image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
@@ -825,10 +813,9 @@ elif os.path.exists("data.html"):
         if file_html_content.strip():
             raw_df = parse_html_to_dataframe(file_html_content)
 
-# Safety kill switch
 if raw_df is None or raw_df.empty:
     if st.session_state.waiting_for_captcha:
-        pass # Let the user fill out the form
+        pass 
     else:
         st.error("⚠️ No schedule data found. Please login to fetch fresh data.")
         if os.path.exists("error_screenshot.png"):
@@ -842,31 +829,23 @@ if raw_df is None or raw_df.empty:
 with st.sidebar.container(border=True):
     st.markdown("### 📥 Export Raw Data")
     try:
-        import re
-        import os
-        import pandas as pd
-        
-        # 1. Extract and format the exact sync time & ID from data.html
         formatted_time = "UnknownTime"
         extracted_id = "UnknownID"
         
         if os.path.exists("data.html"):
             with open("data.html", "r", encoding="utf-8") as f:
-                content = f.read(500) # Increased size to catch both comments
+                content = f.read(500)
                 
-                # Get Time
                 match_time = re.search(r'<!-- SYNC_TIME:\s*(.*?)\s*-->', content)
                 if match_time:
                     raw_time_str = match_time.group(1)
                     parsed_time = pd.to_datetime(raw_time_str) 
                     formatted_time = parsed_time.strftime("%d%m%y%H%M")
                     
-                # Get Student ID
                 match_id = re.search(r'<!-- STUDENT_ID:\s*(.*?)\s*-->', content)
                 if match_id:
                     extracted_id = match_id.group(1).strip()
         
-        # 2. Build the exact filename requested
         excel_filename = f"MATROOHAT ({extracted_id}) {formatted_time}.xlsx"
         
         raw_excel_buffer = io.BytesIO()
@@ -916,11 +895,6 @@ if parsed_df.empty:
     st.error("⚠️ The scraped data contains no valid schedule blocks. The university portal might be empty.")
     st.stop()
 
-# =========================================================================================================================
-# =========================================================================================================================
-# ===============================================Filters===================================================================
-# =========================================================================================================================
-# =========================================================================================================================
 
 # ==========================================
 # 9. PURE NATIVE STREAMLIT FILTERS (Tight UI)
@@ -1123,7 +1097,6 @@ with st.sidebar.expander("⚙️ Filter By teachers", expanded=st.session_state[
 
             subject_rules[subj] = {"ban": banned_t, "require": required_t}
 
-# Process the rules correctly
 for subj, rules in subject_rules.items():
     if rules["ban"]:
         valid_blocks_df = valid_blocks_df[
@@ -1141,12 +1114,10 @@ for subj, rules in subject_rules.items():
         ]
 
 
-
 # ==========================================
 # 12. DATA GROUPING & SOLVER
 # ==========================================
 sections_by_subject = {}
-# Use an ordered collection to preserve the exact appearance order from raw_df
 for code, group in valid_blocks_df.groupby("CODE", sort=False):
     sections_by_subject[str(code)] = []
     for sec_id, sec_group in group.groupby("ID", sort=False):
@@ -1230,133 +1201,8 @@ def calculate_schedule_score(schedule):
 schedules = sorted(schedules, key=calculate_schedule_score)
 
 # ==========================================
-# 13. IMAGE GENERATOR & UI RENDERING
+# 13. SCHEDULER SELECTOR UI
 # ==========================================
-
-def fix_arabic(text):
-    if not text.strip():
-        return ""
-    return get_display(arabic_reshaper.reshape(str(text)))
-
-def draw_schedule_image(schedule):
-    import matplotlib.font_manager as fm
-    
-    # Setup figure with dark background
-    fig, ax = plt.subplots(figsize=(12, 7), facecolor='#000000')
-    ax.set_facecolor('#000000')
-    ax.axis("tight")
-    ax.axis("off")
-
-    # Correct right-to-left column headers matching visual view
-    cols = ["الوقت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"]
-    cols_reshaped = [fix_arabic(c) for c in cols]
-
-    # Dynamically find active hours just like the visual view
-    active_hours = set()
-    for section in schedule:
-        for b in section["blocks"]:
-            active_hours.add(b["start_time"])
-    sorted_hours = sorted(list(active_hours))
-
-    if not sorted_hours:
-        sorted_hours = list(range(8, 13))
-
-    num_rows = len(sorted_hours)
-    cell_text = [["" for _ in range(6)] for _ in range(num_rows)]
-    cell_details = [["" for _ in range(6)] for _ in range(num_rows)]
-    
-    # Map day numbers to column index (Sunday=1 -> col 1, Monday=2 -> col 2, etc.)
-    col_map = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-
-    for row_idx, hour in enumerate(sorted_hours):
-        cell_text[row_idx][0] = f"{hour}:00"
-
-    for section in schedule:
-        code_val = section['code']
-        sec_id = section['id']
-        raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-        hall_str = f" - قــ {raw_hall}" if raw_hall else ""
-        
-        main_label = fix_arabic(code_val)
-        sub_label = fix_arabic(f"(شـ {sec_id}{hall_str})")
-
-        for b in section["blocks"]:
-            if b["start_time"] in sorted_hours:
-                row_idx = sorted_hours.index(b["start_time"])
-                col_idx = col_map.get(b["day"])
-                if col_idx is not None:
-                    cell_text[row_idx][col_idx] = main_label
-                    cell_details[row_idx][col_idx] = sub_label
-
-    # Build Matplotlib table
-    table = ax.table(
-        cellText=[["" for _ in range(6)] for _ in range(num_rows)],
-        colLabels=cols_reshaped,
-        loc="center",
-        cellLoc="center",
-    )
-    table.scale(1, 2.5)
-
-    # Check available system font safely
-    available_fonts = fm.get_font_names()
-    chosen_font = "Tajawal" if "Tajawal" in available_fonts else "Segoe UI"
-
-    # Style cells to match the dark theme, borders, and colors precisely
-    for (row, col), cell in table.get_celld().items():
-        cell.set_edgecolor("#333333")
-        cell.set_linewidth(1.0)
-        
-        if row == 0:
-            # Header Row (Dark Gray)
-            cell.set_facecolor("#212121")
-            text_obj = cell.get_text()
-            text_obj.set_text(cols_reshaped[col])
-            text_obj.set_fontname(chosen_font)
-            text_obj.set_fontsize(13)
-            text_obj.set_color("white")
-            text_obj.set_weight("bold")
-        else:
-            r_idx = row - 1
-            hour_val = sorted_hours[r_idx]
-            
-            if col == 0:
-                # Time Column (Dark Gray)
-                cell.set_facecolor("#212121")
-                text_obj = cell.get_text()
-                text_obj.set_text(cell_text[r_idx][0])
-                text_obj.set_fontname(chosen_font)
-                text_obj.set_fontsize(12)
-                text_obj.set_color("white")
-                text_obj.set_weight("bold")
-            else:
-                day_num = 6 - col  # Maps back columns to days (Sunday=1 to Thursday=5)
-                has_content = cell_text[r_idx][col] != ""
-                
-                if has_content:
-                    # Active Class Cell (Solid Black)
-                    cell.set_facecolor("#000000")
-                    main_str = cell_text[r_idx][col]
-                    sub_str = cell_details[r_idx][col]
-                    text_obj = cell.get_text()
-                    text_obj.set_text(f"{main_str}\n{sub_str}")
-                    text_obj.set_fontname(chosen_font)
-                    text_obj.set_fontsize(11)
-                    text_obj.set_color("white")
-                elif day_num == 2 and hour_val == 10:
-                    # Special red slot for Monday 10:00 AM (#220306)
-                    cell.set_facecolor("#220306")
-                    cell.get_text().set_text("")
-                else:
-                    # Empty cell (Solid Black)
-                    cell.set_facecolor("#000000")
-                    cell.get_text().set_text("")
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format="jpg", dpi=300, bbox_inches="tight", facecolor='#000000')
-    buf.seek(0)
-    plt.close(fig)
-    return buf.getvalue()
-
 if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
@@ -1404,12 +1250,10 @@ else:
         st.rerun()
 
     active_sched = schedules[st.session_state.sched_idx]
-# =============================================================================================================================
-# =============================================================================================================================
-# =============================================================================================================================
-import streamlit.components.v1 as components
 
-# --- 1. BUILD THE HTML TABLE ---
+# ==========================================
+# 14. VISUAL VIEW TABLE & DOWNLOAD BUTTON
+# ==========================================
 active_hours = set()
 for section in active_sched:
     for b in section["blocks"]:
@@ -1464,7 +1308,6 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# --- 2. RENDER VISUAL VIEW TABLE ---
 table_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1496,7 +1339,6 @@ table_html = f"""
 st.subheader("A. Visual View")
 components.html(table_html, height=430, scrolling=False)
 
-# --- 3. DOWNLOAD BUTTON (Cleanly separated below visual view) ---
 button_html = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1563,6 +1405,13 @@ button_html = """
 """
 components.html(button_html, height=60, scrolling=False)
 
-# --- 4. RENDER EXCEL VIEW BACK BELOW ---
+# ==========================================
+# 15. B. EXCEL VIEW
+# ==========================================
 st.subheader("B. Excel View")
-# Put your original Excel table / dataframe rendering code right here!
+excel_df = pd.DataFrame(active_sched)
+if not excel_df.empty:
+    cols_to_show = [c for c in ["code", "name", "id", "hall", "venue", "teacher", "status"] if c in excel_df.columns]
+    st.dataframe(excel_df[cols_to_show], use_container_width=True)
+else:
+    st.info("No schedule data available for Excel view.")
