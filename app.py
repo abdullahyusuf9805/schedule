@@ -1253,7 +1253,7 @@ else:
 
 
 # ==========================================
-# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON
+# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON (100% BULLETPROOF)
 # ==========================================
 st.subheader("A. Visual View")
 
@@ -1311,38 +1311,7 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# Render the scaling table component with a generous height buffer
-table_only_html = f"""
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }}</style>
-</head>
-<body>
-    {html_grid}
-    <script>
-    function resizeTable() {{
-        const wrapper = document.querySelector('.scaler-wrapper');
-        const targetDiv = document.getElementById('schedule-capture-area');
-        const availableWidth = wrapper.parentElement.clientWidth || window.innerWidth;
-        const scale = availableWidth / 900;
-        targetDiv.style.transform = `scale(${{scale}})`;
-        wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
-    }}
-    window.addEventListener('resize', resizeTable);
-    window.addEventListener('load', resizeTable);
-    setTimeout(resizeTable, 50);
-    </script>
-</body>
-</html>
-"""
-components.html(table_only_html, height=400, scrolling=False)
-
-# Native HTML/JS Button completely outside the table iframe to guarantee 100% visibility
-button_native_html = """
+bulletproof_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1350,8 +1319,9 @@ button_native_html = """
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
-        .dl-btn {
+        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: visible; }}
+        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; }}
+        #download-btn {{
             background-color: #212121;
             color: white;
             border: 1px solid #333333;
@@ -1361,21 +1331,53 @@ button_native_html = """
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
+            max-width: 900px;
             font-weight: bold;
+            margin-top: 15px;
             box-sizing: border-box;
             transition: 0.2s;
-        }
-        .dl-btn:hover { background-color: #333333; }
+        }}
+        #download-btn:hover {{ background-color: #333333; }}
     </style>
 </head>
 <body>
-    <button class="dl-btn" onclick="takeScreenshot()">📸 Take Screenshot & Download (.jpg)</button>
+    <div id="container">
+        {html_grid}
+        <button id="download-btn" onclick="takeScreenshot()">📸 Take Screenshot & Download (.jpg)</button>
+    </div>
+
     <script>
-    function takeScreenshot() {
-        const iframe = window.parent.document.querySelector('iframe');
-        if (!iframe) return;
-        const innerDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const targetDiv = innerDoc.getElementById('schedule-capture-area');
+    function resizeTable() {{
+        const wrapper = document.querySelector('.scaler-wrapper');
+        const targetDiv = document.getElementById('schedule-capture-area');
+        const availableWidth = wrapper.parentElement.clientWidth || window.innerWidth;
+        
+        const scale = availableWidth / 900;
+        targetDiv.style.transform = `scale(${{scale}})`;
+        const scaledHeight = targetDiv.offsetHeight * scale;
+        wrapper.style.height = `${{scaledHeight}}px`;
+        
+        // Dynamically match body height so iframe never cuts off
+        document.body.style.height = (scaledHeight + 70) + 'px';
+        if (window.parent && window.parent.document) {{
+            const iframes = window.parent.document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {{
+                try {{
+                    if (iframe.contentWindow === window) {{
+                        iframe.style.height = (scaledHeight + 80) + 'px';
+                    }}
+                }} catch(e) {{}}
+            }});
+        }}
+    }}
+
+    window.addEventListener('resize', resizeTable);
+    window.addEventListener('load', resizeTable);
+    setTimeout(resizeTable, 50);
+    setTimeout(resizeTable, 300);
+
+    function takeScreenshot() {{
+        const targetDiv = document.getElementById('schedule-capture-area');
         
         const origTransform = targetDiv.style.transform;
         const origW = targetDiv.style.width;
@@ -1389,7 +1391,7 @@ button_native_html = """
         targetDiv.style.height = "1000px";
         targetDiv.style.position = "absolute";
 
-        html2canvas(targetDiv, { 
+        html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
             scale: 1, 
             width: 1700,
@@ -1397,31 +1399,36 @@ button_native_html = """
             windowWidth: 1700,
             windowHeight: 1000,
             useCORS: true
-        }).then(canvas => {
+        }}).then(canvas => {{
             targetDiv.style.transform = origTransform;
             targetDiv.style.width = origW;
             targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
+            resizeTable();
 
             const link = document.createElement('a');
             link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
             link.href = canvas.toDataURL('image/jpeg', 1.0);
             link.click();
-        }).catch(err => {
+        }}).catch(err => {{
             console.error("Screenshot failed: ", err);
             targetDiv.style.transform = origTransform;
             targetDiv.style.width = origW;
             targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
-        });
-    }
+            resizeTable();
+            alert("Screenshot failed. Please try again.");
+        }});
+    }}
     </script>
 </body>
 </html>
 """
-components.html(button_native_html, height=65, scrolling=False)
+
+# Generous base height with auto-resizing script tracking zoom changes
+components.html(bulletproof_html, height=520, scrolling=False)
 
 
 # ==========================================
