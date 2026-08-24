@@ -1550,13 +1550,10 @@ else:
     st.markdown(excel_table_html, unsafe_allow_html=True)
 
 # =============================================================================================================================
+# BUTTON FOR DOWNLOADING SCHEDULE IN VISUAL VIEW ==============================================================================
 # =============================================================================================================================    
-# =============================================================================================================================    
-
-
 import streamlit.components.v1 as components
 
-# --- 1. BUILD THE HTML TABLE ---
 active_hours = set()
 for section in active_sched:
     for b in section["blocks"]:
@@ -1610,7 +1607,6 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div>"
 
-# --- 2. BUNDLE TABLE & JS BUTTON INTO ONE SECURE COMPONENT ---
 combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1685,10 +1681,7 @@ combined_html = f"""
 
 st.subheader("A. Visual View")
 
-# Render everything inside a dedicated embedded window. 
-# Height is set to 600px so the button is clearly visible below the table in the UI.
 components.html(combined_html, height=600, scrolling=True)
-
 
 # =============================================================================================================================
 # =============================================================================================================================    
