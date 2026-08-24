@@ -1253,7 +1253,7 @@ else:
 
 
 # ==========================================
-# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON (100% BULLETPROOF FLUID BLOCK)
+# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON (100% NATIVE STREAMLIT)
 # ==========================================
 st.subheader("A. Visual View")
 
@@ -1262,8 +1262,8 @@ for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-html_grid = "<div class='scaler-wrapper' style='width: 100%; display: flex; justify-content: center; overflow: hidden; background-color: #000000;'>"
-html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; transform-origin: top center;'>"
+html_grid = "<div style='width: 100%; display: flex; justify-content: center; overflow-x: auto; background-color: #000000; padding: 10px 0;'>"
+html_grid += "<div style='background-color: #000000; padding: 10px; width: 100%; max-width: 900px; box-sizing: border-box;'>"
 html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الوقت</th>"
@@ -1311,113 +1311,19 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# Calculate a safe minimum pixel height based on row count so it never collapses
-calculated_min_height = 180 + (len(sorted_active_hours) * 65)
+st.markdown(html_grid, unsafe_allow_html=True)
 
-bulletproof_unified_html = f"""
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }}
-        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; }}
-        #download-btn {{
-            background-color: #212121;
-            color: white;
-            border: 1px solid #333333;
-            padding: 14px 20px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 900px;
-            font-weight: bold;
-            margin-top: 15px;
-            box-sizing: border-box;
-            transition: 0.2s;
-        }}
-        #download-btn:hover {{ background-color: #333333; }}
-    </style>
-</head>
-<body>
-    <div id="container">
-        {html_grid}
-        <button id="download-btn" onclick="takeScreenshot()">📸 Take Screenshot & Download (.jpg)</button>
-    </div>
+# Generate high-res image using your Matplotlib function for the download button
+img_bytes = draw_schedule_image(active_sched)
+st.download_button(
+    label="📸 Take Screenshot & Download (.jpg)",
+    data=img_bytes,
+    file_name="SEM03_TIMETABLE.jpg",
+    mime="image/jpeg",
+    use_container_width=True
+)
 
-    <script>
-    function resizeTable() {{
-        const wrapper = document.querySelector('.scaler-wrapper');
-        const targetDiv = document.getElementById('schedule-capture-area');
-        const availableWidth = wrapper.parentElement.clientWidth || window.innerWidth;
-        
-        const scale = availableWidth / 900;
-        targetDiv.style.transform = `scale(${{scale}})`;
-        const scaledHeight = targetDiv.offsetHeight * scale;
-        wrapper.style.height = `${{scaledHeight}}px`;
-    }}
 
-    window.addEventListener('resize', resizeTable);
-    window.addEventListener('load', resizeTable);
-    setTimeout(resizeTable, 50);
-
-    function takeScreenshot() {{
-        const targetDiv = document.getElementById('schedule-capture-area');
-        
-        const origTransform = targetDiv.style.transform;
-        const origW = targetDiv.style.width;
-        const origMinWidth = targetDiv.style.minWidth;
-        const origH = targetDiv.style.height;
-        const origPos = targetDiv.style.position;
-
-        targetDiv.style.transform = 'scale(1)';
-        targetDiv.style.width = "1700px";
-        targetDiv.style.minWidth = "1700px";
-        targetDiv.style.height = "1000px";
-        targetDiv.style.position = "absolute";
-
-        html2canvas(targetDiv, {{ 
-            backgroundColor: '#000000', 
-            scale: 1, 
-            width: 1700,
-            height: 1000,
-            windowWidth: 1700,
-            windowHeight: 1000,
-            useCORS: true
-        }}).then(canvas => {{
-            targetDiv.style.transform = origTransform;
-            targetDiv.style.width = origW;
-            targetDiv.style.minWidth = origMinWidth;
-            targetDiv.style.height = origH;
-            targetDiv.style.position = origPos;
-            resizeTable();
-
-            const link = document.createElement('a');
-            link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 1.0);
-            link.click();
-        }}).catch(err => {{
-            console.error("Screenshot failed: ", err);
-            targetDiv.style.transform = origTransform;
-            targetDiv.style.width = origW;
-            targetDiv.style.minWidth = origMinWidth;
-            targetDiv.style.height = origH;
-            targetDiv.style.position = origPos;
-            resizeTable();
-            alert("Screenshot failed. Please try again.");
-        }});
-    }}
-    </script>
-</body>
-</html>
-"""
-
-# Generous fixed component height of 650px to ensure rows and button are never clipped
-components.html(bulletproof_unified_html, height=650, scrolling=False)
 
 # ==========================================
 # 15. B. EXCEL VIEW
