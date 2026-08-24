@@ -67,8 +67,8 @@ st.markdown(
     [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
 
     /* =========================================
-        1,000,000% EXACT HTML PAGINATOR
-        ========================================= */
+       1,000,000% EXACT HTML PAGINATOR
+       ========================================= */
 
     #my-paginator { display: none !important; }
 
@@ -208,6 +208,7 @@ elif os.path.exists("data.html"):
 time_match = re.search(r"<!-- SYNC_TIME: (.*?) -->", html_content)
 updated_str = time_match.group(1) if time_match else "No data file found"
 
+# Display Last Update on the Main Page
 st.markdown(
     f"<p style='color: #a0a0a0; font-size: 15px; margin-top: -5px; margin-bottom: 10px;'>"
     f"<b>LAST UPDATE:</b> {updated_str}"
@@ -221,12 +222,14 @@ if st.session_state.get("captcha_img_bytes"):
     try:
         image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
         img = Image.open(image_stream).convert("RGB") 
+        # Invert colors (White background becomes black, dark text becomes bright)
         inverted_img = ImageOps.invert(img)
         rgba_img = inverted_img.convert("RGBA")
         data = rgba_img.getdata()
         
         new_data = []
         for item in data:
+            # Turn the new black background transparent
             if item[0] < 60 and item[1] < 60 and item[2] < 60:
                 new_data.append((255, 255, 255, 0)) 
             else:
@@ -245,6 +248,7 @@ st.markdown(
     <style>
         .stCaption {{display: none;}}
         
+        /* 4-Color Theme: Black, Dark Gray, Light Gray, White */
         .stApp {{
             background-color: #000000;
             color: #ffffff;
@@ -282,6 +286,7 @@ st.markdown(
             text-align: center;
         }}
         
+        /* UI TIGHTENING CSS (Squish Elements in Card) */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {{
             padding: 0.2rem 0.8rem 0.2rem 0.8rem !important; 
             background-color: #1a1a1a !important;
@@ -290,6 +295,7 @@ st.markdown(
             margin-bottom: 12px !important;
         }}
         
+        /* Pull the button closer to the header text */
         [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] {{
             margin-bottom: -10px !important;
         }}
@@ -302,6 +308,7 @@ st.markdown(
             margin-bottom: 0px !important; 
         }}
         
+        /* NUCLEAR CSS: DESTROY TOOLTIPS & TICK BARS */
         [data-testid="stTickBar"], 
         [data-testid="stTickBarMin"], 
         [data-testid="stTickBarMax"] {{
@@ -333,6 +340,7 @@ st.markdown(
             align-items: center !important;
         }}
 
+        /* CAPTCHA INJECTION & FORM STYLING */
         [data-testid="stSidebar"] input[aria-label^="CAPTCHA"] {{
             background-image: url("data:image/png;base64,{captcha_b64}") !important;
             background-position: right 6px center !important;
@@ -431,6 +439,7 @@ st.markdown(
             line-height: 1.3 !important;
         }}
 
+        /* FIX SPINNER ALIGNMENT */
         [data-testid="stSpinner"] {{
             align-items: center !important;
             margin-top: 10px !important;
@@ -447,6 +456,7 @@ st.markdown(
             margin: 0 !important;
             padding: 0 !important;
         }}
+        
     </style>
     """,
     unsafe_allow_html=True
@@ -690,6 +700,7 @@ def push_to_github(repo, file_path, content, commit_message):
 with st.sidebar.container(border=True):
     st.markdown("### 🌐 Sync Data From Portal")
     
+    # --- PHASE 1: Fetch Captcha Session ---
     if not st.session_state.waiting_for_captcha:
         if st.button("Login And Scrap Data from Portal", use_container_width=True):
             if os.path.exists("error_screenshot.png"):
@@ -702,7 +713,9 @@ with st.sidebar.container(border=True):
                 except Exception as e:
                     st.error(f"Error: {e}")
 
+    # --- PHASE 2: The UI Form ---
     else:
+        # Dynamically invert, remove background, and inject the CAPTCHA
         if st.session_state.get("captcha_img_bytes"):
             try:
                 image_stream = io.BytesIO(st.session_state.captcha_img_bytes)
@@ -812,9 +825,10 @@ elif os.path.exists("data.html"):
         if file_html_content.strip():
             raw_df = parse_html_to_dataframe(file_html_content)
 
+# Safety kill switch
 if raw_df is None or raw_df.empty:
     if st.session_state.waiting_for_captcha:
-        pass 
+        pass # Let the user fill out the form
     else:
         st.error("⚠️ No schedule data found. Please login to fetch fresh data.")
         if os.path.exists("error_screenshot.png"):
@@ -828,23 +842,31 @@ if raw_df is None or raw_df.empty:
 with st.sidebar.container(border=True):
     st.markdown("### 📥 Export Raw Data")
     try:
+        import re
+        import os
+        import pandas as pd
+        
+        # 1. Extract and format the exact sync time & ID from data.html
         formatted_time = "UnknownTime"
         extracted_id = "UnknownID"
         
         if os.path.exists("data.html"):
             with open("data.html", "r", encoding="utf-8") as f:
-                content = f.read(500)
+                content = f.read(500) # Increased size to catch both comments
                 
+                # Get Time
                 match_time = re.search(r'<!-- SYNC_TIME:\s*(.*?)\s*-->', content)
                 if match_time:
                     raw_time_str = match_time.group(1)
                     parsed_time = pd.to_datetime(raw_time_str) 
                     formatted_time = parsed_time.strftime("%d%m%y%H%M")
                     
+                # Get Student ID
                 match_id = re.search(r'<!-- STUDENT_ID:\s*(.*?)\s*-->', content)
                 if match_id:
                     extracted_id = match_id.group(1).strip()
         
+        # 2. Build the exact filename requested
         excel_filename = f"MATROOHAT ({extracted_id}) {formatted_time}.xlsx"
         
         raw_excel_buffer = io.BytesIO()
@@ -894,6 +916,11 @@ if parsed_df.empty:
     st.error("⚠️ The scraped data contains no valid schedule blocks. The university portal might be empty.")
     st.stop()
 
+# =========================================================================================================================
+# =========================================================================================================================
+# ===============================================Filters===================================================================
+# =========================================================================================================================
+# =========================================================================================================================
 
 # ==========================================
 # 9. PURE NATIVE STREAMLIT FILTERS (Tight UI)
@@ -1096,6 +1123,7 @@ with st.sidebar.expander("⚙️ Filter By teachers", expanded=st.session_state[
 
             subject_rules[subj] = {"ban": banned_t, "require": required_t}
 
+# Process the rules correctly
 for subj, rules in subject_rules.items():
     if rules["ban"]:
         valid_blocks_df = valid_blocks_df[
@@ -1113,10 +1141,12 @@ for subj, rules in subject_rules.items():
         ]
 
 
+
 # ==========================================
 # 12. DATA GROUPING & SOLVER
 # ==========================================
 sections_by_subject = {}
+# Use an ordered collection to preserve the exact appearance order from raw_df
 for code, group in valid_blocks_df.groupby("CODE", sort=False):
     sections_by_subject[str(code)] = []
     for sec_id, sec_group in group.groupby("ID", sort=False):
@@ -1200,8 +1230,133 @@ def calculate_schedule_score(schedule):
 schedules = sorted(schedules, key=calculate_schedule_score)
 
 # ==========================================
-# 13. SCHEDULER SELECTOR UI
+# 13. IMAGE GENERATOR & UI RENDERING
 # ==========================================
+
+def fix_arabic(text):
+    if not text.strip():
+        return ""
+    return get_display(arabic_reshaper.reshape(str(text)))
+
+def draw_schedule_image(schedule):
+    import matplotlib.font_manager as fm
+    
+    # Setup figure with dark background
+    fig, ax = plt.subplots(figsize=(12, 7), facecolor='#000000')
+    ax.set_facecolor('#000000')
+    ax.axis("tight")
+    ax.axis("off")
+
+    # Correct right-to-left column headers matching visual view
+    cols = ["الوقت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"]
+    cols_reshaped = [fix_arabic(c) for c in cols]
+
+    # Dynamically find active hours just like the visual view
+    active_hours = set()
+    for section in schedule:
+        for b in section["blocks"]:
+            active_hours.add(b["start_time"])
+    sorted_hours = sorted(list(active_hours))
+
+    if not sorted_hours:
+        sorted_hours = list(range(8, 13))
+
+    num_rows = len(sorted_hours)
+    cell_text = [["" for _ in range(6)] for _ in range(num_rows)]
+    cell_details = [["" for _ in range(6)] for _ in range(num_rows)]
+    
+    # Map day numbers to column index (Sunday=1 -> col 1, Monday=2 -> col 2, etc.)
+    col_map = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+
+    for row_idx, hour in enumerate(sorted_hours):
+        cell_text[row_idx][0] = f"{hour}:00"
+
+    for section in schedule:
+        code_val = section['code']
+        sec_id = section['id']
+        raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+        hall_str = f" - قــ {raw_hall}" if raw_hall else ""
+        
+        main_label = fix_arabic(code_val)
+        sub_label = fix_arabic(f"(شـ {sec_id}{hall_str})")
+
+        for b in section["blocks"]:
+            if b["start_time"] in sorted_hours:
+                row_idx = sorted_hours.index(b["start_time"])
+                col_idx = col_map.get(b["day"])
+                if col_idx is not None:
+                    cell_text[row_idx][col_idx] = main_label
+                    cell_details[row_idx][col_idx] = sub_label
+
+    # Build Matplotlib table
+    table = ax.table(
+        cellText=[["" for _ in range(6)] for _ in range(num_rows)],
+        colLabels=cols_reshaped,
+        loc="center",
+        cellLoc="center",
+    )
+    table.scale(1, 2.5)
+
+    # Check available system font safely
+    available_fonts = fm.get_font_names()
+    chosen_font = "Tajawal" if "Tajawal" in available_fonts else "Segoe UI"
+
+    # Style cells to match the dark theme, borders, and colors precisely
+    for (row, col), cell in table.get_celld().items():
+        cell.set_edgecolor("#333333")
+        cell.set_linewidth(1.0)
+        
+        if row == 0:
+            # Header Row (Dark Gray)
+            cell.set_facecolor("#212121")
+            text_obj = cell.get_text()
+            text_obj.set_text(cols_reshaped[col])
+            text_obj.set_fontname(chosen_font)
+            text_obj.set_fontsize(13)
+            text_obj.set_color("white")
+            text_obj.set_weight("bold")
+        else:
+            r_idx = row - 1
+            hour_val = sorted_hours[r_idx]
+            
+            if col == 0:
+                # Time Column (Dark Gray)
+                cell.set_facecolor("#212121")
+                text_obj = cell.get_text()
+                text_obj.set_text(cell_text[r_idx][0])
+                text_obj.set_fontname(chosen_font)
+                text_obj.set_fontsize(12)
+                text_obj.set_color("white")
+                text_obj.set_weight("bold")
+            else:
+                day_num = 6 - col  # Maps back columns to days (Sunday=1 to Thursday=5)
+                has_content = cell_text[r_idx][col] != ""
+                
+                if has_content:
+                    # Active Class Cell (Solid Black)
+                    cell.set_facecolor("#000000")
+                    main_str = cell_text[r_idx][col]
+                    sub_str = cell_details[r_idx][col]
+                    text_obj = cell.get_text()
+                    text_obj.set_text(f"{main_str}\n{sub_str}")
+                    text_obj.set_fontname(chosen_font)
+                    text_obj.set_fontsize(11)
+                    text_obj.set_color("white")
+                elif day_num == 2 and hour_val == 10:
+                    # Special red slot for Monday 10:00 AM (#220306)
+                    cell.set_facecolor("#220306")
+                    cell.get_text().set_text("")
+                else:
+                    # Empty cell (Solid Black)
+                    cell.set_facecolor("#000000")
+                    cell.get_text().set_text("")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="jpg", dpi=300, bbox_inches="tight", facecolor='#000000')
+    buf.seek(0)
+    plt.close(fig)
+    return buf.getvalue()
+
 if not schedules:
     st.warning("No Valid Schedule Found.")
 else:
@@ -1249,149 +1404,151 @@ else:
         st.rerun()
 
     active_sched = schedules[st.session_state.sched_idx]
+# =============================================================================================================================
+# =============================================================================================================================
+# =============================================================================================================================
 
-
-
-# ==========================================
-# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON (100% NATIVE STREAMLIT)
-# ==========================================
-st.subheader("A. Visual View")
-
-active_hours = set()
-for section in active_sched:
-    for b in section["blocks"]:
-        active_hours.add(b["start_time"])
-
-html_grid = "<div style='width: 100%; display: flex; justify-content: center; overflow-x: auto; background-color: #000000; padding: 10px 0;'>"
-html_grid += "<div style='background-color: #000000; padding: 10px; width: 100%; max-width: 900px; box-sizing: border-box;'>"
-html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
-html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الوقت</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأحد</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الاثنين</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الثلاثاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأربعاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الخميس</th></tr>"
-
-col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-sorted_active_hours = sorted(list(active_hours))
-
-for hour in sorted_active_hours:
-    html_grid += "<tr style='background-color: #000000; border: 2px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 16px; white-space: nowrap;'><b>{hour}:00</b></td>"
-
-    row_cells = [""] * 5
+# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
+    st.subheader("A. Visual View")
+    
+    active_hours = set()
     for section in active_sched:
         for b in section["blocks"]:
-            if b["start_time"] == hour:
-                c_idx = col_map_html.get(b["day"])
-                if c_idx:
-                    code_val = section.get('code', '')
-                    sec_id = section.get('id', '')
-                    raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    details_display = f"<br><small style='color: #b0b0b0; font-size: 13px; white-space: nowrap;'>(شـ&nbsp;{sec_id}&nbsp;-&nbsp;قــ&nbsp;{raw_hall})</small>" if raw_hall else f"<br><small style='color: #b0b0b0; font-size: 13px; white-space: nowrap;'>(شـ&nbsp;{sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 17px; white-space: nowrap;'>{code_val}</b>{details_display}"
+            active_hours.add(b["start_time"])
 
-    for idx, c in enumerate(row_cells):
-        day_num = idx + 1
-        if not c and day_num == 2 and hour == 10:
-            html_grid += "<td style='border: 2px solid #333333; padding: 12px; background-color: #220306;'></td>"
-        elif c:
-            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; background-color: #000000; color: #ffffff;'>{c}</td>"
-        else:
-            crossed_lines_bg = (
-                "background-color: #000000; "
-                "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
-                "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
-                "linear-gradient(45deg, transparent 75%, #16261a 75%), "
-                "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
-                "background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"
-            )
-            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; {crossed_lines_bg}'></td>"
-    html_grid += "</tr>"
-html_grid += "</table></div></div>"
+    # Table background set to black, grid lines set to subtle dark gray (#333333)
+    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
+    
+    # First row (Header) is dark gray (#212121) with white text and dark gray borders
+    html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
+    html_grid += "<th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الخميس</th></tr>"
 
-st.markdown(html_grid, unsafe_allow_html=True)
+    col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 
-# Generate high-res image using your Matplotlib function for the download button
-img_bytes = draw_schedule_image(active_sched)
-st.download_button(
-    label="📸 Take Screenshot & Download (.jpg)",
-    data=img_bytes,
-    file_name="SEM03_TIMETABLE.jpg",
-    mime="image/jpeg",
-    use_container_width=True
-)
+    sorted_active_hours = sorted(list(active_hours))
 
+    for hour in sorted_active_hours:
+        html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
+        
+        # First column (Time column) is dark gray (#212121) with white text
+        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
 
+        row_cells = [""] * 5
+        row_cell_meta = [{} for _ in range(5)]
 
-# ==========================================
-# 15. B. EXCEL VIEW
-# ==========================================
-st.subheader("B. Excel View")
+        for section in active_sched:
+            for b in section["blocks"]:
+                if b["start_time"] == hour:
+                    c_idx = col_map_html.get(b["day"])
+                    if c_idx:
+                        code_val = section.get('code', '')
+                        sec_id = section.get('id', '')
+                        raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+                        
+                        details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
+                        row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
+                        row_cell_meta[c_idx - 1] = {"day": b["day"], "hour": hour}
 
-excel_rows_html = ""
-for s in active_sched:
-    status_val = s.get('status', 'مفتوحة')
-    teacher_val = s.get('teacher', '')
-    venue_val = s.get('venue', '')
-    hall_val = str(s.get('hall', '')).replace('ش', '').replace('SHR', '').strip()
-    id_val = s.get('id', '')
-    name_val = s.get('name', '')
-    code_val = s.get('code', '')
+        for idx, c in enumerate(row_cells):
+            day_num = idx + 1 # 1: Sunday, 2: Monday, etc.
+            
+            # Special slot for Monday (2) at 10 AM (10) set to exact hex #220306
+            if not c and day_num == 2 and hour == 10:
+                cell_bg = "#220306"
+                cell_style = f"border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;"
+                html_grid += f"<td style='{cell_style}'></td>"
+            elif c:
+                cell_bg = "#000000"
+                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
+            else:
+                # Empty cell with crossed lines pattern matching your dark color palette
+                crossed_lines_bg = (
+                    "background-color: #000000; "
+                    "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
+                    "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
+                    "linear-gradient(45deg, transparent 75%, #16261a 75%), "
+                    "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
+                    "background-size: 16px 16px; "
+                    "background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
+                )
+                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; {crossed_lines_bg} color: #888888;'></td>"
 
-    excel_rows_html += "<tr>"
-    excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{status_val}</td>'
-    excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{teacher_val}</td>'
-    excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{venue_val}</td>'
-    excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{hall_val}</td>'
-    excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{id_val}</td>'
-    excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{name_val}</td>'
-    excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{code_val}</td>'
-    excel_rows_html += "</tr>"
+        html_grid += "</tr>"
 
-excel_table_html = f"""
-<style>
-    .custom-excel-table {{
-        width: 100% !important;
-        border-collapse: collapse !important;
-        font-family: 'Tajawal', sans-serif !important;
-        font-size: 14px !important;
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 1px solid #333333 !important;
-    }}
-    .custom-excel-table th, .custom-excel-table td {{
-        border: 1px solid #333333 !important;
-        padding: 12px 10px !important;
-        text-align: center !important;
-        vertical-align: middle !important;
-        border-radius: 0px !important;
-        color: #ffffff !important;
-    }}
-    .custom-excel-table th {{
-        background-color: #212121 !important;
-        color: #ffffff !important;
-    }}
-</style>
-<div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
-    <table dir="ltr" class="custom-excel-table">
-        <thead>
-            <tr>
-                <th>الحالة</th>
-                <th>المحاضر</th>
-                <th>الوقت</th>
-                <th>رقم القاعة</th>
-                <th>رقم الشعبة</th>
-                <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">المقرر</th>
-                <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">رمز المقرر</th>
-            </tr>
-        </thead>
-        <tbody>
-            {excel_rows_html}
-        </tbody>
-    </table>
-</div>
-"""
+    html_grid += "</table>"
+    st.markdown(html_grid, unsafe_allow_html=True)
+    
+    # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
+    st.subheader("B. Excel View")
 
-st.markdown(excel_table_html, unsafe_allow_html=True)
+    excel_rows_html = ""
+    for s in active_sched:
+        status_val = s.get('status', 'مفتوحة')
+        teacher_val = s.get('teacher', '')
+        venue_val = s.get('venue', '')
+        hall_val = str(s.get('hall', '')).replace('ش', '').replace('SHR', '').strip()
+        id_val = s.get('id', '')
+        name_val = s.get('name', '')
+        code_val = s.get('code', '')
+
+        excel_rows_html += "<tr>"
+        # Standard black background for columns 1 to 5
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{status_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{teacher_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{venue_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{hall_val}</td>'
+        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{id_val}</td>'
+        # Highlighted dark gray (#212121) for المقرر and رمز المقرر
+        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{name_val}</td>'
+        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{code_val}</td>'
+        excel_rows_html += "</tr>"
+
+    excel_table_html = f"""
+    <style>
+        .custom-excel-table {{
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-family: 'Tajawal', sans-serif !important;
+            font-size: 14px !important;
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
+        }}
+        .custom-excel-table th, .custom-excel-table td {{
+            border: 1px solid #333333 !important;
+            padding: 12px 10px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            border-radius: 0px !important;
+            color: #ffffff !important;
+        }}
+        .custom-excel-table th {{
+            background-color: #212121 !important;
+            color: #ffffff !important;
+        }}
+    </style>
+    <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
+        <table dir="ltr" class="custom-excel-table">
+            <thead>
+                <tr>
+                    <th>الحالة</th>
+                    <th>المحاضر</th>
+                    <th>الوقت</th>
+                    <th>رقم القاعة</th>
+                    <th>رقم الشعبة</th>
+                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">المقرر</th>
+                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">رمز المقرر</th>
+                </tr>
+            </thead>
+            <tbody>
+                {excel_rows_html}
+            </tbody>
+        </table>
+    </div>
+    """
+
+    st.markdown(excel_table_html, unsafe_allow_html=True)
+
+# =============================================================================================================================
+# =============================================================================================================================    
+# =============================================================================================================================    
