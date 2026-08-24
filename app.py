@@ -1560,7 +1560,6 @@ for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-# Centered fluid container that scales like an image across the full screen width
 html_grid = "<div class='scaler-wrapper' style='width: 100%; display: flex; justify-content: center; overflow: hidden; background-color: #000000;'>"
 html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; transform-origin: top center;'>"
 html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
@@ -1610,7 +1609,7 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# --- 2. COMPONENT WITH AUTO-FIT WIDTH & 1700x1000 HD DOWNLOAD ---
+# --- 2. COMPONENT WITH AUTO-RESIZING HEIGHT & 1700x1000 HD DOWNLOAD ---
 combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1620,36 +1619,58 @@ combined_html = f"""
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }}
+        #download-btn {{
+            background-color: #212121;
+            color: white;
+            border: 1px solid #333333;
+            padding: 12px 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 15px;
+            box-sizing: border-box;
+            transition: 0.2s;
+        }}
+        #download-btn:hover {{ background-color: #333333; }}
     </style>
 </head>
 <body>
     {html_grid}
-    
-    <button onclick="takeScreenshot()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; transition: 0.2s;">
-        📸 Take Screenshot & Download (.jpg)
-    </button>
+    <button id="download-btn" onclick="takeScreenshot()">📸 Take Screenshot & Download (.jpg)</button>
 
     <script>
     function resizeTable() {{
         const wrapper = document.querySelector('.scaler-wrapper');
         const targetDiv = document.getElementById('schedule-capture-area');
-        const availableWidth = wrapper.clientWidth;
+        const btn = document.getElementById('download-btn');
+        const availableWidth = wrapper.parentElement.clientWidth || window.innerWidth;
         
-        // Fills the screen width completely while maintaining aspect ratio like an image
-        if (availableWidth < 900) {{
-            const scale = availableWidth / 900;
-            targetDiv.style.transform = `scale(${{scale}})`;
-            wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
-        }} else {{
-            const scale = availableWidth / 900;
-            targetDiv.style.transform = `scale(${{scale}})`;
-            wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
+        const scale = availableWidth / 900;
+        targetDiv.style.transform = `scale(${{scale}})`;
+        const scaledHeight = targetDiv.offsetHeight * scale;
+        wrapper.style.height = `${{scaledHeight}}px`;
+
+        // Automatically notify Streamlit iframe to adjust its height so nothing ever hides!
+        const totalHeight = scaledHeight + btn.offsetHeight + 30;
+        if (window.parent && window.parent.document) {{
+            const iframes = window.parent.document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {{
+                try {{
+                    if (iframe.contentWindow === window) {{
+                        iframe.style.height = totalHeight + 'px';
+                    }}
+                }} catch(e) {{}}
+            }});
         }}
     }}
 
     window.addEventListener('resize', resizeTable);
     window.addEventListener('load', resizeTable);
-    setTimeout(resizeTable, 100);
+    setTimeout(resizeTable, 50);
+    setTimeout(resizeTable, 300);
 
     function takeScreenshot() {{
         const targetDiv = document.getElementById('schedule-capture-area');
@@ -1703,4 +1724,4 @@ combined_html = f"""
 """
 
 st.subheader("A. Visual View")
-components.html(combined_html, height=480, scrolling=False)
+components.html(combined_html, height=550, scrolling=False)
