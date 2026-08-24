@@ -1554,30 +1554,30 @@ else:
 # =============================================================================================================================    
 import streamlit.components.v1 as components
 
-# --- 1. BUILD THE HTML TABLE ---
+# --- 1. BUILD THE FLUID, 100% SCREEN-WIDTH RESPONSIVE TABLE ---
 active_hours = set()
 for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-# Outer scroll wrapper forces stable widescreen layout on mobile without squishing
-html_grid = "<div style='width: 100%; overflow-x: auto; background-color: #000000; padding: 5px; box-sizing: border-box; -webkit-overflow-scrolling: touch;'>"
-html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; margin: 0 auto;'>"
+# Width is locked strictly to 100% of the screen/container
+html_grid = "<div style='width: 100%; background-color: #000000; padding: 0px; margin: 0px; box-sizing: border-box;'>"
+html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 5px; width: 100%; box-sizing: border-box;'>"
 html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الوقت</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأحد</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الاثنين</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الثلاثاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأربعاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الخميس</th></tr>"
+html_grid += "<th style='border: 2px solid #333333; padding: 1.2vw 0.5vw; color: #ffffff; font-size: clamp(11px, 1.5vw, 16px); white-space: nowrap;'>الوقت</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 1.2vw 0.5vw; color: #ffffff; font-size: clamp(11px, 1.5vw, 16px); white-space: nowrap;'>الأحد</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 1.2vw 0.5vw; color: #ffffff; font-size: clamp(11px, 1.5vw, 16px); white-space: nowrap;'>الاثنين</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 1.2vw 0.5vw; color: #ffffff; font-size: clamp(11px, 1.5vw, 16px); white-space: nowrap;'>الثلاثاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 1.2vw 0.5vw; color: #ffffff; font-size: clamp(11px, 1.5vw, 16px); white-space: nowrap;'>الأربعاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 1.2vw 0.5vw; color: #ffffff; font-size: clamp(11px, 1.5vw, 16px); white-space: nowrap;'>الخميس</th></tr>"
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
 
 for hour in sorted_active_hours:
     html_grid += "<tr style='background-color: #000000; border: 2px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 16px; white-space: nowrap;'><b>{hour}:00</b></td>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 1.5vw 0.5vw; font-size: clamp(11px, 1.4vw, 16px); white-space: nowrap;'><b>{hour}:00</b></td>"
 
     row_cells = [""] * 5
     for section in active_sched:
@@ -1588,16 +1588,16 @@ for hour in sorted_active_hours:
                     code_val = section.get('code', '')
                     sec_id = section.get('id', '')
                     raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    # Clean stacked layout with non-breaking spaces to protect line integrity
-                    details_display = f"<br><small style='color: #b0b0b0; font-size: 13px; white-space: nowrap;'>(شـ&nbsp;{sec_id}&nbsp;-&nbsp;قــ&nbsp;{raw_hall})</small>" if raw_hall else f"<br><small style='color: #b0b0b0; font-size: 13px; white-space: nowrap;'>(شـ&nbsp;{sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 17px; white-space: nowrap;'>{code_val}</b>{details_display}"
+                    # Fluid sizing scales text down gracefully on mobile and up on desktop
+                    details_display = f"<br><small style='color: #b0b0b0; font-size: clamp(9px, 1.1vw, 13px); white-space: nowrap;'>(شـ&nbsp;{sec_id}&nbsp;-&nbsp;قــ&nbsp;{raw_hall})</small>" if raw_hall else f"<br><small style='color: #b0b0b0; font-size: clamp(9px, 1.1vw, 13px); white-space: nowrap;'>(شـ&nbsp;{sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: clamp(11px, 1.5vw, 17px); white-space: nowrap;'>{code_val}</b>{details_display}"
 
     for idx, c in enumerate(row_cells):
         day_num = idx + 1
         if not c and day_num == 2 and hour == 10:
-            html_grid += "<td style='border: 2px solid #333333; padding: 12px; background-color: #220306;'></td>"
+            html_grid += "<td style='border: 2px solid #333333; padding: 1.5vw 0.5vw; background-color: #220306;'></td>"
         elif c:
-            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; background-color: #000000; color: #ffffff;'>{c}</td>"
+            html_grid += f"<td style='border: 2px solid #333333; padding: 1.5vw 0.5vw; background-color: #000000; color: #ffffff;'>{c}</td>"
         else:
             crossed_lines_bg = (
                 "background-color: #000000; "
@@ -1605,9 +1605,9 @@ for hour in sorted_active_hours:
                 "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
                 "linear-gradient(45deg, transparent 75%, #16261a 75%), "
                 "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
-                "background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"
+                "background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
             )
-            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; {crossed_lines_bg}'></td>"
+            html_grid += f"<td style='border: 2px solid #333333; padding: 1.5vw 0.5vw; {crossed_lines_bg}'></td>"
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
@@ -1635,12 +1635,11 @@ combined_html = f"""
         const targetDiv = document.getElementById('schedule-capture-area');
         
         const origW = targetDiv.style.width;
-        const origMinWidth = targetDiv.style.minWidth;
         const origH = targetDiv.style.height;
         const origPos = targetDiv.style.position;
 
+        // Force exact 1700x1000 widescreen layout during snapshot capture
         targetDiv.style.width = "1700px";
-        targetDiv.style.minWidth = "1700px";
         targetDiv.style.height = "1000px";
         targetDiv.style.position = "absolute";
 
@@ -1654,7 +1653,6 @@ combined_html = f"""
             useCORS: true
         }}).then(canvas => {{
             targetDiv.style.width = origW;
-            targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
 
@@ -1665,7 +1663,6 @@ combined_html = f"""
         }}).catch(err => {{
             console.error("Screenshot failed: ", err);
             targetDiv.style.width = origW;
-            targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
             alert("Screenshot failed. Please try again.");
@@ -1677,4 +1674,4 @@ combined_html = f"""
 """
 
 st.subheader("A. Visual View")
-components.html(combined_html, height=480, scrolling=False)
+components.html(combined_html, height=420, scrolling=False)
