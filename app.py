@@ -1554,28 +1554,30 @@ else:
 # =============================================================================================================================    
 import streamlit.components.v1 as components
 
-# --- 1. BUILD THE HTML TABLE ---
+# --- 1. BUILD THE RESPONSIVE HTML TABLE ---
 active_hours = set()
 for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; margin: 0px; width: 100%; box-sizing: border-box;'>"
-html_grid += "<table dir='rtl' style='width:100%; height: 100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
+# Outer wrapper with horizontal scrolling enabled for mobile screens
+html_grid = "<div style='width: 100%; overflow-x: auto; background-color: #000000; padding: 5px; box-sizing: border-box;'>"
+html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; min-width: 650px; box-sizing: border-box;'>"
+html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الوقت</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الأحد</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الاثنين</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الثلاثاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الأربعاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الخميس</th></tr>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الوقت</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الأحد</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الاثنين</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الثلاثاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الأربعاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الخميس</th></tr>"
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
 
 for hour in sorted_active_hours:
     html_grid += "<tr style='background-color: #000000; border: 2px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 18px;'><b>{hour}:00</b></td>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 16px;'><b>{hour}:00</b></td>"
 
     row_cells = [""] * 5
     for section in active_sched:
@@ -1586,8 +1588,8 @@ for hour in sorted_active_hours:
                     code_val = section.get('code', '')
                     sec_id = section.get('id', '')
                     raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    details_display = f"<br><small style='color: #a0a0a0; font-size: 14px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #a0a0a0; font-size: 14px;'>(شـ {sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 19px;'>{code_val}</b>{details_display}"
+                    details_display = f"<br><small style='color: #c0c0c0; font-size: 13px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #c0c0c0; font-size: 13px;'>(شـ {sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 17px; line-height: 1.4;'>{code_val}</b>{details_display}"
 
     for idx, c in enumerate(row_cells):
         day_num = idx + 1
@@ -1606,9 +1608,9 @@ for hour in sorted_active_hours:
             )
             html_grid += f"<td style='border: 2px solid #333333; padding: 12px; {crossed_lines_bg}'></td>"
     html_grid += "</tr>"
-html_grid += "</table></div>"
+html_grid += "</table></div></div>"
 
-# --- 2. BUNDLE TABLE & JS BUTTON INTO ONE SECURE COMPONENT ---
+# --- 2. COMPONENT WITH FIXED 1700x1000 IMAGE CAPTURE ---
 combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1631,24 +1633,24 @@ combined_html = f"""
     function takeScreenshot() {{
         const targetDiv = document.getElementById('schedule-capture-area');
         
-        // Temporarily enforce exact 1700x1000 dimensions and scale up text to fit the boxes cleanly
         const origW = targetDiv.style.width;
         const origH = targetDiv.style.height;
         const origPos = targetDiv.style.position;
         const origSize = targetDiv.style.fontSize;
 
-        targetDiv.style.width = "850px";
-        targetDiv.style.height = "500px";
+        // Force exact 1700x1000 dimensions and scale up font for the downloaded picture
+        targetDiv.style.width = "1700px";
+        targetDiv.style.height = "1000px";
         targetDiv.style.position = "absolute";
-        targetDiv.style.fontSize = "21px"; // Scales up text to perfectly fill the 1700x1000 frame
+        targetDiv.style.fontSize = "28px";
 
         html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
             scale: 1, 
-            width: 850,
-            height: 500,
-            windowWidth: 850,
-            windowHeight: 500,
+            width: 1700,
+            height: 1000,
+            windowWidth: 1700,
+            windowHeight: 1000,
             useCORS: true
         }}).then(canvas => {{
             targetDiv.style.width = origW;
@@ -1657,7 +1659,7 @@ combined_html = f"""
             targetDiv.style.fontSize = origSize;
 
             const link = document.createElement('a');
-            link.download = 'SEM03_TIMETABLE_850x500.jpg';
+            link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
             link.href = canvas.toDataURL('image/jpeg', 1.0);
             link.click();
         }}).catch(err => {{
