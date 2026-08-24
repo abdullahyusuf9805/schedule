@@ -1724,4 +1724,4 @@ combined_html = f"""
 """
 
 st.subheader("A. Visual View")
-components.html(combined_html, height=550, scrolling=False)
+components.html(combined_html, height=650, scrolling=False)
