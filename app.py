@@ -1640,7 +1640,7 @@ combined_html = f"""
         targetDiv.style.width = "850px";
         targetDiv.style.height = "500px";
         targetDiv.style.position = "absolute";
-        targetDiv.style.fontSize = "22px"; // Scales up text to perfectly fill the 1700x1000 frame
+        targetDiv.style.fontSize = "21px"; // Scales up text to perfectly fill the 1700x1000 frame
 
         html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
