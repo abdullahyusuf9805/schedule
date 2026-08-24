@@ -1553,13 +1553,9 @@ else:
 # BUTTON FOR DOWNLOADING SCHEDULE IN VISUAL VIEW ==============================================================================
 # =============================================================================================================================    
 import streamlit.components.v1 as components
+import base64
 
-# --- 1. BUILD THE HTML TABLE ---
-active_hours = set()
-for section in active_sched:
-    for b in section["blocks"]:
-        active_hours.add(b["start_time"])
-
+# --- 1. BUILD THE AUTO-SCALING TABLE COMPONENT (Table Only) ---
 html_grid = "<div class='scaler-wrapper' style='width: 100%; display: flex; justify-content: center; overflow: hidden; background-color: #000000;'>"
 html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; transform-origin: top center;'>"
 html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
@@ -1570,6 +1566,11 @@ html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #fffff
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الثلاثاء</th>"
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأربعاء</th>"
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الخميس</th></tr>"
+
+active_hours = set()
+for section in active_sched:
+    for b in section["blocks"]:
+        active_hours.add(b["start_time"])
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
@@ -1609,119 +1610,92 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# --- 2. COMPONENT WITH AUTO-RESIZING HEIGHT & 1700x1000 HD DOWNLOAD ---
-combined_html = f"""
+table_component_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }}
-        #download-btn {{
-            background-color: #212121;
-            color: white;
-            border: 1px solid #333333;
-            padding: 12px 20px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            margin-top: 15px;
-            box-sizing: border-box;
-            transition: 0.2s;
-        }}
-        #download-btn:hover {{ background-color: #333333; }}
-    </style>
+    <style>body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }}</style>
 </head>
 <body>
     {html_grid}
-    <button id="download-btn" onclick="takeScreenshot()">📸 Take Screenshot & Download (.jpg)</button>
-
     <script>
     function resizeTable() {{
         const wrapper = document.querySelector('.scaler-wrapper');
         const targetDiv = document.getElementById('schedule-capture-area');
-        const btn = document.getElementById('download-btn');
         const availableWidth = wrapper.parentElement.clientWidth || window.innerWidth;
-        
         const scale = availableWidth / 900;
         targetDiv.style.transform = `scale(${{scale}})`;
-        const scaledHeight = targetDiv.offsetHeight * scale;
-        wrapper.style.height = `${{scaledHeight}}px`;
-
-        // Automatically notify Streamlit iframe to adjust its height so nothing ever hides!
-        const totalHeight = scaledHeight + btn.offsetHeight + 30;
-        if (window.parent && window.parent.document) {{
-            const iframes = window.parent.document.querySelectorAll('iframe');
-            iframes.forEach(iframe => {{
-                try {{
-                    if (iframe.contentWindow === window) {{
-                        iframe.style.height = totalHeight + 'px';
-                    }}
-                }} catch(e) {{}}
-            }});
-        }}
+        wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
     }}
-
     window.addEventListener('resize', resizeTable);
     window.addEventListener('load', resizeTable);
     setTimeout(resizeTable, 50);
-    setTimeout(resizeTable, 300);
-
-    function takeScreenshot() {{
-        const targetDiv = document.getElementById('schedule-capture-area');
-        
-        const origTransform = targetDiv.style.transform;
-        const origW = targetDiv.style.width;
-        const origMinWidth = targetDiv.style.minWidth;
-        const origH = targetDiv.style.height;
-        const origPos = targetDiv.style.position;
-
-        targetDiv.style.transform = 'scale(1)';
-        targetDiv.style.width = "1700px";
-        targetDiv.style.minWidth = "1700px";
-        targetDiv.style.height = "1000px";
-        targetDiv.style.position = "absolute";
-
-        html2canvas(targetDiv, {{ 
-            backgroundColor: '#000000', 
-            scale: 1, 
-            width: 1700,
-            height: 1000,
-            windowWidth: 1700,
-            windowHeight: 1000,
-            useCORS: true
-        }}).then(canvas => {{
-            targetDiv.style.transform = origTransform;
-            targetDiv.style.width = origW;
-            targetDiv.style.minWidth = origMinWidth;
-            targetDiv.style.height = origH;
-            targetDiv.style.position = origPos;
-            resizeTable();
-
-            const link = document.createElement('a');
-            link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 1.0);
-            link.click();
-        }}).catch(err => {{
-            console.error("Screenshot failed: ", err);
-            targetDiv.style.transform = origTransform;
-            targetDiv.style.width = origW;
-            targetDiv.style.minWidth = origMinWidth;
-            targetDiv.style.height = origH;
-            targetDiv.style.position = origPos;
-            resizeTable();
-            alert("Screenshot failed. Please try again.");
-        }});
-    }}
     </script>
 </body>
 </html>
 """
 
 st.subheader("A. Visual View")
-components.html(combined_html, height=650, scrolling=False)
+components.html(table_component_html, height=420, scrolling=False)
+
+# --- 2. NATIVE STREAMLIT BUTTON & JAVASCRIPT TRIGGER FOR DOWNLOAD ---
+# This sits completely outside the iframe, so it is 100% visible on web and mobile!
+download_trigger_code = """
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+function triggerDownload() {
+    // Finds the table inside the iframe above and snapshots it
+    const iframe = window.parent.document.querySelector('iframe');
+    if (!iframe) return;
+    const innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    const targetDiv = innerDoc.getElementById('schedule-capture-area');
+    
+    const origTransform = targetDiv.style.transform;
+    const origW = targetDiv.style.width;
+    const origMinWidth = targetDiv.style.minWidth;
+    const origH = targetDiv.style.height;
+    const origPos = targetDiv.style.position;
+
+    targetDiv.style.transform = 'scale(1)';
+    targetDiv.style.width = "1700px";
+    targetDiv.style.minWidth = "1700px";
+    targetDiv.style.height = "1000px";
+    targetDiv.style.position = "absolute";
+
+    html2canvas(targetDiv, { 
+        backgroundColor: '#000000', 
+        scale: 1, 
+        width: 1700,
+        height: 1000,
+        windowWidth: 1700,
+        windowHeight: 1000,
+        useCORS: true
+    }).then(canvas => {
+        targetDiv.style.transform = origTransform;
+        targetDiv.style.width = origW;
+        targetDiv.style.minWidth = origMinWidth;
+        targetDiv.style.height = origH;
+        targetDiv.style.position = origPos;
+
+        const link = document.createElement('a');
+        link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 1.0);
+        link.click();
+    }).catch(err => {
+        console.error("Screenshot failed: ", err);
+        targetDiv.style.transform = origTransform;
+        targetDiv.style.width = origW;
+        targetDiv.style.minWidth = origMinWidth;
+        targetDiv.style.height = origH;
+        targetDiv.style.position = origPos;
+    });
+}
+</script>
+<button onclick="triggerDownload()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px;">
+    📸 Take Screenshot & Download (.jpg)
+</button>
+"""
+components.html(download_trigger_code, height=60, scrolling=False)
+    
