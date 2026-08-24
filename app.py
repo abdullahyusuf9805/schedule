@@ -1251,7 +1251,7 @@ else:
     active_sched = schedules[st.session_state.sched_idx]
 
 # ==========================================
-# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON (UNIFIED & OVERLAP-FREE)
+# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON
 # ==========================================
 st.subheader("A. Visual View")
 
@@ -1318,7 +1318,7 @@ unified_visual_html = f"""
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }}
-        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; }}
+        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 10px; }}
         #download-btn {{
             background-color: #212121;
             color: white;
@@ -1411,9 +1411,8 @@ unified_visual_html = f"""
 </html>
 """
 
-# Dynamic height allocation based on how many hours are rendered in the active schedule
-dynamic_iframe_height = int(430 + (len(sorted_active_hours) * 15))
-components.html(unified_visual_html, height=dynamic_iframe_height, scrolling=False)
+# Safe generous iframe height (table + button + spacing)
+components.html(unified_visual_html, height=560, scrolling=False)
 
 # ==========================================
 # 15. B. EXCEL VIEW
