@@ -1560,22 +1560,22 @@ for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 15px; margin: 0px; width: 100%; box-sizing: border-box;'>"
+html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; margin: 0px; width: 100%; box-sizing: border-box;'>"
 html_grid += "<table dir='rtl' style='width:100%; height: 100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 2px solid #333333; padding: 15px; color: #ffffff; font-size: 26px;'>الوقت</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 15px; color: #ffffff; font-size: 26px;'>الأحد</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 15px; color: #ffffff; font-size: 26px;'>الاثنين</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 15px; color: #ffffff; font-size: 26px;'>الثلاثاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 15px; color: #ffffff; font-size: 26px;'>الأربعاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 15px; color: #ffffff; font-size: 26px;'>الخميس</th></tr>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الوقت</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الأحد</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الاثنين</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الثلاثاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الأربعاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الخميس</th></tr>"
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
 
 for hour in sorted_active_hours:
     html_grid += "<tr style='background-color: #000000; border: 2px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 15px; font-size: 26px;'><b>{hour}:00</b></td>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 18px;'><b>{hour}:00</b></td>"
 
     row_cells = [""] * 5
     for section in active_sched:
@@ -1586,16 +1586,15 @@ for hour in sorted_active_hours:
                     code_val = section.get('code', '')
                     sec_id = section.get('id', '')
                     raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    # Larger fonts for course title and details line
-                    details_display = f"<br><small style='color: #c0c0c0; font-size: 18px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #c0c0c0; font-size: 18px;'>(شـ {sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 28px; line-height: 1.4;'>{code_val}</b>{details_display}"
+                    details_display = f"<br><small style='color: #a0a0a0; font-size: 14px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #a0a0a0; font-size: 14px;'>(شـ {sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 19px;'>{code_val}</b>{details_display}"
 
     for idx, c in enumerate(row_cells):
         day_num = idx + 1
         if not c and day_num == 2 and hour == 10:
-            html_grid += "<td style='border: 2px solid #333333; padding: 15px; background-color: #220306;'></td>"
+            html_grid += "<td style='border: 2px solid #333333; padding: 12px; background-color: #220306;'></td>"
         elif c:
-            html_grid += f"<td style='border: 2px solid #333333; padding: 15px; background-color: #000000; color: #ffffff;'>{c}</td>"
+            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; background-color: #000000; color: #ffffff;'>{c}</td>"
         else:
             crossed_lines_bg = (
                 "background-color: #000000; "
@@ -1605,7 +1604,7 @@ for hour in sorted_active_hours:
                 "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
                 "background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"
             )
-            html_grid += f"<td style='border: 2px solid #333333; padding: 15px; {crossed_lines_bg}'></td>"
+            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; {crossed_lines_bg}'></td>"
     html_grid += "</tr>"
 html_grid += "</table></div>"
 
@@ -1632,16 +1631,16 @@ combined_html = f"""
     function takeScreenshot() {{
         const targetDiv = document.getElementById('schedule-capture-area');
         
+        // Temporarily enforce exact 1700x1000 dimensions and scale up text to fit the boxes cleanly
         const origW = targetDiv.style.width;
         const origH = targetDiv.style.height;
         const origPos = targetDiv.style.position;
         const origSize = targetDiv.style.fontSize;
 
-        // Force exact 1700x1000 dimensions for the final image output
         targetDiv.style.width = "1700px";
         targetDiv.style.height = "1000px";
         targetDiv.style.position = "absolute";
-        targetDiv.style.fontSize = "32px"; // Substantially larger base font size
+        targetDiv.style.fontSize = "24px"; // Scales up text to perfectly fill the 1700x1000 frame
 
         html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
@@ -1677,15 +1676,3 @@ combined_html = f"""
 
 st.subheader("A. Visual View")
 components.html(combined_html, height=480, scrolling=False)
-# =============================================================================================================================
-# =============================================================================================================================    
-# =============================================================================================================================    
-st.markdown("---")
-st.markdown("---")
-st.markdown("---")
-st.markdown("---")
-st.markdown("---")
-st.markdown("---")
-st.markdown("---")
-st.markdown("---")
-st.markdown("---")
