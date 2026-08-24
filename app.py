@@ -1554,7 +1554,7 @@ else:
 # =============================================================================================================================    
 import streamlit.components.v1 as components
 
-# --- 1. YOUR ORIGINAL TABLE CODE ---
+# --- 1. BUILD THE HTML TABLE ---
 active_hours = set()
 for section in active_sched:
     for b in section["blocks"]:
@@ -1608,7 +1608,7 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div>"
 
-# --- 2. COMBINE TABLE AND WORKING BUTTON INTO A SINGLE COMPONENT ---
+# --- 2. BUNDLE TABLE & JS BUTTON INTO ONE SECURE COMPONENT ---
 combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
