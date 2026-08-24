@@ -1464,7 +1464,7 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# --- 2. RENDER TABLE & BUTTON CLEARLY SEPARATED ---
+# --- 2. RENDER VISUAL VIEW TABLE ---
 table_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1494,10 +1494,9 @@ table_html = f"""
 """
 
 st.subheader("A. Visual View")
-# Giving the table component a generous, safe height
 components.html(table_html, height=430, scrolling=False)
 
-# Dedicated button component right below with its own independent container
+# --- 3. DOWNLOAD BUTTON (Cleanly separated below visual view) ---
 button_html = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1564,3 +1563,6 @@ button_html = """
 """
 components.html(button_html, height=60, scrolling=False)
 
+# --- 4. RENDER EXCEL VIEW BACK BELOW ---
+st.subheader("B. Excel View")
+# Put your original Excel table / dataframe rendering code right here!
