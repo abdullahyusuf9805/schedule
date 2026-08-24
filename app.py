@@ -1407,155 +1407,14 @@ else:
 # =============================================================================================================================
 # =============================================================================================================================
 # =============================================================================================================================
-
-# --- 1. VISUAL VIEW SUBHEADING & TABLE ---
-    st.subheader("A. Visual View")
-    
-    active_hours = set()
-    for section in active_sched:
-        for b in section["blocks"]:
-            active_hours.add(b["start_time"])
-
-    # Table background set to black, grid lines set to subtle dark gray (#333333)
-    html_grid = "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 1px solid #333333;'>"
-    
-    # First row (Header) is dark gray (#212121) with white text and dark gray borders
-    html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-    html_grid += "<th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الوقت</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الأحد</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الاثنين</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الثلاثاء</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الأربعاء</th><th style='border: 1px solid #333333; padding: 8px; color: #ffffff;'>الخميس</th></tr>"
-
-    col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-
-    sorted_active_hours = sorted(list(active_hours))
-
-    for hour in sorted_active_hours:
-        html_grid += "<tr style='background-color: #000000; border: 1px solid #333333;'>"
-        
-        # First column (Time column) is dark gray (#212121) with white text
-        html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 1px solid #333333; padding: 8px;'><b>{hour}:00</b></td>"
-
-        row_cells = [""] * 5
-        row_cell_meta = [{} for _ in range(5)]
-
-        for section in active_sched:
-            for b in section["blocks"]:
-                if b["start_time"] == hour:
-                    c_idx = col_map_html.get(b["day"])
-                    if c_idx:
-                        code_val = section.get('code', '')
-                        sec_id = section.get('id', '')
-                        raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                        
-                        details_display = f"<br><small style='color: #ffffff;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #ffffff;'>(شـ {sec_id})</small>"
-                        row_cells[c_idx - 1] = f"<b style='color: #ffffff;'>{code_val}</b>{details_display}"
-                        row_cell_meta[c_idx - 1] = {"day": b["day"], "hour": hour}
-
-        for idx, c in enumerate(row_cells):
-            day_num = idx + 1 # 1: Sunday, 2: Monday, etc.
-            
-            # Special slot for Monday (2) at 10 AM (10) set to exact hex #220306
-            if not c and day_num == 2 and hour == 10:
-                cell_bg = "#220306"
-                cell_style = f"border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;"
-                html_grid += f"<td style='{cell_style}'></td>"
-            elif c:
-                cell_bg = "#000000"
-                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; background-color: {cell_bg}; color: #ffffff;'>{c}</td>"
-            else:
-                # Empty cell with crossed lines pattern matching your dark color palette
-                crossed_lines_bg = (
-                    "background-color: #000000; "
-                    "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
-                    "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
-                    "linear-gradient(45deg, transparent 75%, #16261a 75%), "
-                    "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
-                    "background-size: 16px 16px; "
-                    "background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
-                )
-                html_grid += f"<td style='border: 1px solid #333333; padding: 10px; {crossed_lines_bg} color: #888888;'></td>"
-
-        html_grid += "</tr>"
-
-    html_grid += "</table>"
-    st.markdown(html_grid, unsafe_allow_html=True)
-    
-    # --- 2. EXCEL VIEW SUBHEADING & TABLE ---
-    st.subheader("B. Excel View")
-
-    excel_rows_html = ""
-    for s in active_sched:
-        status_val = s.get('status', 'مفتوحة')
-        teacher_val = s.get('teacher', '')
-        venue_val = s.get('venue', '')
-        hall_val = str(s.get('hall', '')).replace('ش', '').replace('SHR', '').strip()
-        id_val = s.get('id', '')
-        name_val = s.get('name', '')
-        code_val = s.get('code', '')
-
-        excel_rows_html += "<tr>"
-        # Standard black background for columns 1 to 5
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{status_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{teacher_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{venue_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{hall_val}</td>'
-        excel_rows_html += f'<td style="background-color: #000000; color: #ffffff; border: 1px solid #333333;">{id_val}</td>'
-        # Highlighted dark gray (#212121) for المقرر and رمز المقرر
-        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{name_val}</td>'
-        excel_rows_html += f'<td style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">{code_val}</td>'
-        excel_rows_html += "</tr>"
-
-    excel_table_html = f"""
-    <style>
-        .custom-excel-table {{
-            width: 100% !important;
-            border-collapse: collapse !important;
-            font-family: 'Tajawal', sans-serif !important;
-            font-size: 14px !important;
-            background-color: #000000 !important;
-            color: #ffffff !important;
-            border: 1px solid #333333 !important;
-        }}
-        .custom-excel-table th, .custom-excel-table td {{
-            border: 1px solid #333333 !important;
-            padding: 12px 10px !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-            border-radius: 0px !important;
-            color: #ffffff !important;
-        }}
-        .custom-excel-table th {{
-            background-color: #212121 !important;
-            color: #ffffff !important;
-        }}
-    </style>
-    <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
-        <table dir="ltr" class="custom-excel-table">
-            <thead>
-                <tr>
-                    <th>الحالة</th>
-                    <th>المحاضر</th>
-                    <th>الوقت</th>
-                    <th>رقم القاعة</th>
-                    <th>رقم الشعبة</th>
-                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">المقرر</th>
-                    <th style="background-color: #212121; color: #ffffff; border: 1px solid #333333;">رمز المقرر</th>
-                </tr>
-            </thead>
-            <tbody>
-                {excel_rows_html}
-            </tbody>
-        </table>
-    </div>
-    """
-
-    st.markdown(excel_table_html, unsafe_allow_html=True)
-
-# =============================================================================================================================
-# BUTTON FOR DOWNLOADING SCHEDULE IN VISUAL VIEW ==============================================================================
-# =============================================================================================================================    
 import streamlit.components.v1 as components
-import base64
 
-# --- 1. BUILD THE AUTO-SCALING TABLE COMPONENT (Table Only) ---
+# --- 1. BUILD THE HTML TABLE ---
+active_hours = set()
+for section in active_sched:
+    for b in section["blocks"]:
+        active_hours.add(b["start_time"])
+
 html_grid = "<div class='scaler-wrapper' style='width: 100%; display: flex; justify-content: center; overflow: hidden; background-color: #000000;'>"
 html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; transform-origin: top center;'>"
 html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
@@ -1566,11 +1425,6 @@ html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #fffff
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الثلاثاء</th>"
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الأربعاء</th>"
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الخميس</th></tr>"
-
-active_hours = set()
-for section in active_sched:
-    for b in section["blocks"]:
-        active_hours.add(b["start_time"])
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
@@ -1610,92 +1464,124 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-table_component_html = f"""
+# --- 2. UNIFIED COMPONENT WITH BUTTON INSIDE PROPER FLOW ---
+combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <style>body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }}</style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }}
+        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; }}
+        #download-btn {{
+            background-color: #212121;
+            color: white;
+            border: 1px solid #333333;
+            padding: 12px 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 900px;
+            font-weight: bold;
+            margin-top: 15px;
+            box-sizing: border-box;
+            transition: 0.2s;
+        }}
+        #download-btn:hover {{ background-color: #333333; }}
+    </style>
 </head>
 <body>
-    {html_grid}
+    <div id="container">
+        {html_grid}
+        <button id="download-btn" onclick="takeScreenshot()">📸 Take Screenshot & Download (.jpg)</button>
+    </div>
+
     <script>
     function resizeTable() {{
         const wrapper = document.querySelector('.scaler-wrapper');
         const targetDiv = document.getElementById('schedule-capture-area');
-        const availableWidth = wrapper.parentElement.clientWidth || window.innerWidth;
+        const btn = document.getElementById('download-btn');
+        const availableWidth = window.innerWidth - 30; // Accounting for padding
+        
         const scale = availableWidth / 900;
         targetDiv.style.transform = `scale(${{scale}})`;
-        wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
+        const scaledHeight = targetDiv.offsetHeight * scale;
+        wrapper.style.height = `${{scaledHeight}}px`;
+
+        // Dynamically size the iframe container height so nothing ever cuts off or overlaps
+        const totalHeight = scaledHeight + btn.offsetHeight + 40;
+        if (window.parent && window.parent.document) {{
+            const iframes = window.parent.document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {{
+                try {{
+                    if (iframe.contentWindow === window) {{
+                        iframe.style.height = totalHeight + 'px';
+                    }}
+                }} catch(e) {{}}
+            }});
+        }}
     }}
+
     window.addEventListener('resize', resizeTable);
     window.addEventListener('load', resizeTable);
     setTimeout(resizeTable, 50);
+    setTimeout(resizeTable, 300);
+
+    function takeScreenshot() {{
+        const targetDiv = document.getElementById('schedule-capture-area');
+        
+        const origTransform = targetDiv.style.transform;
+        const origW = targetDiv.style.width;
+        const origMinWidth = targetDiv.style.minWidth;
+        const origH = targetDiv.style.height;
+        const origPos = targetDiv.style.position;
+
+        targetDiv.style.transform = 'scale(1)';
+        targetDiv.style.width = "1700px";
+        targetDiv.style.minWidth = "1700px";
+        targetDiv.style.height = "1000px";
+        targetDiv.style.position = "absolute";
+
+        html2canvas(targetDiv, {{ 
+            backgroundColor: '#000000', 
+            scale: 1, 
+            width: 1700,
+            height: 1000,
+            windowWidth: 1700,
+            windowHeight: 1000,
+            useCORS: true
+        }}).then(canvas => {{
+            targetDiv.style.transform = origTransform;
+            targetDiv.style.width = origW;
+            targetDiv.style.minWidth = origMinWidth;
+            targetDiv.style.height = origH;
+            targetDiv.style.position = origPos;
+            resizeTable();
+
+            const link = document.createElement('a');
+            link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }}).catch(err => {{
+            console.error("Screenshot failed: ", err);
+            targetDiv.style.transform = origTransform;
+            targetDiv.style.width = origW;
+            targetDiv.style.minWidth = origMinWidth;
+            targetDiv.style.height = origH;
+            targetDiv.style.position = origPos;
+            resizeTable();
+            alert("Screenshot failed. Please try again.");
+        }});
+    }}
     </script>
 </body>
 </html>
 """
 
 st.subheader("A. Visual View")
-components.html(table_component_html, height=420, scrolling=False)
+components.html(combined_html, height=520, scrolling=False)
 
-# --- 2. NATIVE STREAMLIT BUTTON & JAVASCRIPT TRIGGER FOR DOWNLOAD ---
-# This sits completely outside the iframe, so it is 100% visible on web and mobile!
-download_trigger_code = """
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-function triggerDownload() {
-    // Finds the table inside the iframe above and snapshots it
-    const iframe = window.parent.document.querySelector('iframe');
-    if (!iframe) return;
-    const innerDoc = iframe.contentDocument || iframe.contentWindow.document;
-    const targetDiv = innerDoc.getElementById('schedule-capture-area');
-    
-    const origTransform = targetDiv.style.transform;
-    const origW = targetDiv.style.width;
-    const origMinWidth = targetDiv.style.minWidth;
-    const origH = targetDiv.style.height;
-    const origPos = targetDiv.style.position;
-
-    targetDiv.style.transform = 'scale(1)';
-    targetDiv.style.width = "1700px";
-    targetDiv.style.minWidth = "1700px";
-    targetDiv.style.height = "1000px";
-    targetDiv.style.position = "absolute";
-
-    html2canvas(targetDiv, { 
-        backgroundColor: '#000000', 
-        scale: 1, 
-        width: 1700,
-        height: 1000,
-        windowWidth: 1700,
-        windowHeight: 1000,
-        useCORS: true
-    }).then(canvas => {
-        targetDiv.style.transform = origTransform;
-        targetDiv.style.width = origW;
-        targetDiv.style.minWidth = origMinWidth;
-        targetDiv.style.height = origH;
-        targetDiv.style.position = origPos;
-
-        const link = document.createElement('a');
-        link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
-        link.href = canvas.toDataURL('image/jpeg', 1.0);
-        link.click();
-    }).catch(err => {
-        console.error("Screenshot failed: ", err);
-        targetDiv.style.transform = origTransform;
-        targetDiv.style.width = origW;
-        targetDiv.style.minWidth = origMinWidth;
-        targetDiv.style.height = origH;
-        targetDiv.style.position = origPos;
-    });
-}
-</script>
-<button onclick="triggerDownload()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px;">
-    📸 Take Screenshot & Download (.jpg)
-</button>
-"""
-components.html(download_trigger_code, height=60, scrolling=False)
-    
