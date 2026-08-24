@@ -1554,56 +1554,104 @@ else:
 # =============================================================================================================================    
 import streamlit.components.v1 as components
 
-# --- 1. YOUR ORIGINAL TABLE (Keep this as it is) ---
-# st.markdown(html_grid, unsafe_allow_html=True)
+# --- 1. YOUR ORIGINAL TABLE CODE ---
+active_hours = set()
+for section in active_sched:
+    for b in section["blocks"]:
+        active_hours.add(b["start_time"])
 
-# --- 2. THE ONE-CLICK SCREENSHOT BUTTON COMPONENT ---
-button_component = """
+html_grid = "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; margin: 0px; width: 100%; box-sizing: border-box;'>"
+html_grid += "<table dir='rtl' style='width:100%; height: 100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
+html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الوقت</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الأحد</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الاثنين</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الثلاثاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الأربعاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 18px;'>الخميس</th></tr>"
+
+col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+sorted_active_hours = sorted(list(active_hours))
+
+for hour in sorted_active_hours:
+    html_grid += "<tr style='background-color: #000000; border: 2px solid #333333;'>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 18px;'><b>{hour}:00</b></td>"
+
+    row_cells = [""] * 5
+    for section in active_sched:
+        for b in section["blocks"]:
+            if b["start_time"] == hour:
+                c_idx = col_map_html.get(b["day"])
+                if c_idx:
+                    code_val = section.get('code', '')
+                    sec_id = section.get('id', '')
+                    raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
+                    details_display = f"<br><small style='color: #a0a0a0; font-size: 14px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #a0a0a0; font-size: 14px;'>(شـ {sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 19px;'>{code_val}</b>{details_display}"
+
+    for idx, c in enumerate(row_cells):
+        day_num = idx + 1
+        if not c and day_num == 2 and hour == 10:
+            html_grid += "<td style='border: 2px solid #333333; padding: 12px; background-color: #220306;'></td>"
+        elif c:
+            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; background-color: #000000; color: #ffffff;'>{c}</td>"
+        else:
+            crossed_lines_bg = (
+                "background-color: #000000; "
+                "background-image: linear-gradient(45deg, #16261a 25%, transparent 25%), "
+                "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
+                "linear-gradient(45deg, transparent 75%, #16261a 75%), "
+                "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
+                "background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"
+            )
+            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; {crossed_lines_bg}'></td>"
+    html_grid += "</tr>"
+html_grid += "</table></div>"
+
+# --- 2. COMBINE TABLE AND WORKING BUTTON INTO A SINGLE COMPONENT ---
+combined_html = f"""
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background-color: transparent; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }}
     </style>
 </head>
 <body>
-    <button onclick="takeScreenshot()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s;">
+    {html_grid}
+    
+    <button onclick="takeScreenshot()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; transition: 0.2s;">
         📸 Take Screenshot & Download (.jpg)
     </button>
 
     <script>
-    function takeScreenshot() {
-        const parentDoc = window.parent.document;
-        const targetDiv = parentDoc.getElementById('schedule-capture-area');
-        
-        if (!targetDiv) {
-            alert("Schedule area not found!");
-            return;
-        }
+    function takeScreenshot() {{
+        const targetDiv = document.getElementById('schedule-capture-area');
 
-        html2canvas(targetDiv, { 
+        html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
             scale: 3, 
             useCORS: true
-        }).then(canvas => {
+        }}).then(canvas => {{
             const link = document.createElement('a');
             link.download = 'SEM03_TIMETABLE.jpg';
             link.href = canvas.toDataURL('image/jpeg', 1.0);
             link.click();
-        }).catch(err => {
+        }}).catch(err => {{
             console.error("Screenshot failed: ", err);
             alert("Screenshot failed. Please try again.");
-        });
-    }
+        }});
+    }}
     </script>
 </body>
 </html>
 """
 
-# Renders just the clean download button right under your original table
-components.html(button_component, height=65, scrolling=False)
+st.subheader("A. Visual View")
+components.html(combined_html, height=480, scrolling=False)
 # =============================================================================================================================
 # =============================================================================================================================    
 # =============================================================================================================================    
