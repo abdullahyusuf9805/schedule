@@ -1416,8 +1416,8 @@ bulletproof_unified_html = f"""
 </html>
 """
 
-# Dynamic component height scaling securely based on active rows so nothing gets cut off at 200% zoom
-components.html(bulletproof_unified_html, height=calculated_min_height, scrolling=False)
+# Generous fixed component height of 650px to ensure rows and button are never clipped
+components.html(bulletproof_unified_html, height=650, scrolling=False)
 
 # ==========================================
 # 15. B. EXCEL VIEW
