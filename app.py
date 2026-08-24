@@ -1464,75 +1464,59 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# --- 2. UNIFIED COMPONENT WITH BUTTON INSIDE PROPER FLOW ---
-combined_html = f"""
+# --- 2. RENDER TABLE & BUTTON CLEARLY SEPARATED ---
+table_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }}
-        #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; }}
-        #download-btn {{
-            background-color: #212121;
-            color: white;
-            border: 1px solid #333333;
-            padding: 12px 20px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 900px;
-            font-weight: bold;
-            margin-top: 15px;
-            box-sizing: border-box;
-            transition: 0.2s;
-        }}
-        #download-btn:hover {{ background-color: #333333; }}
-    </style>
+    <style>body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }}</style>
 </head>
 <body>
-    <div id="container">
-        {html_grid}
-        <button id="download-btn" onclick="takeScreenshot()">📸 Take Screenshot & Download (.jpg)</button>
-    </div>
-
+    {html_grid}
     <script>
     function resizeTable() {{
         const wrapper = document.querySelector('.scaler-wrapper');
         const targetDiv = document.getElementById('schedule-capture-area');
-        const btn = document.getElementById('download-btn');
-        const availableWidth = window.innerWidth - 30; // Accounting for padding
-        
+        const availableWidth = wrapper.parentElement.clientWidth || window.innerWidth;
         const scale = availableWidth / 900;
         targetDiv.style.transform = `scale(${{scale}})`;
-        const scaledHeight = targetDiv.offsetHeight * scale;
-        wrapper.style.height = `${{scaledHeight}}px`;
-
-        // Dynamically size the iframe container height so nothing ever cuts off or overlaps
-        const totalHeight = scaledHeight + btn.offsetHeight + 40;
-        if (window.parent && window.parent.document) {{
-            const iframes = window.parent.document.querySelectorAll('iframe');
-            iframes.forEach(iframe => {{
-                try {{
-                    if (iframe.contentWindow === window) {{
-                        iframe.style.height = totalHeight + 'px';
-                    }}
-                }} catch(e) {{}}
-            }});
-        }}
+        wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
     }}
-
     window.addEventListener('resize', resizeTable);
     window.addEventListener('load', resizeTable);
     setTimeout(resizeTable, 50);
-    setTimeout(resizeTable, 300);
+    </script>
+</body>
+</html>
+"""
 
-    function takeScreenshot() {{
-        const targetDiv = document.getElementById('schedule-capture-area');
+st.subheader("A. Visual View")
+# Giving the table component a generous, safe height
+components.html(table_html, height=430, scrolling=False)
+
+# Dedicated button component right below with its own independent container
+button_html = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>body { background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body>
+    <button onclick="takeScreenshot()" style="background-color: #212121; color: white; border: 1px solid #333333; padding: 12px 20px; font-family: 'Tajawal', sans-serif; font-size: 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; box-sizing: border-box;">
+        📸 Take Screenshot & Download (.jpg)
+    </button>
+    <script>
+    function takeScreenshot() {
+        const iframe = window.parent.document.querySelector('iframe');
+        if (!iframe) return;
+        const innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const targetDiv = innerDoc.getElementById('schedule-capture-area');
         
         const origTransform = targetDiv.style.transform;
         const origW = targetDiv.style.width;
@@ -1546,7 +1530,7 @@ combined_html = f"""
         targetDiv.style.height = "1000px";
         targetDiv.style.position = "absolute";
 
-        html2canvas(targetDiv, {{ 
+        html2canvas(targetDiv, { 
             backgroundColor: '#000000', 
             scale: 1, 
             width: 1700,
@@ -1554,34 +1538,29 @@ combined_html = f"""
             windowWidth: 1700,
             windowHeight: 1000,
             useCORS: true
-        }}).then(canvas => {{
+        }).then(canvas => {
             targetDiv.style.transform = origTransform;
             targetDiv.style.width = origW;
             targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
-            resizeTable();
 
             const link = document.createElement('a');
             link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
             link.href = canvas.toDataURL('image/jpeg', 1.0);
             link.click();
-        }}).catch(err => {{
+        }).catch(err => {
             console.error("Screenshot failed: ", err);
             targetDiv.style.transform = origTransform;
             targetDiv.style.width = origW;
             targetDiv.style.minWidth = origMinWidth;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
-            resizeTable();
-            alert("Screenshot failed. Please try again.");
-        }});
-    }}
+        });
+    }
     </script>
 </body>
 </html>
 """
-
-st.subheader("A. Visual View")
-components.html(combined_html, height=520, scrolling=False)
+components.html(button_html, height=60, scrolling=False)
 
