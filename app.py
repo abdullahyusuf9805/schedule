@@ -1630,18 +1630,42 @@ combined_html = f"""
     <script>
     function takeScreenshot() {{
         const targetDiv = document.getElementById('schedule-capture-area');
+        
+        // Temporarily enforce exact 1700x1000 dimensions and scale up text to fit the boxes cleanly
+        const origW = targetDiv.style.width;
+        const origH = targetDiv.style.height;
+        const origPos = targetDiv.style.position;
+        const origSize = targetDiv.style.fontSize;
+
+        targetDiv.style.width = "1700px";
+        targetDiv.style.height = "1000px";
+        targetDiv.style.position = "absolute";
+        targetDiv.style.fontSize = "24px"; // Scales up text to perfectly fill the 1700x1000 frame
 
         html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
-            scale: 3, 
+            scale: 1, 
+            width: 1700,
+            height: 1000,
+            windowWidth: 1700,
+            windowHeight: 1000,
             useCORS: true
         }}).then(canvas => {{
+            targetDiv.style.width = origW;
+            targetDiv.style.height = origH;
+            targetDiv.style.position = origPos;
+            targetDiv.style.fontSize = origSize;
+
             const link = document.createElement('a');
-            link.download = 'SEM03_TIMETABLE.jpg';
+            link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
             link.href = canvas.toDataURL('image/jpeg', 1.0);
             link.click();
         }}).catch(err => {{
             console.error("Screenshot failed: ", err);
+            targetDiv.style.width = origW;
+            targetDiv.style.height = origH;
+            targetDiv.style.position = origPos;
+            targetDiv.style.fontSize = origSize;
             alert("Screenshot failed. Please try again.");
         }});
     }}
