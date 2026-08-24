@@ -1411,9 +1411,7 @@ unified_visual_html = f"""
 </html>
 """
 
-# Safe generous iframe height (table + button + spacing)
-components.html(unified_visual_html, height=560, scrolling=False)
-
+components.html(unified_visual_html, height=480, scrolling=False)
 # ==========================================
 # 15. B. EXCEL VIEW
 # ==========================================
