@@ -1560,9 +1560,9 @@ for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-# Fixed-width container representing your "desktop" layout size (e.g., 900px wide)
-html_grid = "<div class='scaler-wrapper' style='width: 100%; overflow: hidden; background-color: #000000;'>"
-html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; transform-origin: top right;'>"
+# Centered fluid container that scales like an image across the full screen width
+html_grid = "<div class='scaler-wrapper' style='width: 100%; display: flex; justify-content: center; overflow: hidden; background-color: #000000;'>"
+html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 900px; min-width: 900px; box-sizing: border-box; transform-origin: top center;'>"
 html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
 html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px; white-space: nowrap;'>الوقت</th>"
@@ -1610,7 +1610,7 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# --- 2. COMPONENT WITH AUTO-SCALING SCRIPT & 1700x1000 HD DOWNLOAD ---
+# --- 2. COMPONENT WITH AUTO-FIT WIDTH & 1700x1000 HD DOWNLOAD ---
 combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1630,19 +1630,20 @@ combined_html = f"""
     </button>
 
     <script>
-    // Automatically scale the table like an image to fit any mobile/desktop screen width perfectly!
     function resizeTable() {{
         const wrapper = document.querySelector('.scaler-wrapper');
         const targetDiv = document.getElementById('schedule-capture-area');
         const availableWidth = wrapper.clientWidth;
         
+        // Fills the screen width completely while maintaining aspect ratio like an image
         if (availableWidth < 900) {{
             const scale = availableWidth / 900;
             targetDiv.style.transform = `scale(${{scale}})`;
             wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
         }} else {{
-            targetDiv.style.transform = 'scale(1)';
-            wrapper.style.height = 'auto';
+            const scale = availableWidth / 900;
+            targetDiv.style.transform = `scale(${{scale}})`;
+            wrapper.style.height = `${{targetDiv.offsetHeight * scale}}px`;
         }}
     }}
 
@@ -1653,7 +1654,6 @@ combined_html = f"""
     function takeScreenshot() {{
         const targetDiv = document.getElementById('schedule-capture-area');
         
-        // Remove scaling temporarily to capture the pristine full 1700x1000 HD version
         const origTransform = targetDiv.style.transform;
         const origW = targetDiv.style.width;
         const origMinWidth = targetDiv.style.minWidth;
@@ -1703,4 +1703,4 @@ combined_html = f"""
 """
 
 st.subheader("A. Visual View")
-components.html(combined_html, height=450, scrolling=False)
+components.html(combined_html, height=480, scrolling=False)
