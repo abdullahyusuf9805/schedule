@@ -1554,30 +1554,31 @@ else:
 # =============================================================================================================================    
 import streamlit.components.v1 as components
 
-# --- 1. BUILD THE RESPONSIVE HTML TABLE ---
+# --- 1. BUILD THE FULLY RESPONSIVE, NO-WRAP HTML TABLE ---
 active_hours = set()
 for section in active_sched:
     for b in section["blocks"]:
         active_hours.add(b["start_time"])
 
-# Outer wrapper with horizontal scrolling enabled for mobile screens
+# width: 100% ensures it fits any screen size, overflow-x handles smaller mobile windows gracefully
 html_grid = "<div style='width: 100%; overflow-x: auto; background-color: #000000; padding: 5px; box-sizing: border-box;'>"
-html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; min-width: 650px; box-sizing: border-box;'>"
-html_grid += "<table dir='rtl' style='width:100%; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
+html_grid += "<div id='schedule-capture-area' style='background-color: #000000; padding: 10px; width: 100%; box-sizing: border-box;'>"
+# table-layout: fixed combined with nowrap ensures columns distribute evenly and text stays strictly on one line
+html_grid += "<table dir='rtl' style='width:100%; table-layout: fixed; text-align:center; border-collapse: collapse; font-family: \"Tajawal\", sans-serif; background-color: #000000; color: #ffffff; border: 2px solid #333333;'>"
 html_grid += "<tr style='background-color: #212121; color: #ffffff;'>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الوقت</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الأحد</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الاثنين</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الثلاثاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الأربعاء</th>"
-html_grid += "<th style='border: 2px solid #333333; padding: 12px; color: #ffffff; font-size: 16px;'>الخميس</th></tr>"
+html_grid += "<th style='border: 2px solid #333333; padding: 10px; color: #ffffff; font-size: 15px; white-space: nowrap;'>الوقت</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 10px; color: #ffffff; font-size: 15px; white-space: nowrap;'>الأحد</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 10px; color: #ffffff; font-size: 15px; white-space: nowrap;'>الاثنين</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 10px; color: #ffffff; font-size: 15px; white-space: nowrap;'>الثلاثاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 10px; color: #ffffff; font-size: 15px; white-space: nowrap;'>الأربعاء</th>"
+html_grid += "<th style='border: 2px solid #333333; padding: 10px; color: #ffffff; font-size: 15px; white-space: nowrap;'>الخميس</th></tr>"
 
 col_map_html = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
 sorted_active_hours = sorted(list(active_hours))
 
 for hour in sorted_active_hours:
     html_grid += "<tr style='background-color: #000000; border: 2px solid #333333;'>"
-    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 12px; font-size: 16px;'><b>{hour}:00</b></td>"
+    html_grid += f"<td style='background-color: #212121; color: #ffffff; border: 2px solid #333333; padding: 10px; font-size: 15px; white-space: nowrap;'><b>{hour}:00</b></td>"
 
     row_cells = [""] * 5
     for section in active_sched:
@@ -1588,15 +1589,16 @@ for hour in sorted_active_hours:
                     code_val = section.get('code', '')
                     sec_id = section.get('id', '')
                     raw_hall = str(section.get('hall', '')).replace("ش", "").replace("SHR", "").strip()
-                    details_display = f"<br><small style='color: #c0c0c0; font-size: 13px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f"<br><small style='color: #c0c0c0; font-size: 13px;'>(شـ {sec_id})</small>"
-                    row_cells[c_idx - 1] = f"<b style='color: #ffffff; font-size: 17px; line-height: 1.4;'>{code_val}</b>{details_display}"
+                    # Using inline-block and nowrap to guarantee details stay on the exact same line as the code
+                    details_display = f" <small style='color: #c0c0c0; font-size: 12px;'>(شـ {sec_id} - قــ {raw_hall})</small>" if raw_hall else f" <small style='color: #c0c0c0; font-size: 12px;'>(شـ {sec_id})</small>"
+                    row_cells[c_idx - 1] = f"<span style='white-space: nowrap;'><b style='color: #ffffff; font-size: 15px;'>{code_val}</b>{details_display}</span>"
 
     for idx, c in enumerate(row_cells):
         day_num = idx + 1
         if not c and day_num == 2 and hour == 10:
-            html_grid += "<td style='border: 2px solid #333333; padding: 12px; background-color: #220306;'></td>"
+            html_grid += "<td style='border: 2px solid #333333; padding: 10px; background-color: #220306; white-space: nowrap;'></td>"
         elif c:
-            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; background-color: #000000; color: #ffffff;'>{c}</td>"
+            html_grid += f"<td style='border: 2px solid #333333; padding: 10px; background-color: #000000; color: #ffffff; white-space: nowrap;'>{c}</td>"
         else:
             crossed_lines_bg = (
                 "background-color: #000000; "
@@ -1604,13 +1606,13 @@ for hour in sorted_active_hours:
                 "linear-gradient(-45deg, #16261a 25%, transparent 25%), "
                 "linear-gradient(45deg, transparent 75%, #16261a 75%), "
                 "linear-gradient(-45deg, transparent 75%, #16261a 75%); "
-                "background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"
+                "background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;"
             )
-            html_grid += f"<td style='border: 2px solid #333333; padding: 12px; {crossed_lines_bg}'></td>"
+            html_grid += f"<td style='border: 2px solid #333333; padding: 10px; {crossed_lines_bg} white-space: nowrap;'></td>"
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-# --- 2. COMPONENT WITH FIXED 1700x1000 IMAGE CAPTURE ---
+# --- 2. COMPONENT WITH 1700x1000 IMAGE CAPTURE ---
 combined_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1636,13 +1638,10 @@ combined_html = f"""
         const origW = targetDiv.style.width;
         const origH = targetDiv.style.height;
         const origPos = targetDiv.style.position;
-        const origSize = targetDiv.style.fontSize;
 
-        // Force exact 1700x1000 dimensions and scale up font for the downloaded picture
         targetDiv.style.width = "1700px";
         targetDiv.style.height = "1000px";
         targetDiv.style.position = "absolute";
-        targetDiv.style.fontSize = "28px";
 
         html2canvas(targetDiv, {{ 
             backgroundColor: '#000000', 
@@ -1656,7 +1655,6 @@ combined_html = f"""
             targetDiv.style.width = origW;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
-            targetDiv.style.fontSize = origSize;
 
             const link = document.createElement('a');
             link.download = 'SEM03_TIMETABLE_1700x1000.jpg';
@@ -1667,7 +1665,6 @@ combined_html = f"""
             targetDiv.style.width = origW;
             targetDiv.style.height = origH;
             targetDiv.style.position = origPos;
-            targetDiv.style.fontSize = origSize;
             alert("Screenshot failed. Please try again.");
         }});
     }}
