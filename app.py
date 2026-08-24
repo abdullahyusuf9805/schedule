@@ -1253,7 +1253,7 @@ else:
 
 
 # ==========================================
-# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON (100% BULLETPROOF)
+# 14. A. VISUAL VIEW TABLE & DOWNLOAD BUTTON (100% BULLETPROOF FLUID BLOCK)
 # ==========================================
 st.subheader("A. Visual View")
 
@@ -1311,7 +1311,10 @@ for hour in sorted_active_hours:
     html_grid += "</tr>"
 html_grid += "</table></div></div>"
 
-bulletproof_html = f"""
+# Calculate a safe minimum pixel height based on row count so it never collapses
+calculated_min_height = 180 + (len(sorted_active_hours) * 65)
+
+bulletproof_unified_html = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1319,7 +1322,7 @@ bulletproof_html = f"""
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: visible; }}
+        body {{ background-color: #000000; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; overflow: hidden; }}
         #container {{ width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; }}
         #download-btn {{
             background-color: #212121;
@@ -1356,25 +1359,11 @@ bulletproof_html = f"""
         targetDiv.style.transform = `scale(${{scale}})`;
         const scaledHeight = targetDiv.offsetHeight * scale;
         wrapper.style.height = `${{scaledHeight}}px`;
-        
-        // Dynamically match body height so iframe never cuts off
-        document.body.style.height = (scaledHeight + 70) + 'px';
-        if (window.parent && window.parent.document) {{
-            const iframes = window.parent.document.querySelectorAll('iframe');
-            iframes.forEach(iframe => {{
-                try {{
-                    if (iframe.contentWindow === window) {{
-                        iframe.style.height = (scaledHeight + 80) + 'px';
-                    }}
-                }} catch(e) {{}}
-            }});
-        }}
     }}
 
     window.addEventListener('resize', resizeTable);
     window.addEventListener('load', resizeTable);
     setTimeout(resizeTable, 50);
-    setTimeout(resizeTable, 300);
 
     function takeScreenshot() {{
         const targetDiv = document.getElementById('schedule-capture-area');
@@ -1427,9 +1416,8 @@ bulletproof_html = f"""
 </html>
 """
 
-# Generous base height with auto-resizing script tracking zoom changes
-components.html(bulletproof_html, height=520, scrolling=False)
-
+# Dynamic component height scaling securely based on active rows so nothing gets cut off at 200% zoom
+components.html(bulletproof_unified_html, height=calculated_min_height, scrolling=False)
 
 # ==========================================
 # 15. B. EXCEL VIEW
